@@ -45,6 +45,7 @@ redisName=cache${appName}001
 aks=k8s${appName}001
 nodeRG=${RG}_nodes 
 msiIdentity=${appName}identity001
+storageAccountName=${appName}sa001
 
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
@@ -71,7 +72,6 @@ az cosmosdb collection create -g ${RG} -n ${cosmosDBAccountName} -d ${database} 
 
 ## Set Cosmos Connection String in Key Vault
 cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${RG} --query 'connectionStrings[0].connectionString' -o tsv`
-az keyvault secret set --vault-name ${keyVaultName} --name cosmosConnectionString --value ${cosmosConnectionString}
 
 #Create Event Hub
 hub=events
@@ -80,7 +80,6 @@ az eventhubs eventhub create -g ${RG} --namespace-name ${eventHubNameSpace} -n $
 
 ## Set Event Hub Connection String in Key Vault
 ehConnectionString=`az eventhubs namespace authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace} --name RootManageSharedAccessKey -o tsv --query primaryConnectionString`
-az keyvault secret set --vault-name ${keyVaultName} --name ehConnectionString --value ${ehConnectionString}
 
 #Create Redis Cache
 az redis create  -g ${RG} -n ${redisName} -l ${location} --sku standard --vm-size c1 --minimum-tls-version 1.2   
@@ -88,7 +87,26 @@ az redis create  -g ${RG} -n ${redisName} -l ${location} --sku standard --vm-siz
 ## Set Redis Connection String in Key Vault
 redisKey=`az redis list-keys  -g ${RG} -n ${redisName} -o tsv --query primaryKey`
 redisConnectionString=${redisName}.redis.cache.windows.net:6380,password=${redisKey}=,ssl=True,abortConnect=False
-az keyvault secret set --vault-name ${keyVaultName} --name redisConnectionString --value ${redisConnectionString}
+
+#Create Azure Storage
+az storage account create --name ${storageAccountName} --location $location --resource-group $RG --sku Standard_LRS
+storageKey=`az storage account keys list -n ${storageAccountName} --query '[0].value' -o tsv`
+storageConnectionString="DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageKey}"
+
+#Set localSettings Secret for Azure Functions 
+read -d '' localSettings << EOF
+{
+    \"IsEncrypted\": false,
+    \"Values\": {
+        \"AzureWebJobsStorage\": \"${storageConnectionString}\",
+        \"FUNCTIONS_WORKER_RUNTIME\": \"dotnet\",
+        \"EVENTHUB_CONNECTIONSTRING\": \"${ehConnectionString}\",
+        \"COSMOSDB_CONNECTIONSTRING\": \"${cosmosConnectionString}\",
+        \"REDISCACHE_CONNECTIONSTRING\": \"${redisConnectionString}\"
+    }
+}
+EOF
+az keyvault secret set --vault-name ${keyVaultName} --name localSettings --value "${localSettings}" 
 
 #Create AKS
 az aks create -n ${aks} -g ${RG} -l ${location} --load-balancer-sku standard --node-count 3 --node-resource-group ${nodeRG} --ssh-key-value '~/.ssh/id_rsa.pub' 
@@ -99,7 +117,7 @@ vmss=`az vmss list -g ${nodeRG}`
 vmssName=`echo ${vmss} | jq '.[0].name' | tr -d \"`
 vmssIdentity=`az vmss identity assign -n ${vmssName} -g ${nodeRG}`
 clientId=`echo ${vmssIdentity} | jq .systemAssignedIdentity | tr -d \"`
-az keyvault set-policy -n ${keyVaultName} --key-permissions get --object-id ${clientId}
+az keyvault set-policy -n ${keyVaultName} --secret-permissions get --object-id ${clientId}
 
 ## Helm Init 
 kubectl create serviceaccount --namespace kube-system tiller

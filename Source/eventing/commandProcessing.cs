@@ -7,12 +7,18 @@ using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
-namespace eventing
+namespace Eventing
 {
-    public static class commandProcessing
+    public static class CommandProcessing
     {
-        [FunctionName("commandProcessing")]
-        public static async Task Run([EventHubTrigger("samples-workitems", Connection = "")] EventData[] events, ILogger log)
+        [FunctionName("CommandProcessing")]
+        public static async Task Run(
+            [EventHubTrigger("events", Connection = "%EVENTHUB_CONNECTIONSTRING%")] EventData[] events,
+            [CosmosDB(
+                databaseName: "AesKeys", 
+                collectionName: "Items", 
+                ConnectionStringSetting = "%COSMOSDB_CONNECTIONSTRING%")] dynamic document,
+            ILogger log)
         {
             var exceptions = new List<Exception>();
 
@@ -21,20 +27,14 @@ namespace eventing
                 try
                 {
                     string messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
-
-                    // Replace these two lines with your processing logic.
                     log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
                     await Task.Yield();
                 }
                 catch (Exception e)
                 {
-                    // We need to keep processing the rest of the batch - capture this exception and continue.
-                    // Also, consider capturing details of the message that failed processing so it can be processed again later.
                     exceptions.Add(e);
                 }
             }
-
-            // Once processing of the batch is complete, if any messages in the batch failed processing throw an exception so that there is a record of the failure.
 
             if (exceptions.Count > 1)
                 throw new AggregateException(exceptions);
