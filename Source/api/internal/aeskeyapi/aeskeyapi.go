@@ -21,8 +21,8 @@ type KeyAmount struct {
 type Random struct {
 	Time string
     Host string
-	Number int
-	AesKey string
+	KeyId int
+	Key string
 }
 
 func createKey() (string) {

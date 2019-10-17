@@ -86,7 +86,7 @@ az redis create  -g ${RG} -n ${redisName} -l ${location} --sku standard --vm-siz
 
 ## Set Redis Connection String in Key Vault
 redisKey=`az redis list-keys  -g ${RG} -n ${redisName} -o tsv --query primaryKey`
-redisConnectionString=${redisName}.redis.cache.windows.net:6380,password=${redisKey}=,ssl=True,abortConnect=False
+redisConnectionString=${redisName}.redis.cache.windows.net:6380,password=${redisKey},ssl=True,abortConnect=False
 
 #Create Azure Storage
 az storage account create --name ${storageAccountName} --location $location --resource-group $RG --sku Standard_LRS
