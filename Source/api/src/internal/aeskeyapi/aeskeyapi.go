@@ -32,7 +32,7 @@ type AesKey struct {
 }
 
 func createUUID() (string) {
-	
+
 	buf := make([]byte, 16)
 
 	if _, err := rand.Read(buf); err != nil {
@@ -115,6 +115,12 @@ func (eh *newAPIHandler) newAesKeyHandler(w http.ResponseWriter, r *http.Request
 		encodedAesKey, _ := json.Marshal(key)
 		events  = append(events, eventhub.NewEventFromString(string(encodedAesKey)))
 		i += 1
+	}
+
+	err := sendEvents(events)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
