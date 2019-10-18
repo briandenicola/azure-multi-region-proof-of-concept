@@ -72,7 +72,6 @@ func readRequestBody(r *http.Request) (int) {
 
 	b, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(b, &k)
-
 	return k.NumberOfKeys	
 }
 
@@ -109,7 +108,9 @@ func (eh *newAPIHandler) newAesKeyHandler(w http.ResponseWriter, r *http.Request
 	)
 	
 	i := 0
-	for i < readRequestBody(r) {
+	keysToGenerator := readRequestBody(r)
+
+	for i < keysToGenerator {
 		key := createKeyObject()
 		aesKeys = append(aesKeys, key)
 		encodedAesKey, _ := json.Marshal(key)
@@ -134,10 +135,11 @@ func (eh *newAPIHandler) optionsHandler(w http.ResponseWriter, r *http.Request) 
 func (eh *newAPIHandler) InitHttpServer(port string) {
 
 	var (
-		err   error
+		err   	error
+		hubName = "events"
 	)
 
-	kafkaConStr := os.Getenv("EVENTHUB_CONNECTIONSTRING")
+	kafkaConStr := os.Getenv("EVENTHUB_CONNECTIONSTRING") + ";EntityPath=" + hubName
 	client, err = eventhub.NewHubFromConnectionString(kafkaConStr)
 
 	if err != nil {
