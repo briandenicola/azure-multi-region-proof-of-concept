@@ -16,7 +16,11 @@ import (
 	"github.com/Azure/azure-event-hubs-go"
 )
 
-type Generator struct {
+var (
+	client *eventhub.Hub
+)
+
+type RequestBody struct {
 	NumberOfKeys int
 }
 
@@ -28,6 +32,7 @@ type AesKey struct {
 }
 
 func createUUID() (string) {
+	
 	buf := make([]byte, 16)
 
 	if _, err := rand.Read(buf); err != nil {
@@ -37,6 +42,7 @@ func createUUID() (string) {
 }
 
 func createKey() (string) {
+
 	buf := make([]byte, 64) 
 	if _, err := rand.Read(buf); err != nil {
 		panic(err.Error())
@@ -46,9 +52,9 @@ func createKey() (string) {
 	return(key)
 }
 
-func createKeys() (AesKey) {
+func createKeyObject() (AesKey) {
+	
 	host, _ := os.Hostname()
-
 	event := AesKey{ 
 		createUUID(),
 		createKey(),
@@ -56,6 +62,35 @@ func createKeys() (AesKey) {
 		time.Now().Format(time.RFC850)}
 
 	return event
+}
+
+func readRequestBody(r *http.Request) (int) {
+
+	var (
+		k RequestBody
+	)
+
+	b, _ := ioutil.ReadAll(r.Body)
+	json.Unmarshal(b, &k)
+
+	return k.NumberOfKeys	
+}
+
+func sendEvents(events []*eventhub.Event) (error) {
+
+	var (
+		err   error
+	)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	err = client.SendBatch(ctx, eventhub.NewEventBatchIterator(events...))
+	if err != nil {
+		return err
+	} else {
+		return nil 
+	}
 }
 
 type newAPIHandler struct { }
@@ -67,39 +102,22 @@ func (eh *newAPIHandler) getAesKeysHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (eh *newAPIHandler) newAesKeyHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	
-	aesKeys :=  []AesKey{}
-	var events  []*eventhub.Event
-
-	var k Generator
-	b, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(b, &k)
-
-	kafkaConStr := os.Getenv("EVENTHUB_CONNECTIONSTRING")
-	client, err := eventhub.NewHubFromConnectionString(kafkaConStr)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	var(
+		events  []*eventhub.Event
+		aesKeys []AesKey
+	)
 	
 	i := 0
-	for i < k.NumberOfKeys {
-		key := createKeys()
+	for i < readRequestBody(r) {
+		key := createKeyObject()
 		aesKeys = append(aesKeys, key)
 		encodedAesKey, _ := json.Marshal(key)
 		events  = append(events, eventhub.NewEventFromString(string(encodedAesKey)))
 		i += 1
 	}
-	err = client.SendBatch(ctx, eventhub.NewEventBatchIterator(events...))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	json.NewEncoder(w).Encode(aesKeys)
 }
 
@@ -108,6 +126,19 @@ func (eh *newAPIHandler) optionsHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (eh *newAPIHandler) InitHttpServer(port string) {
+
+	var (
+		err   error
+	)
+
+	kafkaConStr := os.Getenv("EVENTHUB_CONNECTIONSTRING")
+	client, err = eventhub.NewHubFromConnectionString(kafkaConStr)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	r := mux.NewRouter()
 	apirouter := r.PathPrefix("/api").Subrouter()
 	apirouter.Methods("GET").Path("/keys").HandlerFunc(eh.getAesKeysHandler)
