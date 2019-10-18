@@ -56,7 +56,8 @@ namespace Eventing
                 }
             }
             
-            lazyConnection.Value.Dispose();
+            //Bad Bad Bad but need to understand best practices around Redis and Azure Functions disposals()
+            //lazyConnection.Value.Dispose();
 
             if (exceptions.Count > 1)
                 throw new AggregateException(exceptions);

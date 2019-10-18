@@ -37,6 +37,7 @@ if [[ -z "${appName}" ]]; then
   appName=`cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1`
 fi 
 
+ACRID=/subscriptions/{}/resourceGroups/{}/providers/Microsoft.ContainerRegistry/registries/bjd145
 cosmosDBAccountName=db${appName}001
 functionAppName=func${appName}001
 eventHubNameSpace=hub${appName}001
@@ -72,6 +73,7 @@ az cosmosdb collection create -g ${RG} -n ${cosmosDBAccountName} -d ${database} 
 
 ## Set Cosmos Connection String in Key Vault
 cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${RG} --query 'connectionStrings[0].connectionString' -o tsv`
+az keyvault secret set --vault-name ${keyVaultName} --name cosmosConnectionString --value ${cosmosConnectionString}
 
 #Create Event Hub
 hub=events
@@ -80,6 +82,7 @@ az eventhubs eventhub create -g ${RG} --namespace-name ${eventHubNameSpace} -n $
 
 ## Set Event Hub Connection String in Key Vault
 ehConnectionString=`az eventhubs namespace authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace} --name RootManageSharedAccessKey -o tsv --query primaryConnectionString`
+az keyvault secret set --vault-name ${keyVaultName} --name ehConnectionString --value ${ehConnectionString}
 
 #Create Redis Cache
 az redis create  -g ${RG} -n ${redisName} -l ${location} --sku standard --vm-size c1 --minimum-tls-version 1.2   
@@ -87,6 +90,7 @@ az redis create  -g ${RG} -n ${redisName} -l ${location} --sku standard --vm-siz
 ## Set Redis Connection String in Key Vault
 redisKey=`az redis list-keys  -g ${RG} -n ${redisName} -o tsv --query primaryKey`
 redisConnectionString=${redisName}.redis.cache.windows.net:6380,password=${redisKey},ssl=True,abortConnect=False
+az keyvault secret set --vault-name ${keyVaultName} --name redisConnectionString --value ${redisConnectionString}
 
 #Create Azure Storage
 az storage account create --name ${storageAccountName} --location $location --resource-group $RG --sku Standard_LRS
@@ -95,21 +99,22 @@ storageConnectionString="DefaultEndpointsProtocol=https;AccountName=${storageAcc
 
 #Set localSettings Secret for Azure Functions 
 read -d '' localSettings << EOF
-{
-    \"IsEncrypted\": false,
-    \"Values\": {
-        \"AzureWebJobsStorage\": \"${storageConnectionString}\",
-        \"FUNCTIONS_WORKER_RUNTIME\": \"dotnet\",
-        \"EVENTHUB_CONNECTIONSTRING\": \"${ehConnectionString}\",
-        \"COSMOSDB_CONNECTIONSTRING\": \"${cosmosConnectionString}\",
-        \"REDISCACHE_CONNECTIONSTRING\": \"${redisConnectionString}\"
-    }
-}
+{ \
+  \"IsEncrypted\": false, \
+  \"Values\": { \
+        \"AzureWebJobsStorage\": \"${storageConnectionString}\",        \
+        \"FUNCTIONS_WORKER_RUNTIME\": \"dotnet\",                       \
+        \"EVENTHUB_CONNECTIONSTRING\": \"${ehConnectionString}\",       \
+        \"COSMOSDB_CONNECTIONSTRING\": \"${cosmosConnectionString}\",   \
+        \"REDISCACHE_CONNECTIONSTRING\": \"${redisConnectionString}\"   \
+    } \
+} \
 EOF
-az keyvault secret set --vault-name ${keyVaultName} --name localSettings --value "${localSettings}" 
+echo -e "${localSettings}" > ./local.settings.json
 
 #Create AKS
 az aks create -n ${aks} -g ${RG} -l ${location} --load-balancer-sku standard --node-count 3 --node-resource-group ${nodeRG} --ssh-key-value '~/.ssh/id_rsa.pub' 
+az aks update -n ${aks} -g ${RG} --attach-acr ${ACRID}
 az aks get-credentials -n ${aks} -g ${RG} 
 
 ## Pod Identity for AKS
@@ -130,3 +135,6 @@ helm install stable/traefik --name traefik --namespace kube-system
 ## Flexvol for KeyVault and Pod Identity 
 kubectl apply -f https://raw.githubusercontent.com/Azure/kubernetes-keyvault-flexvol/master/deployment/kv-flexvol-installer.yaml
 kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
+
+## Install Keda
+# TBD
