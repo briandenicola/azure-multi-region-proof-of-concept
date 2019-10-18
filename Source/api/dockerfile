@@ -6,7 +6,7 @@ WORKDIR $GOPATH/src/cmd
 
 RUN go get github.com/rs/cors
 RUN go get github.com/gorilla/mux
-RUN go get github.com/Azure/azure-event-hubs-go/v2
+RUN go get github.com/Azure/azure-event-hubs-go
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /main .
 
 FROM scratch
