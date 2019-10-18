@@ -7,37 +7,27 @@ using Newtonsoft.Json;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Fbeltrao.AzureFunctionExtensions;
 using StackExchange.Redis;
 
 namespace Eventing
 {
     public static class CommandProcessing
     {
-        private static Lazy<ConnectionMultiplexer> lazyConnection = new Lazy<ConnectionMultiplexer>(() =>
-        {
-            string cacheConnection =  System.Environment.GetEnvironmentVariable("REDISCACHE_CONNECTIONSTRING");
-            return ConnectionMultiplexer.Connect(cacheConnection);
-        });
-
-        public static ConnectionMultiplexer Connection
-        {
-            get
-            {
-                return lazyConnection.Value;
-            }
-        }
-
         [FunctionName("CommandProcessing")]
         public static async Task Run(
-            [EventHubTrigger("events", Connection = "EVENTHUB_CONNECTIONSTRING")] EventData[] events,
+            [EventHubTrigger(
+                "events", 
+                Connection = "EVENTHUB_CONNECTIONSTRING")] EventData[] events,
             [CosmosDB(
                 databaseName: "AesKeys", 
                 collectionName: "Items", 
                 ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
+            [RedisOutput(
+                Connection = "REDISCACHE_CONNECTIONSTRING")] IAsyncCollector<RedisOutput> cacheKeys,
             ILogger log)
         {
             var exceptions = new List<Exception>();         
-            IDatabase cache = lazyConnection.Value.GetDatabase();
 
             foreach (EventData eventData in events)
             {
@@ -46,18 +36,20 @@ namespace Eventing
                     log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
                     var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
 
-                    var response = cache.StringSet(key.keyId, messageBody);
+                    var redisItem = new RedisOutput()
+                    {
+                        Key = key.keyId,
+                        TextValue = messageBody
+                    };
 
                     await keys.AddAsync(key);
+                    await cacheKeys.AddAsync(redisItem);
                     await Task.Yield();
                 }
                 catch (Exception e) {
                     exceptions.Add(e);
                 }
             }
-            
-            //Bad Bad Bad but need to understand best practices around Redis and Azure Functions disposals()
-            //lazyConnection.Value.Dispose();
 
             if (exceptions.Count > 1)
                 throw new AggregateException(exceptions);
