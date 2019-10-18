@@ -13,3 +13,6 @@
 
 vendor/*
 pkg/*
+
+github.com/*
+golang.org/*
