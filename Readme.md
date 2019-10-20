@@ -7,8 +7,9 @@ A very simple setup for Command Query Responsibility Separation (CQRS) in Azure.
 - [x] Test Flexvol with local.settings.json for Functions in container
 - [x] Python Script to create events published to Event Hub
 - [x] Azure Function to process event, storing in Cosmos and Redis Cache
-- [ ] Go Write API to generate events to Event Hub 
-- [ ] Go Read API to read from Redis and/or Cosmos 
+- [x] Go Write API to generate events to Event Hub 
+- [x] Go Read API to read from Redis 
+- [ ] Go Read API to read from Cosmos db using SQL API
 - [ ] Deployment artifacts to Kubernetes
 - [ ] Azure DevOps Multistage Pipeline for build/deploy
 
