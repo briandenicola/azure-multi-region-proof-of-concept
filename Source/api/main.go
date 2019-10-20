@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 	"log"
-	"internal/aeskeyapi"
+	"github.com/bjd145/cqrs/aeskeyapi"
 )
 
 func main() {

@@ -1,13 +1,8 @@
-FROM golang:1.10.3 as builder
+FROM golang:1.13 as builder
 
-WORKDIR $GOPATH
-RUN go get github.com/rs/cors
-RUN go get github.com/gorilla/mux
-RUN go get github.com/Azure/azure-event-hubs-go
-
-COPY . ./
-WORKDIR $GOPATH/src/cmd
-
+WORKDIR /src
+ENV GO111MODULE=on
+COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /main .
 
 FROM scratch
