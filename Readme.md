@@ -9,8 +9,8 @@ A very simple setup for Command Query Responsibility Separation (CQRS) in Azure.
 - [x] Azure Function to process event, storing in Cosmos and Redis Cache
 - [x] Go Write API to generate events to Event Hub 
 - [x] Go Read API to read from Redis 
-- [ ] Go Read API to read from Cosmos db using SQL API
-- [ ] Deployment artifacts to Kubernetes
+- [x] Go Read API to read from Cosmos db using SQL API
+- [x] Deployment artifacts to Kubernetes
 - [ ] Azure DevOps Multistage Pipeline for build/deploy
 
 # Issues

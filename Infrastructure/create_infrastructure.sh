@@ -3,7 +3,7 @@
 while (( "$#" )); do
   case "$1" in
     -g|--resource-group)
-      rgName=$2
+      RG=$2
       shift 2
       ;;
     -l|--location)
@@ -19,7 +19,7 @@ while (( "$#" )); do
       shift 2
       ;;
     -h|--help)
-      echo "Usage: ./create_infrastructure.sh -n {App Name} -g {Resource Group} -l {location}"
+      echo "Usage: ./create_infrastructure.sh -n {App Name} -g {Resource Group} -l {location} -s {Subscription Name}"
       exit 0
       ;;
     --) 
@@ -96,21 +96,6 @@ az keyvault secret set --vault-name ${keyVaultName} --name redisConnectionString
 az storage account create --name ${storageAccountName} --location $location --resource-group $RG --sku Standard_LRS
 storageKey=`az storage account keys list -n ${storageAccountName} --query '[0].value' -o tsv`
 storageConnectionString="DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageKey}"
-
-#Set localSettings Secret for Azure Functions 
-read -d '' localSettings << EOF
-{ \
-  \"IsEncrypted\": false, \
-  \"Values\": { \
-        \"AzureWebJobsStorage\": \"${storageConnectionString}\",        \
-        \"FUNCTIONS_WORKER_RUNTIME\": \"dotnet\",                       \
-        \"EVENTHUB_CONNECTIONSTRING\": \"${ehConnectionString}\",       \
-        \"COSMOSDB_CONNECTIONSTRING\": \"${cosmosConnectionString}\",   \
-        \"REDISCACHE_CONNECTIONSTRING\": \"${redisConnectionString}\"   \
-    } \
-} \
-EOF
-echo -e "${localSettings}" > ./local.settings.json
 
 #Create AKS
 az aks create -n ${aks} -g ${RG} -l ${location} --load-balancer-sku standard --node-count 3 --node-resource-group ${nodeRG} --ssh-key-value '~/.ssh/id_rsa.pub' 

@@ -1,33 +1,59 @@
-apiVersion: extensions/v1beta1
+data:
+  AzureWebJobsStorage: 
+  FUNCTIONS_WORKER_RUNTIME: ZG90bmV0
+  EVENTHUB_CONNECTIONSTRING: 
+  COSMOSDB_CONNECTIONSTRING: 
+  REDISCACHE_CONNECTIONSTRING: 
+apiVersion: v1
+kind: Secret
+metadata:
+  name: eventprocessor
+  namespace: default
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: eventprocessor
+  namespace: default
   labels:
     app: eventprocessor
-  name: eventprocessor
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: eventprocessor
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
   template:
     metadata:
       labels:
         app: eventprocessor
     spec:
       containers:
-      - env:
+      - name: eventprocessor
+        image: bjd145.azurecr.io/cqrs/eventprocessor
+        env:
         - name: AzureFunctionsJobHost__functions__0
           value: CommandProcessing
         envFrom:
         - secretRef:
             name: eventprocessor
-        image: bjd145.azurecr.io/cqrs/eventprocessor
-        imagePullPolicy: Always
-        name: eventprocessor
-        resources: {}
-      restartPolicy: Always
+---
+apiVersion: keda.k8s.io/v1alpha1
+kind: ScaledObject
+metadata:
+  name: eventprocessor
+  namespace: default
+  labels:
+    deploymentName: eventprocessor
+spec:
+  scaleTargetRef:
+    deploymentName: eventprocessor
+  minReplicaCount: 1
+  triggers:
+  - type: azure-eventhub
+    metadata:
+      type: eventHubTrigger
+      connection: EVENTHUB_CONNECTIONSTRING
+      eventHubName: events
+      name: events
+---
+
