@@ -14,6 +14,6 @@ func main() {
 		port = os.Getenv("AES_KEYS_PORT")
 	} 
 
-	s := aeskeyapi.NewAPIHandler()
-	s.InitHttpServer(port)
+	s := aeskeyapi.NewKeyAPI()
+	s.InitHTTPServer(port)
 }
