@@ -3,7 +3,6 @@ package aeskeyapi
 import (
 	"encoding/json"
 	"net/http"
-	"fmt"
 	"log"
 	"io/ioutil"
 	"github.com/gorilla/mux"
@@ -19,6 +18,7 @@ type API interface {
 	Options(w http.ResponseWriter, r *http.Request)
 	parseRequestBody(r *http.Request) int
 	writeRequestReply(w http.ResponseWriter, r *http.Request, keys []*AesKey)
+	writeErrorReply(w http.ResponseWriter,  err error)
 }
 
 //AESApi Structre
@@ -44,7 +44,7 @@ func (a *AESApi) InitHTTPServer(port string) {
 
 	server := cors.Default().Handler(r)
 
-	fmt.Print("Listening on ", port)
+	log.Print("Listening on ", port)
 	log.Fatal(http.ListenAndServe( port , server))
 }
 
@@ -53,8 +53,17 @@ func (a *AESApi) parseRequestBody(r *http.Request) (int) {
 	var k RequestBody
 	
 	b, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(b, &k)
+	err := json.Unmarshal(b, &k)
+
+	if err != nil {
+		return 0
+	}
 	return k.NumberOfKeys	
+}
+
+func (a *AESApi) writeErrorReply(w http.ResponseWriter, err error) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	json.NewEncoder(w).Encode(err)
 }
 
 //writeRequestReply - Write JSON Reply
@@ -77,7 +86,12 @@ func (a *AESApi) GetID(r *http.Request) (string) {
 //Get - HTTP GET Handler 
 func (a *AESApi) Get(w http.ResponseWriter, r *http.Request) {
 	id := a.GetID(r)
-	key, _ := a.keydb.Get(id)
+	key, err := a.keydb.Get(id)
+
+	if err != nil {
+		log.Printf("GET error - %s", err)
+		a.writeErrorReply(w, err)
+	}
 	a.writeRequestReply(w, []*AesKey{key})
 }
 
@@ -91,8 +105,13 @@ func (a *AESApi) Post(w http.ResponseWriter, r *http.Request) {
 		a.keydb.Add(key)
 		i++
 	}
-	savedKeys, _ := a.keydb.Save()
-	a.keydb.Flush()
+	savedKeys, err := a.keydb.Save()
 
+	if err != nil {
+		log.Printf("POST error - %s", err)
+		a.writeErrorReply(w, err )
+	}
+
+	a.keydb.Flush()
 	a.writeRequestReply(w, savedKeys)
 }
