@@ -18,20 +18,20 @@ spec:
     spec:
       containers:
       - name: aeskeyapi
-        image: bjd145.azurecr.io/cqrs/api:1.5
+        image: acrdbiyknih001.azurecr.io/cqrs/api:1.5
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
         envFrom:
         - secretRef:
-            name: cqrssecrts
+            name: cqrssecrets
         resources:
           limits:
             cpu: "1"
-            memory: 256m
+            memory: 256Mi
           requests:
             cpu: "0.5"
-            memrory: 128m
+            memory: 128Mi
 ---
 apiVersion: v1
 kind: Service
