@@ -66,7 +66,7 @@ read -d '' configMap << EOF
 apiVersion: v1
 kind: Secret
 metadata:
-  name: eventprocessor
+  name: cqrssecrts
   namespace: default
 data:
   AzureWebJobsStorage: ${storageEncoded}            

@@ -22,6 +22,16 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
+        envFrom:
+        - secretRef:
+            name: cqrssecrts
+        resources:
+          limits:
+            cpu: "1"
+            memory: 256m
+          requests:
+            cpu: "0.5"
+            memrory: 128m
 ---
 apiVersion: v1
 kind: Service
@@ -29,12 +39,23 @@ metadata:
   name: cqrsapisvc
   labels:
     version: "1.5"
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   selector:
     app: cqrsapi
   ports:
-  - port: 80
+  - port: 8081
     targetPort: 8081
-  type: LoadBalancer
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cqrsapi
+spec:
+  rules:
+  - http: 
+      paths: 
+      - backend:
+          serviceName: cqrsapisvc
+          servicePort: 8081
+        path: /api/keys 

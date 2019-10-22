@@ -1,14 +1,3 @@
-data:
-  AzureWebJobsStorage: 
-  FUNCTIONS_WORKER_RUNTIME: ZG90bmV0
-  EVENTHUB_CONNECTIONSTRING: 
-  COSMOSDB_CONNECTIONSTRING: 
-  REDISCACHE_CONNECTIONSTRING: 
-apiVersion: v1
-kind: Secret
-metadata:
-  name: eventprocessor
-  namespace: default
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -35,7 +24,14 @@ spec:
           value: CommandProcessing
         envFrom:
         - secretRef:
-            name: eventprocessor
+            name: cqrssecrts
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512m
+          requests:
+            cpu: "0.5"
+            memrory: 128m
 ---
 apiVersion: keda.k8s.io/v1alpha1
 kind: ScaledObject
@@ -55,5 +51,3 @@ spec:
       connection: EVENTHUB_CONNECTIONSTRING
       eventHubName: events
       name: events
----
-
