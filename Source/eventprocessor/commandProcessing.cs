@@ -16,6 +16,7 @@ namespace Eventing
     {
         [FunctionName("CommandProcessing")]
         public static async Task Run(
+        
             [EventHubTrigger(
                 "events", 
                 Connection = "EVENTHUB_CONNECTIONSTRING")] EventData[] events,
@@ -24,7 +25,8 @@ namespace Eventing
                 collectionName: "Items", 
                 ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
             [RedisOutput(
-                Connection = "REDISCACHE_CONNECTIONSTRING")] IAsyncCollector<RedisOutput> cacheKeys,
+                Connection = "%REDISCACHE_CONNECTIONSTRING%")] IAsyncCollector<RedisOutput> cacheKeys,
+                
             ILogger log)
         {
             var exceptions = new List<Exception>();         
@@ -45,6 +47,7 @@ namespace Eventing
                     await keys.AddAsync(key);
                     await cacheKeys.AddAsync(redisItem);
                     await Task.Yield();
+        
                 }
                 catch (Exception e) {
                     exceptions.Add(e);
@@ -56,6 +59,7 @@ namespace Eventing
 
             if (exceptions.Count == 1)
                 throw exceptions.Single();
+
         }
     }
 
