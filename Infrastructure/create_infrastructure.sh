@@ -37,7 +37,6 @@ if [[ -z "${appName}" ]]; then
   appName=`cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1`
 fi 
 
-ACRID=/subscriptions/{}/resourceGroups/{}/providers/Microsoft.ContainerRegistry/registries/bjd145
 cosmosDBAccountName=db${appName}001
 functionAppName=func${appName}001
 eventHubNameSpace=hub${appName}001
@@ -45,8 +44,8 @@ keyVaultName=vault${appName}001
 redisName=cache${appName}001
 aks=k8s${appName}001
 nodeRG=${RG}_nodes 
-msiIdentity=${appName}identity001
 storageAccountName=${appName}sa001
+acrAccountName=acr${appName}001
 
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
@@ -97,10 +96,13 @@ az storage account create --name ${storageAccountName} --location $location --re
 storageKey=`az storage account keys list -n ${storageAccountName} --query '[0].value' -o tsv`
 storageConnectionString="DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageKey}"
 
+#Create ACR
+az acr create -n ${acrAccountName} -g ${RG} -l ${location} --sku Standard
+acrid=`az acr show -n ${acrAccountName} -g ${RG} --query 'id' -o tsv`
+
 #Create AKS
 az aks create -n ${aks} -g ${RG} -l ${location} --load-balancer-sku standard --node-count 3 --node-resource-group ${nodeRG} --ssh-key-value '~/.ssh/id_rsa.pub' 
-az aks update -n ${aks} -g ${RG} --attach-acr ${ACRID}
-az aks get-credentials -n ${aks} -g ${RG} 
+az aks update -n ${aks} -g ${RG} --enable-acr --acr ${acrid}    
 
 ## Pod Identity for AKS
 vmss=`az vmss list -g ${nodeRG}`
@@ -109,17 +111,5 @@ vmssIdentity=`az vmss identity assign -n ${vmssName} -g ${nodeRG}`
 clientId=`echo ${vmssIdentity} | jq .systemAssignedIdentity | tr -d \"`
 az keyvault set-policy -n ${keyVaultName} --secret-permissions get --object-id ${clientId}
 
-## Helm Init 
-kubectl create serviceaccount --namespace kube-system tiller
-kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-helm init --service-account tiller --wait
-
-## Install Traefik Ingress 
-helm install stable/traefik --name traefik --namespace kube-system
-
-## Flexvol for KeyVault and Pod Identity 
-kubectl apply -f https://raw.githubusercontent.com/Azure/kubernetes-keyvault-flexvol/master/deployment/kv-flexvol-installer.yaml
-kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
-
-## Install Keda
-# TBD
+## Get Pod Credentials 
+az aks get-credentials -n ${aks} -g ${RG} 
