@@ -1,16 +1,42 @@
 # Introduction
 A very simple setup for Command Query Responsibility Separation (CQRS) in Azure. 
 
+# Setup
+## Note 
+* Deploy requires the Azure Functions Core Tools to install KEDA onto the AKS cluster 
 
+## Infrastructure Steps
+* ./Infrastructure/create_infrastructure.sh -g CQRS_RG -l centralus -s MY_SUBSCRIPTIONAME
+* ./Infrastructure/deploy_k8s_resources.sh
+* ./Infrastructure/generate_configs.sh -g CQRS_RG -l centralus -s MY_SUBSCRIPTIONAME
+* mv ./Infrastructure/configmap.yaml ./Deployment/.
+
+## Azure Function Build and Deployment
+* cd ./Source/api
+* docker build -t <acr>.azurecr.io/eventprocessor:1.0 .
+* docker push -t <acr>.azurecr.io/eventprocessor:1.0
+* Update ./Deployment with correct <acr>.azurecr.io/api:1.0
+* kubectl apply -f ./Deployment/configmap.yaml
+* kubectl apply -f ./Deployment/api.yaml
+
+## API Build and Deployment
+* cd ./Source/api
+* docker build -t <acr>.azurecr.io/api:1.0 .
+* docker push -t <acr>.azurecr.io/api:1.0
+* Update ./Deployment with correct <acr>.azurecr.io/api:1.0
+* kubectl apply -f ./Deployment/configmap.yaml
+* kubectl apply -f ./Deployment/api.yaml
+Z
 # To Do List 
-- [x] Infrastructure Setup
+- [x] Infrastructure 
 - [x] Test Flexvol with local.settings.json for Functions in container
-- [x] Python Script to create events published to Event Hub
+- [x] Sample Python Script to create events published to Event Hub
 - [x] Azure Function to process event, storing in Cosmos and Redis Cache
 - [x] Go Write API to generate events to Event Hub 
 - [x] Go Read API to read from Redis 
 - [x] Go Read API to read from Cosmos db using SQL API
 - [x] Deployment artifacts to Kubernetes
+- [ ] Create Helm Charts for Deployment 
 - [ ] Azure DevOps Multistage Pipeline for build/deploy
 
 # Issues
