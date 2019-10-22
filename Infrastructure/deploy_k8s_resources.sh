@@ -4,7 +4,7 @@ kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admi
 helm init --service-account tiller --wait
 
 ## Install Traefik Ingress 
-helm install stable/traefik --name traefik --namespace kube-system
+helm install --name traefik stable/traefik --set rbac.enabled=true
 
 ## Flexvol for KeyVault and Pod Identity 
 kubectl apply -f https://raw.githubusercontent.com/Azure/kubernetes-keyvault-flexvol/master/deployment/kv-flexvol-installer.yaml

@@ -58,4 +58,4 @@ spec:
       - backend:
           serviceName: cqrsapisvc
           servicePort: 8081
-        path: /api/keys 
+        path: /
