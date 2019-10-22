@@ -39,7 +39,7 @@ func parseCosmosConnectionString(constr string)(string, string) {
 	re = regexp.MustCompile(`(AccountEndpoint=)(.*:\d{3})`)
 	account = string(re.FindSubmatch([]byte(constr))[2])
 	
-	re = regexp.MustCompile(`(AccountKey=)(.*)`)
+	re = regexp.MustCompile(`(AccountKey=)(.*);`)
 	masterKey = string(re.FindSubmatch([]byte(constr))[2])
 
 	return account,masterKey
