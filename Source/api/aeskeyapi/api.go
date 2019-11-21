@@ -17,8 +17,9 @@ type API interface {
 	Post(w http.ResponseWriter, r *http.Request)
 	Options(w http.ResponseWriter, r *http.Request)
 	parseRequestBody(r *http.Request) int
-	writeRequestReply(w http.ResponseWriter, r *http.Request, keys []*AesKey)
-	writeErrorReply(w http.ResponseWriter,  err error)
+	writeRequestReply(w http.ResponseWriter, args ...interface{}) 
+//	writeRequestReply(w http.ResponseWriter, keys []*AesKey)
+//	writeErrorReply(w http.ResponseWriter,  err error)
 }
 
 //AESApi Structre
@@ -61,15 +62,17 @@ func (a *AESApi) parseRequestBody(r *http.Request) (int) {
 	return k.NumberOfKeys	
 }
 
+/*
 func (a *AESApi) writeErrorReply(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	json.NewEncoder(w).Encode(err)
 }
+*/
 
 //writeRequestReply - Write JSON Reply
-func (a *AESApi) writeRequestReply(w http.ResponseWriter, keys []*AesKey) {
+func (a *AESApi) writeRequestReply(w http.ResponseWriter, args ...interface{}) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	json.NewEncoder(w).Encode(keys)
+	json.NewEncoder(w).Encode(args)
 }
 
 //Options - HTTP Options Handler 
@@ -90,7 +93,7 @@ func (a *AESApi) Get(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("GET error - %s", err)
-		a.writeErrorReply(w, err)
+		a.writeRequestReply(w, err)
 	}
 	a.writeRequestReply(w, []*AesKey{key})
 }
@@ -109,7 +112,7 @@ func (a *AESApi) Post(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("POST error - %s", err)
-		a.writeErrorReply(w, err )
+		a.writeRequestReply(w, err)
 	}
 
 	a.keydb.Flush()
