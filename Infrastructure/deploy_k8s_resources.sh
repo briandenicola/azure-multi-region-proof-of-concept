@@ -11,4 +11,7 @@ kubectl apply -f https://raw.githubusercontent.com/Azure/kubernetes-keyvault-fle
 kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
 
 ## Install Keda
-func kubernetes install 
+#func kubernetes install 
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo update
+helm install kedacore/keda --namespace keda --name keda
