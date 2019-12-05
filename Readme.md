@@ -17,7 +17,7 @@ A very simple setup for Command Query Responsibility Separation (CQRS) in Azure.
 * docker push -t <acr>.azurecr.io/eventprocessor:1.0
 * Update ./Deployment with correct <acr>.azurecr.io/api:1.0
 * kubectl apply -f ./Deployment/configmap.yaml
-* kubectl apply -f ./Deployment/api.yaml
+* kubectl apply -f ./Deployment/eventprocessor.yaml
 
 ## API Build and Deployment
 * cd ./Source/api
@@ -26,7 +26,15 @@ A very simple setup for Command Query Responsibility Separation (CQRS) in Azure.
 * Update ./Deployment with correct <acr>.azurecr.io/api:1.0
 * kubectl apply -f ./Deployment/configmap.yaml
 * kubectl apply -f ./Deployment/api.yaml
-Z
+
+## Test
+* ./Scripts/create_keys.sh 100
+* Check Cosmos db and Redis Cache to validate the keys have been written to both Cosmos and Redis
+    * Redis Console Commands
+        * LIST *
+        * GET <keyid>
+* You can also use curl to get a specific key - curl http://<service_ip>/api/keys/<keyid>
+
 # To Do List 
 - [x] Infrastructure 
 - [x] Test Flexvol with local.settings.json for Functions in container
