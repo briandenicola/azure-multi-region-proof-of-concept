@@ -46,7 +46,13 @@ func (a *AESApi) InitHTTPServer(port string) {
 	server := cors.Default().Handler(r)
 
 	log.Print("Listening on ", port)
-	log.Fatal(http.ListenAndServe( port , server))
+	log.Fatal(http.ListenAndServe( port , a.logRequest(server)))
+}
+
+func (a *AESApi) logRequest (handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+	})
 }
 
 //parseRequestBody - Parse JSON body
