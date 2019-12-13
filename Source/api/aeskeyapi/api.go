@@ -42,7 +42,7 @@ func (a *AESApi) InitHTTPServer(port string) {
 	apirouter.Methods("POST").Path("/keys").HandlerFunc(a.Post)
 	apirouter.Methods("OPTIONS").Path("/keys").HandlerFunc(a.Options)
 	
-	r.HandleFunc("/heathz", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		a.writeRequestReply(w, KeepAlive{State: "I'm alive!"} )
 	})
 
