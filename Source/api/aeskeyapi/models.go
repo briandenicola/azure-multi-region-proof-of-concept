@@ -31,3 +31,7 @@ type Document struct {
 	Host  		string	`json:"host,omitempty"`
 	TimeStamp 	string	`json:"timeStamp,omitempty"`
 }
+
+type KeepAlive struct {
+	State		string `json:"state"`
+}

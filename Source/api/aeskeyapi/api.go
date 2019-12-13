@@ -18,8 +18,7 @@ type API interface {
 	Options(w http.ResponseWriter, r *http.Request)
 	parseRequestBody(r *http.Request) int
 	writeRequestReply(w http.ResponseWriter, args ...interface{}) 
-//	writeRequestReply(w http.ResponseWriter, keys []*AesKey)
-//	writeErrorReply(w http.ResponseWriter,  err error)
+	logRequest(handler http.Handler) http.Handler 
 }
 
 //AESApi Structre
@@ -42,6 +41,10 @@ func (a *AESApi) InitHTTPServer(port string) {
 	apirouter.Methods("GET").Path("/keys/{id}").HandlerFunc(a.Get)
 	apirouter.Methods("POST").Path("/keys").HandlerFunc(a.Post)
 	apirouter.Methods("OPTIONS").Path("/keys").HandlerFunc(a.Options)
+	
+	r.HandleFunc("/heathz", func(w http.ResponseWriter, r *http.Request) {
+		a.writeRequestReply(w, KeepAlive{State: "I'm alive!"} )
+	})
 
 	server := cors.Default().Handler(r)
 
@@ -49,6 +52,7 @@ func (a *AESApi) InitHTTPServer(port string) {
 	log.Fatal(http.ListenAndServe( port , a.logRequest(server)))
 }
 
+//logRequest - Write requets to stdout
 func (a *AESApi) logRequest (handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
@@ -69,12 +73,6 @@ func (a *AESApi) parseRequestBody(r *http.Request) (int) {
 	return k.NumberOfKeys	
 }
 
-/*
-func (a *AESApi) writeErrorReply(w http.ResponseWriter, err error) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	json.NewEncoder(w).Encode(err)
-}
-*/
 
 //writeRequestReply - Write JSON Reply
 func (a *AESApi) writeRequestReply(w http.ResponseWriter, args ...interface{}) {
