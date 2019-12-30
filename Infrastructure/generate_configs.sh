@@ -29,8 +29,7 @@ while (( "$#" )); do
   esac
 done
 
-#cosmosDBAccountName=db${appName}001
-cosmosDBAccountName=dbxxbxjgfc001
+cosmosDBAccountName=db${appName}001
 eventHubNameSpace=hub${appName}001
 redisName=cache${appName}001
 storageAccountName=${appName}sa001
@@ -45,7 +44,7 @@ az account set -s ${subscription}
 subId=`az account show -o tsv --query id`
 
 ## Get Cosmos Connection String
-cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g DevSub01_CQRS_RG --query 'connectionStrings[0].connectionString' -o tsv`
+cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${RG} --query 'connectionStrings[0].connectionString' -o tsv`
 cosmosEncoded=`echo -n ${cosmosConnectionString} | base64 -w 0`
 
 ## Get Event Hub Connection String 
