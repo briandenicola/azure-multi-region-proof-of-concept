@@ -44,8 +44,8 @@ A very simple setup for Command Query Responsibility Separation (CQRS) in Azure.
 - [x] Go Read API to read from Redis 
 - [x] Go Read API to read from Cosmos db using SQL API
 - [x] Deployment artifacts to Kubernetes
-- [ ] Create Helm Charts for Deployment 
-- [ ] Azure DevOps Multistage Pipeline for build/deploy
+- [ ] Configure Scaling with Keda 
+- [ ] Add Application Insights
 
 # Issues
 - [x] Docker build on Azure Functions has warnings. func kubernetes deploy does not
