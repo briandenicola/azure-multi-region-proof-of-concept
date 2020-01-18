@@ -5,16 +5,20 @@ metadata:
   name: eventprocessor
   namespace: default
   labels:
-    app: eventprocessor
+    app: cqrsapi
+    component: eventprocessor
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: eventprocessor
+      app: cqrsapi
+      component: eventprocessor
   template:
     metadata:
       labels:
-        app: eventprocessor
+        app: cqrsapi
+        component: eventprocessor
+        lang: csharp
     spec:
       containers:
       - name: eventprocessor

@@ -1,7 +1,11 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: cqrsapideployment
+  name: api
+  namespace: default
+  labels:
+    app: cqrsapi
+    component: api
 spec:
   replicas: 1
   strategy:
@@ -14,6 +18,7 @@ spec:
     metadata:
       labels:
         app: cqrsapi
+        component: api
         lang: golang
     spec:
       containers:
