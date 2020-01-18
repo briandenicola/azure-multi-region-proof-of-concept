@@ -46,6 +46,7 @@ aks=k8s${appName}001
 nodeRG=${RG}_nodes 
 storageAccountName=${appName}sa001
 acrAccountName=acr${appName}001
+appInsightsName=ai${appName}001
 
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
@@ -55,6 +56,9 @@ fi
 #Get Subscription Id
 az account set -s ${subscription}
 subId=`az account show -o tsv --query id`
+
+#Add extensions
+az extension add --name application-insights
 
 #Create Resource Group
 az group create -n $RG -l $location
@@ -113,3 +117,6 @@ az keyvault set-policy -n ${keyVaultName} --secret-permissions get --object-id $
 
 ## Get Pod Credentials 
 az aks get-credentials -n ${aks} -g ${RG} 
+
+# Create Application Insights
+az monitor app-insights component create --app ${appInsightsName} --location ${location} --kind web -g ${RG} --application-type web

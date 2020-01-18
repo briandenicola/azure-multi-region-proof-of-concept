@@ -29,10 +29,14 @@ while (( "$#" )); do
   esac
 done
 
+#Add extensions
+az extension add --name application-insights
+
 cosmosDBAccountName=db${appName}001
 eventHubNameSpace=hub${appName}001
 redisName=cache${appName}001
 storageAccountName=${appName}sa001
+appInsightsName=ai${appName}001
 
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
@@ -61,6 +65,10 @@ storageKey=`az storage account keys list -n ${storageAccountName} --query '[0].v
 storageConnectionString="DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageKey}"
 storageEncoded=`echo -n ${storageConnectionString} | base64 -w 0`
 
+## Get Application Insight Key
+instrumentationKey=`az monitor app-insights component  show --app ${appInsightsName} -g ${RG} --query instrumentationKey -o tsv`
+instrumentationKeyEncoded=`echo -n ${instrumentationKey} | base64 -w 0`
+
 #Set localSettings Secret for Azure Functions 
 read -d '' configMap << EOF
 apiVersion: v1
@@ -73,7 +81,8 @@ data:
   FUNCTIONS_WORKER_RUNTIME: ZG90bmV0                
   EVENTHUB_CONNECTIONSTRING: ${eventHubEncoded}     
   COSMOSDB_CONNECTIONSTRING: ${cosmosEncoded}       
-  REDISCACHE_CONNECTIONSTRING: ${redisEncoded}      
+  REDISCACHE_CONNECTIONSTRING: ${redisEncoded} 
+  APPINSIGHTS_KEY: ${instrumentationKeyEncoded}    
 EOF
 echo Generating Kubernetes ConfigMap YAML - configmap.yaml
 echo -e "${configMap}" > ./configmap.yaml
@@ -88,7 +97,8 @@ read -d '' localSettings << EOF
         \"FUNCTIONS_WORKER_RUNTIME\": \"dotnet\",                       
         \"EVENTHUB_CONNECTIONSTRING\": \"${ehConnectionString}\",       
         \"COSMOSDB_CONNECTIONSTRING\": \"${cosmosConnectionString}\",   
-        \"REDISCACHE_CONNECTIONSTRING\": \"${redisConnectionString}\"   
+        \"REDISCACHE_CONNECTIONSTRING\": \"${redisConnectionString}\"
+        \"APPINSIGHTS_KEY\": \"${instrumentationKey}\"
     } 
 } 
 EOF
