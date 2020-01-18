@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: eventprocessor
-        image: acrdbiyknih001.azurecr.io/cqrs/eventprocessor:1.6
+        image: acrqglgusxw001.azurecr.io/cqrs/eventprocessor:1.0
         env:
         - name: AzureFunctionsJobHost__functions__0
           value: CommandProcessing
@@ -43,7 +43,9 @@ metadata:
 spec:
   scaleTargetRef:
     deploymentName: eventprocessor
-  minReplicaCount: 1
+  minReplicaCount: 0
+  maxReplicaCount: 20
+  pollingInterval: 15
   triggers:
   - type: azure-eventhub
     metadata:
@@ -51,3 +53,5 @@ spec:
       connection: EVENTHUB_CONNECTIONSTRING
       eventHubName: events
       name: events
+      unprocessedEventThreshold: "25"
+      
