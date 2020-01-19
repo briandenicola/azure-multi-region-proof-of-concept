@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"log"
+	"os"
+	"time"
 	"io/ioutil"
+	"strconv"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/microsoft/ApplicationInsights-Go/appinsights"
 )
 
 //API Interface
@@ -19,17 +23,25 @@ type API interface {
 	parseRequestBody(r *http.Request) int
 	writeRequestReply(w http.ResponseWriter, args ...interface{}) 
 	logRequest(handler http.Handler) http.Handler 
+	errorHandler(err error)
 }
 
 //AESApi Structre
 type AESApi struct {
-	keydb  *AESKeyDB
+	keydb  		*AESKeyDB
+	aiClient	appinsights.TelemetryClient
 }
 
 //NewKeyAPI - Initialized KeyDB
 func NewKeyAPI() (*AESApi) {
 	api := new(AESApi)
+
+	api.aiClient = appinsights.NewTelemetryClient( os.Getenv("APPINSIGHTS_KEY") )
+	api.aiClient.Track(appinsights.NewTraceTelemetry("Setup of AI client complete...", appinsights.Information ))
+
 	api.keydb, _ = NewKeysDB()
+	api.aiClient.Track(appinsights.NewTraceTelemetry("Setup of Database Connections complete...", appinsights.Information ))
+	
 	return api
 }
 
@@ -56,8 +68,25 @@ func (a *AESApi) InitHTTPServer(port string) {
 func (a *AESApi) logRequest (handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+		
+		startTime := time.Now()
 		handler.ServeHTTP(w, r)
+		duration := time.Now().Sub(startTime)
+
+		trace := appinsights.NewRequestTelemetry(r.Method, r.URL.Path, duration, strconv.Itoa(http.StatusOK) )
+        trace.Timestamp = time.Now()
+        a.aiClient.Track(trace)
 	})
+}
+
+func (a *AESApi) errorHandler(err error) {
+	if err != nil {
+		log.Printf("Error - %s", err)
+        trace := appinsights.NewTraceTelemetry(err.Error(), appinsights.Error)
+        trace.Timestamp = time.Now()
+        a.aiClient.Track(trace)
+        defer appinsights.TrackPanic(a.aiClient, false)
+	}
 }
 
 //parseRequestBody - Parse JSON body
@@ -97,7 +126,7 @@ func (a *AESApi) Get(w http.ResponseWriter, r *http.Request) {
 	key, err := a.keydb.Get(id)
 
 	if err != nil {
-		log.Printf("GET error - %s", err)
+		a.errorHandler(err)
 		a.writeRequestReply(w, err)
 	}
 	a.writeRequestReply(w, []*AesKey{key})
@@ -116,7 +145,7 @@ func (a *AESApi) Post(w http.ResponseWriter, r *http.Request) {
 	savedKeys, err := a.keydb.Save()
 
 	if err != nil {
-		log.Printf("POST error - %s", err)
+		a.errorHandler(err)
 		a.writeRequestReply(w, err)
 	}
 
