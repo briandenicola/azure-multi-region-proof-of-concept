@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 export numKeys=$1
 
