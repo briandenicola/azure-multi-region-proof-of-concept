@@ -36,7 +36,7 @@ type AESApi struct {
 func NewKeyAPI() (*AESApi) {
 	api := new(AESApi)
 
-	api.aiClient = appinsights.NewTelemetryClient( os.Getenv("APPINSIGHTS_KEY") )
+	api.aiClient = appinsights.NewTelemetryClient( os.Getenv("APPINSIGHTS_INSTRUMENTATIONKEY") )
 	api.aiClient.Track(appinsights.NewTraceTelemetry("Setup of AI client complete...", appinsights.Information ))
 
 	api.keydb, _ = NewKeysDB()

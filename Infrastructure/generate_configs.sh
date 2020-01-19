@@ -82,7 +82,7 @@ data:
   EVENTHUB_CONNECTIONSTRING: ${eventHubEncoded}     
   COSMOSDB_CONNECTIONSTRING: ${cosmosEncoded}       
   REDISCACHE_CONNECTIONSTRING: ${redisEncoded} 
-  APPINSIGHTS_KEY: ${instrumentationKeyEncoded}    
+  APPINSIGHTS_INSTRUMENTATIONKEY: ${instrumentationKeyEncoded}    
 EOF
 echo Generating Kubernetes ConfigMap YAML - configmap.yaml
 echo -e "${configMap}" > ./configmap.yaml
@@ -98,7 +98,7 @@ read -d '' localSettings << EOF
         \"EVENTHUB_CONNECTIONSTRING\": \"${ehConnectionString}\",       
         \"COSMOSDB_CONNECTIONSTRING\": \"${cosmosConnectionString}\",   
         \"REDISCACHE_CONNECTIONSTRING\": \"${redisConnectionString}\"
-        \"APPINSIGHTS_KEY\": \"${instrumentationKey}\"
+        \"APPINSIGHTS_INSTRUMENTATIONKEY\": \"${instrumentationKey}\"
     } 
 } 
 EOF
