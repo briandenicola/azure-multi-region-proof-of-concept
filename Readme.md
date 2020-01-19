@@ -46,7 +46,7 @@ A very simple setup for Command Query Responsibility Separation (CQRS) in Azure.
 - [x] Deployment artifacts to Kubernetes
 - [x] Configure Scaling with Keda 
 - [x] Add Application Insights - golang
-- [ ] Add Application Insights - Azure Funtions
+- [x] Add Application Insights - Azure Funtions
 - [ ] Log Analytics automation 
 - [ ] Update deployments to Helm 3
 - [ ] Convert Azure cli scripts to Terraform 
