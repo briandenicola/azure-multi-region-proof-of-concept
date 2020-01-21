@@ -85,22 +85,22 @@ data:
   APPINSIGHTS_INSTRUMENTATIONKEY: ${instrumentationKeyEncoded}    
 EOF
 echo Generating Kubernetes ConfigMap YAML - configmap.yaml
-echo -e "${configMap}" > ./configmap.yaml
+echo -e "${configMap}" > ../Deployment/templates/configmap.yaml
 echo ------------------------------------
 
 #Set localSettings Secret for Azure Functions 
-read -d '' localSettings << EOF
-{ 
-  \"IsEncrypted\": false, 
-  \"Values\": { 
-        \"AzureWebJobsStorage\": \"${storageConnectionString}\",        
-        \"FUNCTIONS_WORKER_RUNTIME\": \"dotnet\",                       
-        \"EVENTHUB_CONNECTIONSTRING\": \"${ehConnectionString}\",       
-        \"COSMOSDB_CONNECTIONSTRING\": \"${cosmosConnectionString}\",   
-        \"REDISCACHE_CONNECTIONSTRING\": \"${redisConnectionString}\"
-        \"APPINSIGHTS_INSTRUMENTATIONKEY\": \"${instrumentationKey}\"
-    } 
-} 
-EOF
-echo Generating Azure Functions Settings File - local.settings.json
-echo -e "${localSettings}" > ./local.settings.json
+#read -d '' localSettings << EOF
+# { 
+#  \"IsEncrypted\": false, 
+#  \"Values\": { 
+#        \"AzureWebJobsStorage\": \"${storageConnectionString}\",        
+#        \"FUNCTIONS_WORKER_RUNTIME\": \"dotnet\",                       
+#        \"EVENTHUB_CONNECTIONSTRING\": \"${ehConnectionString}\",       
+#        \"COSMOSDB_CONNECTIONSTRING\": \"${cosmosConnectionString}\",   
+#        \"REDISCACHE_CONNECTIONSTRING\": \"${redisConnectionString}\"
+#        \"APPINSIGHTS_INSTRUMENTATIONKEY\": \"${instrumentationKey}\"
+#    } 
+#} 
+#EOF
+#echo Generating Azure Functions Settings File - local.settings.json
+#echo -e "${localSettings}" > ./local.settings.json
