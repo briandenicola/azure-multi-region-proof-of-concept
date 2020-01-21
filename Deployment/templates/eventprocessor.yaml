@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: eventprocessor
-        image: acrqglgusxw001.azurecr.io/cqrs/eventprocessor:1.0
+        image: {{.Values.acr_name}}.azurecr.io/cqrs/eventprocessor:{{.Values.eventprocessor_version}} 
         env:
         - name: AzureFunctionsJobHost__functions__0
           value: CommandProcessing

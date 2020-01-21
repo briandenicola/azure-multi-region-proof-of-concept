@@ -39,6 +39,12 @@ if dpkg --compare-versions ${az_cli_ver} le 2.0.78; then
   exit 1
 fi
 
+helm_ver=`helm version | awk -F: '{print $2}' | awk -F, '{print $1}' | tr -d \" | tr -d v`
+if dpkg --compare-versions ${helm_ver} le 2.9.9; then
+  echo "This script requires helm to be at least 3.0.0"
+  exit 1
+fi
+
 if [[ -z "${appName}" ]]; then
   appName=`cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1`
 fi 
@@ -62,7 +68,6 @@ fi
 
 #Get Subscription Id
 az account set -s ${subscription}
-subId=`az account show -o tsv --query id`
 
 #Add extensions
 az extension add --name application-insights
@@ -132,6 +137,22 @@ az monitor app-insights component create --app ${appInsightsName} --location ${l
 # Create Log Analytics Workspace 
 az monitor log-analytics workspace create -n ${logAnalyticsWorkspace} --location ${location} -g ${RG}
 
-# Echo Application name
+## Flexvol for KeyVault and Pod Identity 
+kubectl apply -f https://raw.githubusercontent.com/Azure/kubernetes-keyvault-flexvol/master/deployment/kv-flexvol-installer.yaml
+kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
+
+## Install Traefik Ingress 
+helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+helm repo update
+helm install traefik stable/traefik --set rbac.enabled=true
+
+## Install Keda
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo update
+kubectl create namespace keda
+helm install keda kedacore/keda --namespace keda
+
+# echo Application name
+echo ------------------------------------
 echo "Infrastructure built successfully. Application Name: ${appName}"
 echo ------------------------------------

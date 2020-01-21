@@ -1,0 +1,8 @@
+acr_name: ""
+api_version: "1.0"
+eventprocessor_version: "1.0"
+AzureWebJobsStorage: ""             
+EVENTHUB_CONNECTIONSTRING: ""
+COSMOSDB_CONNECTIONSTRING: ""
+REDISCACHE_CONNECTIONSTRING: ""
+APPINSIGHTS_INSTRUMENTATIONKEY: ""

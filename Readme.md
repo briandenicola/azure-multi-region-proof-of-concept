@@ -6,26 +6,25 @@ A very simple setup for Command Query Responsibility Separation (CQRS) in Azure.
 * Deploy requires the Azure Functions Core Tools to install KEDA onto the AKS cluster 
 
 ## Infrastructure Steps
-* ./Infrastructure/create_infrastructure.sh -g CQRS_RG -l centralus -s MY_SUBSCRIPTIONAME
-* ./Infrastructure/deploy_k8s_resources.sh
-* ./Infrastructure/generate_configs.sh -g CQRS_RG -l centralus -s MY_SUBSCRIPTIONAME
-* mv ./Infrastructure/configmap.yaml ./Deployment/.
+* cd ./Infrastructure
+* ./create_infrastructure.sh -g CQRS_RG -l centralus -s MY_SUBSCRIPTIONAME
+* ./setup_diagnostics.sh -n ${appName} -g CQRS_RG -l centralus -s MY_SUBSCRIPTIONAME
+    * appName will be generated during create_infrastructure.sh
+    * This script is optional 
 
-## Azure Function Build and Deployment
-* cd ./Source/api
+## Application Deployment 
+* cd ./Infrastructure
+* ./deploy_application.sh -n ${appName} -s MY_SUBSCRIPTIONAME
+
+### EventProcessor Function Build 
+* cd ./Source/eventprocessor
 * docker build -t <acr>.azurecr.io/eventprocessor:1.0 .
 * docker push -t <acr>.azurecr.io/eventprocessor:1.0
-* Update ./Deployment with correct <acr>.azurecr.io/api:1.0
-* kubectl apply -f ./Deployment/configmap.yaml
-* kubectl apply -f ./Deployment/eventprocessor.yaml
 
-## API Build and Deployment
+### API Build
 * cd ./Source/api
 * docker build -t <acr>.azurecr.io/api:1.0 .
 * docker push -t <acr>.azurecr.io/api:1.0
-* Update ./Deployment with correct <acr>.azurecr.io/api:1.0
-* kubectl apply -f ./Deployment/configmap.yaml
-* kubectl apply -f ./Deployment/api.yaml
 
 ## Test
 * ./Scripts/create_keys.sh 100
@@ -48,7 +47,7 @@ A very simple setup for Command Query Responsibility Separation (CQRS) in Azure.
 - [x] Add Application Insights - golang
 - [x] Add Application Insights - Azure Funtions
 - [x] Log Analytics automation 
-- [ ] Update deployments to Helm 3
+- [x] Update deployments to Helm 3
 - [ ] Convert Azure cli scripts to Terraform 
 
 # Issues

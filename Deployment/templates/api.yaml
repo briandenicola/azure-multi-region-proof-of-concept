@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: aeskeyapi
-        image: acrqglgusxw001.azurecr.io/cqrs/api:1.0
+        image: {{.Values.acr_name}}.azurecr.io/cqrs/api:{{.Values.api_version}} 
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
