@@ -33,6 +33,12 @@ while (( "$#" )); do
   esac
 done
 
+az_cli_ver=`az --version | grep -i azure-cli | awk '{print $2}'`
+if dpkg --compare-versions ${az_cli_ver} le 2.0.78; then
+  echo "This script requires az cli to be at least 2.0.78"
+  exit 1
+fi
+
 if [[ -z "${appName}" ]]; then
   appName=`cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1`
 fi 
@@ -47,6 +53,7 @@ nodeRG=${RG}_nodes
 storageAccountName=${appName}sa001
 acrAccountName=acr${appName}001
 appInsightsName=ai${appName}001
+logAnalyticsWorkspace=logs${appName}001
 
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
@@ -59,6 +66,7 @@ subId=`az account show -o tsv --query id`
 
 #Add extensions
 az extension add --name application-insights
+az extension add --name log-analytics
 
 #Create Resource Group
 az group create -n $RG -l $location
@@ -108,7 +116,7 @@ acrid=`az acr show -n ${acrAccountName} -g ${RG} --query 'id' -o tsv`
 az aks create -n ${aks} -g ${RG} -l ${location} --load-balancer-sku standard --node-count 3 --node-resource-group ${nodeRG} --ssh-key-value '~/.ssh/id_rsa.pub' 
 az aks update -n ${aks} -g ${RG} --enable-acr --acr ${acrid}    
 
-## Pod Identity for AKS
+## Assign Managed Identity to AKS cluster and RBAC role to AKS for ACR
 vmss=`az vmss list -g ${nodeRG}`
 vmssName=`echo ${vmss} | jq '.[0].name' | tr -d \"`
 vmssIdentity=`az vmss identity assign -n ${vmssName} -g ${nodeRG}`
@@ -120,3 +128,6 @@ az aks get-credentials -n ${aks} -g ${RG}
 
 # Create Application Insights
 az monitor app-insights component create --app ${appInsightsName} --location ${location} --kind web -g ${RG} --application-type web
+
+# Create Log Analytics Workspace 
+az monitor log-analytics workspace create -n ${logAnalyticsWorkspace} --location ${location} -g ${RG}
