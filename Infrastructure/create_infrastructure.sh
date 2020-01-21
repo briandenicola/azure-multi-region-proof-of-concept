@@ -131,3 +131,7 @@ az monitor app-insights component create --app ${appInsightsName} --location ${l
 
 # Create Log Analytics Workspace 
 az monitor log-analytics workspace create -n ${logAnalyticsWorkspace} --location ${location} -g ${RG}
+
+# Echo Application name
+echo "Infrastructure built successfully. Application Name: ${appName}"
+echo ------------------------------------
