@@ -137,9 +137,8 @@ az monitor app-insights component create --app ${appInsightsName} --location ${l
 # Create Log Analytics Workspace 
 az monitor log-analytics workspace create -n ${logAnalyticsWorkspace} --location ${location} -g ${RG}
 
-## Flexvol for KeyVault and Pod Identity 
+## Install Flexvol for KeyVault
 kubectl apply -f https://raw.githubusercontent.com/Azure/kubernetes-keyvault-flexvol/master/deployment/kv-flexvol-installer.yaml
-kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml
 
 ## Install Traefik Ingress 
 helm repo add stable https://kubernetes-charts.storage.googleapis.com/
@@ -151,6 +150,11 @@ helm repo add kedacore https://kedacore.github.io/charts
 helm repo update
 kubectl create namespace keda
 helm install keda kedacore/keda --namespace keda
+
+## Install Pod Identity 
+helm repo add aad-pod-identity https://raw.githubusercontent.com/Azure/aad-pod-identity/master/charts
+helm repo update
+helm upgrade aad-pod-identity aad-pod-identity/aad-pod-identity --install 
 
 # echo Application name
 echo ------------------------------------
