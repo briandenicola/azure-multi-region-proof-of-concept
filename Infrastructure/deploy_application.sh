@@ -40,9 +40,6 @@ redisName=cache${appName}001
 storageAccountName=${appName}sa001
 appInsightsName=ai${appName}001
 
-az account set -s ${subscription}
-az acr login -n ${acrAccountName}
-
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
   az login
@@ -52,8 +49,9 @@ if [[ -z "${version}" ]]; then
   version="1.0"
 fi 
 
-#Get Subscription Id
+#Set Subscription and login into ACR
 az account set -s ${subscription}
+az acr login -n ${acrAccountName}
 
 ## Get Cosmos Connection String
 cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${RG} --query 'connectionStrings[0].connectionString' -o tsv`
