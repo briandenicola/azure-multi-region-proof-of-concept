@@ -162,13 +162,13 @@ do
     ## Install Traefik Ingress 
     helm repo add stable https://kubernetes-charts.storage.googleapis.com/
     helm repo update
-    helm install traefik stable/traefik --set rbac.enabled=true --set service.annotations."service.beta.kubernetes.io/azure-load-balancer-internal"=true
+    helm upgrade -i traefik stable/traefik --set rbac.enabled=true --set service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-internal"=true
  
     ## Install Keda
     helm repo add kedacore https://kedacore.github.io/charts
     helm repo update
     kubectl create namespace keda
-    helm install keda kedacore/keda --namespace keda
+    helm upgrade -i keda kedacore/keda --namespace keda
   fi
 
   count=$((count+1))
