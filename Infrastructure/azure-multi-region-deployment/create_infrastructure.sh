@@ -6,11 +6,11 @@ while (( "$#" )); do
       RG=$2
       shift 2
       ;;
-    -p|--primary-primary)
+    -p|--primary-region)
       primary=$2
       shift 2
       ;;
-    -s|--secondary-primary)
+    -s|--secondary-region)
       secondary=$2
       shift 2
       ;;
@@ -18,8 +18,12 @@ while (( "$#" )); do
       appName=$2
       shift 2
       ;;
+    --client-secret)
+      CLIENT_SECRET=$2
+      shift 2
+      ;;
     -h|--help)
-      echo "Usage: ./create_infrastructure.sh -n {App Name} -g {Resource Group} -p {primary primary} -s {secondary primary}"
+      echo "Usage: ./create_infrastructure.sh -n {App Name} -g {Resource Group} -p {primary primary} -s {secondary primary} --client-secret {SPN secret}"
       exit 0
       ;;
     --) 
@@ -70,13 +74,20 @@ acrAccountName=acr${appName}001
 appInsightsName=ai${appName}001
 logAnalyticsWorkspace=logs${appName}001
 
+#Variables
+CLIENT_ID='4e565daf-621d-48d3-b010-1208da519cbe'
+
 #Create Cosmos
 database=AesKeys
 collection=Items
 
-az cosmosdb create -g ${RG} -n ${cosmosDBAccountName} --kind GlobalDocumentDB --locations regionName=${secondary}  failoverPriority=1 --enable-multiple-write-locations
-az cosmosdb database create  -g ${RG} -n ${cosmosDBAccountName} -d ${database}
-az cosmosdb collection create -g ${RG} -n ${cosmosDBAccountName} -d ${database} -c ${collection} --partition-key-path '/keyId'
+az cosmosdb create -g ${RG} -n ${cosmosDBAccountName} \
+  --kind GlobalDocumentDB \
+  --locations regionName=${primary} failoverPriority=0 \
+  --locations regionName=${secondary} failoverPriority=1 \
+  --enable-multiple-write-locations
+az cosmosdb sql database create  -g ${RG} -a ${cosmosDBAccountName} -n ${database}
+az cosmosdb sql container create -g ${RG} -a ${cosmosDBAccountName} -d ${database} -n ${collection} --partition-key-path '/keyId'
 
 #Create ACR
 az acr create -n ${acrAccountName} -g ${RG} -l ${primary} --sku Premium
@@ -84,10 +95,10 @@ az acr replication create -r ${acrAccountName} -l ${secondary}
 acrid=`az acr show -n ${acrAccountName} -g ${RG} --query 'id' -o tsv`
 
 # Create Application Insights
-az monitor app-insights component create --app ${appInsightsName} --primary ${primary} --kind web -g ${RG} --application-type web
+az monitor app-insights component create --app ${appInsightsName} --location ${primary} --kind web -g ${RG} --application-type web
 
 # Create Log Analytics Workspace 
-az monitor log-analytics workspace create -n ${logAnalyticsWorkspace} --primary ${primary} -g ${RG}
+az monitor log-analytics workspace create -n ${logAnalyticsWorkspace} --location ${primary} -g ${RG}
 
 count=1
 for region in $primary $secondary
@@ -110,13 +121,13 @@ do
   az redis create  -g ${RG} -n ${redisName} -l ${region} --sku standard --vm-size c1 --minimum-tls-version 1.2   
 
   #Create Azure Storage
-  az storage account create --name ${storageAccountName} --location $location --resource-group $RG --sku Standard_LRS
+  az storage account create --name ${storageAccountName} --resource-group $RG --sku Standard_LRS -l ${region}
 
   #Create Virtual Network and Subnets
   vnetIPRange="10.${count}.0.0/16"
   appgwSubnet=AppGateway
   appgwSubnetRange="10.${count}.1.0/24"
-  az network vnet create -g ${RG} -n ${vnetName} --address-prefix ${vnetIPRange} --subnet-name ${appgwSubnet} --subnet-prefix ${appgwSubnetRange}
+  az network vnet create -g ${RG} -n ${vnetName} -l ${region} --address-prefix ${vnetIPRange} --subnet-name ${appgwSubnet} --subnet-prefix ${appgwSubnetRange} 
 
   apimSubnet=APIM
   apimSubnetRanage="10.${count}.2.0/24"
@@ -133,27 +144,32 @@ do
   az aks create -n ${aks} -g ${RG} -l ${region} \
     --load-balancer-sku standard \
     --node-count 3 \
-    --node-resource-group ${nodeRG} 
+    --node-resource-group ${nodeRG} \
     --ssh-key-value '~/.ssh/id_rsa.pub' \
-    --vnet-subnet-id ${k8subnetid} \
-    --attach-acr ${acrid} \
+    --vnet-subnet-id ${k8ssubnetid} \
     --service-cidr $SERVICE_CIDR \
     --dns-service-ip $DNS_IP \
-    --network-plugin azure 
+    --network-plugin azure \
+    --service-principal $CLIENT_ID \
+    --client-secret $CLIENT_SECRET \
+    --location ${region}
+  az aks update -n ${aks} -g ${RG} --enable-acr --acr ${acrid}    
 
   ## Get Pod Credentials 
   az aks get-credentials -n ${aks} -g ${RG} 
 
-  ## Install Traefik Ingress 
-  helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-  helm repo update
-  helm install traefik stable/traefik --set rbac.enabled=true
-
-  ## Install Keda
-  helm repo add kedacore https://kedacore.github.io/charts
-  helm repo update
-  kubectl create namespace keda
-  helm install keda kedacore/keda --namespace keda
+  if [[ $? -eq 0 ]]; then
+    ## Install Traefik Ingress 
+    helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+    helm repo update
+    helm install traefik stable/traefik --set rbac.enabled=true --set service.annotations."service.beta.kubernetes.io/azure-load-balancer-internal"=true
+ 
+    ## Install Keda
+    helm repo add kedacore https://kedacore.github.io/charts
+    helm repo update
+    kubectl create namespace keda
+    helm install keda kedacore/keda --namespace keda
+  fi
 
   count=$((count+1))
 done 
