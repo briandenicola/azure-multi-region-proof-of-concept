@@ -21,9 +21,20 @@ spec:
         component: api
         lang: golang
     spec:
+      initContainers:
+      - name: init-region
+        image: bjd145/utils:latest
+        command: ['sh', '-c', 'REGION=`curl -H Metadata:true "http://169.254.169.254/metadata/instance/compute/location?api-version=2017-08-01&format=text"`; echo export REGION=${REGION} >> /env/metadata']
+        volumeMounts:
+        - name: config-data
+          mountPath: /env
       containers:
       - name: aeskeyapi
         image: {{.Values.acr_name}}.azurecr.io/cqrs/api:{{.Values.api_version}} 
+        command: ['/bin/busybox', 'sh', '-c', 'source /env/metadata; ./main']
+        volumeMounts:
+        - name: config-data
+          mountPath: /env
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
@@ -43,6 +54,9 @@ spec:
             port: 8081
           initialDelaySeconds: 3
           periodSeconds: 3
+      volumes:
+      - name: config-data
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
