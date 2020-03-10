@@ -19,7 +19,10 @@ type RequestBody struct {
 type AesKey struct {
 	KeyID 		string	`json:"keyId"`
 	Key   		string	`json:"key"`
-	Host  		string	`json:"host"`
+	ReadHost	string	`json:"readHost"`
+	WriteHost 	string	`json:"writeHost"`
+	ReadRegion	string	`json:"readRegion"`
+	WriteRegion	string	`json:"writeRegion"`
 	TimeStamp 	string	`json:"timeStamp"`
 }
 
@@ -28,7 +31,10 @@ type Document struct {
 	documentdb.Document
 	KeyID 		string	`json:"keyId,omitempty"`
 	Key   		string	`json:"key,omitempty"`
-	Host  		string	`json:"host,omitempty"`
+	ReadHost	string	`json:"readHost,omitempty"`
+	WriteHost 	string	`json:"writeHost,omitempty"`
+	ReadRegion	string	`json:"readRegion,omitempty"`
+	WriteRegion	string	`json:"writeRegion,omitempty"`
 	TimeStamp 	string	`json:"timeStamp,omitempty"`
 }
 
