@@ -54,7 +54,7 @@ fi
 #az account set -s ${subscription}
 az acr login -n ${acrAccountName}
 
-cd ..
+cd ../..
 cwd=`pwd`
 
 cd Source/api
@@ -66,7 +66,6 @@ cd Source/eventprocessor
 docker build -t ${acrAccountName}.azurecr.io/cqrs/eventprocessor:${version} .
 docker push ${acrAccountName}.azurecr.io/cqrs/eventprocessor:${version} 
 cd ${cwd}
-
 
 ## Get Cosmos Connection String
 cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${RG} --query 'connectionStrings[0].connectionString' -o tsv`
