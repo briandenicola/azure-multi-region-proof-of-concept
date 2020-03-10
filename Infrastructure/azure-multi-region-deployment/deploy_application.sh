@@ -83,6 +83,7 @@ do
   eventHubNameSpace=hub${appName}00${count}
   redisName=cache${appName}00${count}
   aks=k8s${appName}00${count}
+  storageAccountName=${appName}sa00${count}
 
   ## Get Redis Connection String
   redisKey=`az redis list-keys  -g ${RG} -n ${redisName} -o tsv --query primaryKey`
