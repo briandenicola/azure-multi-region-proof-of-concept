@@ -109,7 +109,7 @@
                 "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
             ],
             "properties": {
-                "value": "<policies>\r\n  <inbound>\r\n    <base />\r\n  <rewrite-uri template=\"/api/keys\" />\r\n    <set-body>@{\r\n            var keys = context.Request.MatchedParameters[\"NumberOfKeys\"];\r\n            var body = $\"{{ \\\"NumberOfKeys\\\" : {keys} }}\";\r\n            return body;\r\n        }</set-body>\r\n  </inbound>\r\n  <backend>\r\n    <base />\r\n  </backend>\r\n  <outbound>\r\n    <base />\r\n  </outbound>\r\n  <on-error>\r\n    <base />\r\n  </on-error>\r\n</policies>",
+                "value": "[concat('<policies>\r\n  <inbound>\r\n    <base />\r\n   <choose>\r\n      <when condition=\"@(&quot;UK West&quot;.Equals(context.Deployment.Region, StringComparison.OrdinalIgnoreCase))\">\r\n        <set-backend-service base-url=\"', parameters('aesUKAPIUrl'), '\" />\r\n      </when>\r\n      <otherwise>\r\n        <set-backend-service base-url=\"', parameters('aesUSAPIUrl'), '\" />\r\n      </otherwise>\r\n    </choose>\r\n      <rewrite-uri template=\"/api/keys\" />\r\n    <set-body>@{\r\n            var keys = context.Request.MatchedParameters[\"NumberOfKeys\"];\r\n            var body = $\"{{ \\\"NumberOfKeys\\\" : {keys} }}\";\r\n            return body;\r\n        }</set-body>\r\n  </inbound>\r\n  <backend>\r\n    <base />\r\n  </backend>\r\n  <outbound>\r\n    <base />\r\n  </outbound>\r\n  <on-error>\r\n    <base />\r\n  </on-error>\r\n</policies>')]",
                 "format": "xml"
             }
         }
