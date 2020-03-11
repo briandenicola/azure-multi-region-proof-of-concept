@@ -105,6 +105,7 @@
             "apiVersion": "2019-01-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api/create-keys/policy')]",
             "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('apiManagementName'), 'key-api', 'create-keys')]",
                 "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
             ],
             "properties": {
