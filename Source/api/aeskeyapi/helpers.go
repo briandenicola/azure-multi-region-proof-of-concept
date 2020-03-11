@@ -66,12 +66,27 @@ func createKey() (string) {
 }
 
 func NewAesKey() (*AesKey) {
-	host, _ := os.Hostname()
 	var key = AesKey{ 
 		createUUID(),
 		createKey(),
-		host, 
+		getEmptyString(),
+		getHost(),
+		getEmptyString(),
+		getRegion(),
 		time.Now().Format(time.RFC850)}
 
 	return &key
+}
+
+func getRegion() (string) {
+	return os.Getenv("REGION")
+}
+
+func getHost() (string) {
+	host, _ := os.Hostname()
+	return host
+}
+
+func getEmptyString() (string) {
+	return ""
 }

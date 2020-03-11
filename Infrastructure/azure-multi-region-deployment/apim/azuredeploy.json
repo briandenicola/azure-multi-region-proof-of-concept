@@ -324,7 +324,7 @@
                     },
                     {
                         "type": "Proxy",
-                        "hostName": "[concat('api.us.', parameters('customDomain'))]",
+                        "hostName": "[concat('api-internal.us.', parameters('customDomain'))]",
                         "negotiateClientCertificate": false,
                         "encodedCertificate": "[parameters('customDomainCertificateData')]",
                         "certificatePassword": "[parameters('customDomainCertificatePassword')]",
@@ -332,7 +332,7 @@
                     },
                     {
                         "type": "Proxy",
-                        "hostName": "[concat('api.uk.', parameters('customDomain'))]",
+                        "hostName": "[concat('api-internal.uk.', parameters('customDomain'))]",
                         "negotiateClientCertificate": false,
                         "encodedCertificate": "[parameters('customDomainCertificateData')]",
                         "certificatePassword": "[parameters('customDomainCertificatePassword')]",
