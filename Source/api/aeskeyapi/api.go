@@ -126,13 +126,16 @@ func (a *AESApi) Get(w http.ResponseWriter, r *http.Request) {
 	key, err := a.keydb.Get(id)
 
 	if err != nil {
-		a.errorHandler(err)
 		a.writeRequestReply(w, err)
+		a.errorHandler(err)
+		return
 	}
 
-	key.ReadRegion = getRegion()
-	key.ReadHost = getHost()
-	
+	if key != nil {
+		key.ReadRegion = getRegion()
+		key.ReadHost = getHost()
+	}
+
 	a.writeRequestReply(w, []*AesKey{key})
 }
 
