@@ -19,7 +19,7 @@ while (( "$#" )); do
       shift 2
       ;;
     -h|--help)
-      echo "Usage: ./create_infrastructure.sh -n {App Name} -g {Resource Group} -p {Primary Location} -s {Secondary Location}"
+      echo "Usage: ./deploy_application.sh -n {App Name} -g {Resource Group} -p {Primary Location} -s {Secondary Location} -v {Version. Default=1.0}"
       exit 0
       ;;
     -v|--version)

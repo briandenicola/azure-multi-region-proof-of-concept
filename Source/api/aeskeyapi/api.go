@@ -17,7 +17,8 @@ import (
 type API interface { 
 	InitHTTPServer(port string)
 	GetID(r *http.Request) 
-	Get(w http.ResponseWriter, r *http.Request) 
+	GetById(w http.ResponseWriter, r *http.Request) 
+	NotImplemented(w http.ResponseWriter, r *http.Request) 
 	Post(w http.ResponseWriter, r *http.Request)
 	Options(w http.ResponseWriter, r *http.Request)
 	parseRequestBody(r *http.Request) int
@@ -50,7 +51,10 @@ func (a *AESApi) InitHTTPServer(port string) {
 
 	r := mux.NewRouter()
 	apirouter := r.PathPrefix("/api").Subrouter()
-	apirouter.Methods("GET").Path("/keys/{id}").HandlerFunc(a.Get)
+	apirouter.Methods("GET").Path("/keys").HandlerFunc(a.NotImplemented)
+	apirouter.Methods("GET").Path("/keys/{id}").HandlerFunc(a.GetById)
+	apirouter.Methods("DELETE").Path("/keys/{id}").HandlerFunc(a.NotImplemented)
+	apirouter.Methods("PUT").Path("/keys/{id}").HandlerFunc(a.NotImplemented)
 	apirouter.Methods("POST").Path("/keys").HandlerFunc(a.Post)
 	apirouter.Methods("OPTIONS").Path("/keys").HandlerFunc(a.Options)
 	
@@ -73,6 +77,7 @@ func (a *AESApi) logRequest (handler http.Handler) http.Handler {
 		handler.ServeHTTP(w, r)
 		duration := time.Now().Sub(startTime)
 
+		
 		trace := appinsights.NewRequestTelemetry(r.Method, r.URL.Path, duration, strconv.Itoa(http.StatusOK) )
         trace.Timestamp = time.Now()
         a.aiClient.Track(trace)
@@ -114,25 +119,32 @@ func (a *AESApi) Options(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+func (a *AESApi) NotImplemented(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(501)
+}
+
 //GetID - HTTP GET Path handler
 func (a *AESApi) GetID(r *http.Request) (string) {
 	vars := mux.Vars(r)
 	return vars["id"]
 }
 
-//Get - HTTP GET Handler 
-func (a *AESApi) Get(w http.ResponseWriter, r *http.Request) {
+//GetbyId - HTTP GET Handler 
+func (a *AESApi) GetById(w http.ResponseWriter, r *http.Request) {
 	id := a.GetID(r)
 	key, err := a.keydb.Get(id)
 
 	if err != nil {
-		a.errorHandler(err)
 		a.writeRequestReply(w, err)
+		a.errorHandler(err)
+		return
 	}
 
-	key.ReadRegion = getRegion()
-	key.ReadHost = getHost()
-	
+	if key != nil {
+		key.ReadRegion = getRegion()
+		key.ReadHost = getHost()
+	}
+
 	a.writeRequestReply(w, []*AesKey{key})
 }
 
