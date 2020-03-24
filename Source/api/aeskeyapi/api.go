@@ -79,18 +79,18 @@ func (a *AESApi) logRequest (handler http.Handler) http.Handler {
 
 		
 		trace := appinsights.NewRequestTelemetry(r.Method, r.URL.Path, duration, strconv.Itoa(http.StatusOK) )
-        trace.Timestamp = time.Now()
-        a.aiClient.Track(trace)
+		trace.Timestamp = time.Now()
+		a.aiClient.Track(trace)
 	})
 }
 
 func (a *AESApi) errorHandler(err error) {
 	if err != nil {
 		log.Printf("Error - %s", err)
-        trace := appinsights.NewTraceTelemetry(err.Error(), appinsights.Error)
-        trace.Timestamp = time.Now()
-        a.aiClient.Track(trace)
-        defer appinsights.TrackPanic(a.aiClient, false)
+		trace := appinsights.NewTraceTelemetry(err.Error(), appinsights.Error)
+		trace.Timestamp = time.Now()
+		a.aiClient.Track(trace)
+		defer appinsights.TrackPanic(a.aiClient, false)
 	}
 }
 
