@@ -449,5 +449,15 @@
                 }
             }
         }
-    ]
+    ],
+    "outputs": {
+        "Primary IP Address" : {
+            "type" : "string",
+            "value" : "[reference(variables('appGatewayPrimaryPip')).ipAddress]"
+        },
+        "Secondary IP Address" : {
+            "type" : "string",
+            "value" : "[reference(variables('appGatewaySecondaryPip')).ipAddress]"
+        }
+    }
 }
