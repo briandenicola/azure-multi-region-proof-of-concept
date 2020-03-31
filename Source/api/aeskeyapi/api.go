@@ -71,13 +71,12 @@ func (a *AESApi) InitHTTPServer(port string) {
 //logRequest - Write requets to stdout
 func (a *AESApi) logRequest (handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+		log.Printf("%s (%s) %s %s\n", r.Header.Get("X-FORWARDED-FOR"), r.RemoteAddr, r.Method, r.URL)
 		
 		startTime := time.Now()
 		handler.ServeHTTP(w, r)
 		duration := time.Now().Sub(startTime)
 
-		
 		trace := appinsights.NewRequestTelemetry(r.Method, r.URL.Path, duration, strconv.Itoa(http.StatusOK) )
 		trace.Timestamp = time.Now()
 		a.aiClient.Track(trace)
