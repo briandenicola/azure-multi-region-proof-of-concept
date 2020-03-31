@@ -71,7 +71,7 @@ func (a *AESApi) InitHTTPServer(port string) {
 //logRequest - Write requets to stdout
 func (a *AESApi) logRequest (handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s (%s) %s %s\n", r.Header.Get("X-FORWARDED-FOR"), r.RemoteAddr, r.Method, r.URL)
+		log.Printf("[%s] - %s (%s) %s %s\n", r.Header.Get("Correlation-Id"), r.Header.Get("X-FORWARDED-FOR"), r.RemoteAddr, r.Method, r.URL)
 		
 		startTime := time.Now()
 		handler.ServeHTTP(w, r)
