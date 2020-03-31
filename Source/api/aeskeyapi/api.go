@@ -71,26 +71,25 @@ func (a *AESApi) InitHTTPServer(port string) {
 //logRequest - Write requets to stdout
 func (a *AESApi) logRequest (handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+		log.Printf("[%s] - %s (%s) %s %s\n", r.Header.Get("Correlation-Id"), r.Header.Get("X-FORWARDED-FOR"), r.RemoteAddr, r.Method, r.URL)
 		
 		startTime := time.Now()
 		handler.ServeHTTP(w, r)
 		duration := time.Now().Sub(startTime)
 
-		
 		trace := appinsights.NewRequestTelemetry(r.Method, r.URL.Path, duration, strconv.Itoa(http.StatusOK) )
-        trace.Timestamp = time.Now()
-        a.aiClient.Track(trace)
+		trace.Timestamp = time.Now()
+		a.aiClient.Track(trace)
 	})
 }
 
 func (a *AESApi) errorHandler(err error) {
 	if err != nil {
 		log.Printf("Error - %s", err)
-        trace := appinsights.NewTraceTelemetry(err.Error(), appinsights.Error)
-        trace.Timestamp = time.Now()
-        a.aiClient.Track(trace)
-        defer appinsights.TrackPanic(a.aiClient, false)
+		trace := appinsights.NewTraceTelemetry(err.Error(), appinsights.Error)
+		trace.Timestamp = time.Now()
+		a.aiClient.Track(trace)
+		defer appinsights.TrackPanic(a.aiClient, false)
 	}
 }
 
