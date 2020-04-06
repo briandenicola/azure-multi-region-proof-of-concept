@@ -40,6 +40,7 @@ done
 acrAccountName=acr${appName}001
 cosmosDBAccountName=db${appName}001
 appInsightsName=ai${appName}001
+eventHub=events
 
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
@@ -80,6 +81,7 @@ cd Deployment
 count=1
 for region in $primary $secondary
 do
+
   eventHubNameSpace=hub${appName}00${count}
   redisName=cache${appName}00${count}
   aks=k8s${appName}00${count}
@@ -93,11 +95,11 @@ do
   ## Get Azure Storage Connection String
   storageKey=`az storage account keys list -n ${storageAccountName} --query '[0].value' -o tsv`
   storageConnectionString="DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageKey}"
-  storageEncoded=`echo -n ${storageConnectionString} | base64 -w 0`
+  storageEncoded=`echo -n "${storageConnectionString};EndpointSuffix=core.windows.net" | base64 -w 0`
 
   ## Get Event Hub Connection String 
   ehConnectionString=`az eventhubs namespace authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace} --name RootManageSharedAccessKey -o tsv --query primaryConnectionString`
-  eventHubEncoded=`echo -n ${ehConnectionString} | base64 -w 0`
+  eventHubEncoded=`echo -n "${ehConnectionString};EntityPath=${eventHub}" | base64 -w 0`
 
   ## Switch K8S Context 
   kubectl config use-context ${aks}
