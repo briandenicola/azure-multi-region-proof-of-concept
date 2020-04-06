@@ -10,7 +10,8 @@ import (
 )
 
 func parseEventHubConnectionString(constr string)(string) {
-	return constr + ";EntityPath=" + EVENT_HUB_NAME
+	//return constr + ";EntityPath=" + EVENT_HUB_NAME
+	return constr
 }
 
 func parseRedisConnectionString(constr string)(string, string) {

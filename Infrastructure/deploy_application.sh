@@ -58,8 +58,9 @@ cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccount
 cosmosEncoded=`echo -n ${cosmosConnectionString} | base64 -w 0`
 
 ## Get Event Hub Connection String 
+eventHub=events
 ehConnectionString=`az eventhubs namespace authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace} --name RootManageSharedAccessKey -o tsv --query primaryConnectionString`
-eventHubEncoded=`echo -n ${ehConnectionString} | base64 -w 0`
+eventHubEncoded=`echo -n "${ehConnectionString};EntityPath=${eventHub}" | base64 -w 0`
 
 ## Get Redis Connection String
 redisKey=`az redis list-keys  -g ${RG} -n ${redisName} -o tsv --query primaryKey`
@@ -69,7 +70,7 @@ redisEncoded=`echo -n ${redisConnectionString} | base64 -w 0`
 ## Get Azure Storage Connection String
 storageKey=`az storage account keys list -n ${storageAccountName} --query '[0].value' -o tsv`
 storageConnectionString="DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageKey}"
-storageEncoded=`echo -n ${storageConnectionString} | base64 -w 0`
+storageEncoded=`echo -n "${storageConnectionString};EndpointSuffix=core.windows.net" | base64 -w 0`
 
 ## Get Application Insight Key
 instrumentationKey=`az monitor app-insights component  show --app ${appInsightsName} -g ${RG} --query instrumentationKey -o tsv`
