@@ -6,8 +6,8 @@
             "type": "string"
         },
         "multiRegionDeployment": {
-            "type": "bool",
-            "defaultValue": false
+            "type": "string",
+            "defaultValue": "false"
         },
         "location": {
             "type": "string",

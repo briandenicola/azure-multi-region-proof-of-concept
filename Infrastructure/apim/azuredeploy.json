@@ -6,8 +6,8 @@
             "type": "String"
         },
         "multiRegionDeployment": {
-            "type": "bool",
-            "defaultValue": false
+            "type": "string",
+            "defaultValue": "false"
         },
         "location": {
             "type": "string",
@@ -52,7 +52,7 @@
         "apimNsgName": "apimNSGrules",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
         "secondaryLocationSubnetId": "[concat(resourceId(parameters('secondaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('secondaryVnetName')), variables('subnetName'))]",
-        "secondaryLocationObject": {
+        "secondaryLocationObject": [{
             "location": "[parameters('secondaryLocation')]",
             "sku": {
                 "name": "[variables('apimsku')]",
@@ -61,8 +61,9 @@
             "virtualNetworkConfiguration": {
                 "subnetResourceId": "[variables('secondaryLocationSubnetId')]"
             }
-        },
-        "additionalLocationConfig": "[if(equals(parameters('multiRegionDeployment'),'true'),variables('secondaryLocationObject'),'[]')]",
+        }],
+        "emptyArray": [],
+        "additionalLocationConfig": "[if(equals(parameters('multiRegionDeployment'),'true'),variables('secondaryLocationObject'),variables('emptyArray'))]",
         "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'true'),'Premium','Developer')]"
     },
     "resources": [

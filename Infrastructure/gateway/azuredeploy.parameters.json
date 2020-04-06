@@ -6,7 +6,7 @@
             "value": "bjdgw004"
         },
         "multiRegionDeployment": {
-            "value": false
+            "value": "false"
         },
         "primaryVnetName": {
             "value": "vnetfnaxhszq001"
