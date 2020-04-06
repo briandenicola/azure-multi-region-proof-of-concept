@@ -44,7 +44,7 @@ metadata:
 spec:
   scaleTargetRef:
     deploymentName: eventprocessor
-  minReplicaCount: 0
+  minReplicaCount: 1
   maxReplicaCount: 3
   pollingInterval: 15
   triggers:
