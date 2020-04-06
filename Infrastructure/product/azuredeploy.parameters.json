@@ -3,13 +3,13 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "apiManagementName": {
-            "value": ""
+            "value": "bjdapim004"
         },
         "aesUSAPIUrl": {
-            "value": ""
+            "value": "http://10.1.4.97"
         },
         "aesUKAPIUrl": {
-            "value": ""
+            "value": "http://10.1.4.97"
         }
     }
 }
