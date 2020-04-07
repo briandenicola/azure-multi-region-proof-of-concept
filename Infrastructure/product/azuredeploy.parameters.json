@@ -5,11 +5,11 @@
         "apiManagementName": {
             "value": "bjdapim004"
         },
-        "aesUSAPIUrl": {
+        "primaryBackendUrl": {
             "value": "http://10.1.4.97"
         },
-        "aesUKAPIUrl": {
-            "value": "http://10.1.4.97"
+        "secondaryBackendUrl": {
+            "value": "http://10.2.4.97"
         }
     }
 }
