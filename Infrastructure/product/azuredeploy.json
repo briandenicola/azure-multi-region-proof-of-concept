@@ -12,7 +12,8 @@
             "type": "string"
         },
         "createKeyPolicy": {
-            "type": "string"        }
+            "type": "string"
+        }
     },
     "variables": {
     },
