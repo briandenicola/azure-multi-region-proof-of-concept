@@ -27,10 +27,16 @@ if([string]::IsNullOrEmpty($SecondaryRegion)) {
 }
 
 $GlobalKeyPolicy = Get-Content -Raw -Path ".\policies\GlobalKeyPolicy.xml"
-$GlobalKeyPolicy = $GlobalKeyPolicy.Replace('{{primaryBackendUrl}}', $primaryBackendUrl).Replace('{{secondaryBackendUrl}}', $SecondaryBackendUrl).Replace('{{secondaryRegion}}', $SecondaryRegion)
+$GlobalKeyPolicy = $GlobalKeyPolicy.
+    Replace('{{primaryBackendUrl}}', $primaryBackendUrl).
+    Replace('{{secondaryBackendUrl}}', $SecondaryBackendUrl).
+    Replace('{{secondaryRegion}}', $SecondaryRegion)
 
 $CreateKeyPolicy = Get-Content -Raw -Path ".\policies\CreateKeyPolicy.xml"
-$CreateKeyPolicy = $CreateKeyPolicy.Replace('{{primaryBackendUrl}}', $primaryBackendUrl).Replace('{{secondaryBackendUrl}}', $SecondaryBackendUrl).Replace('{{secondaryRegion}}', $SecondaryRegion)
+$CreateKeyPolicy = $CreateKeyPolicy.
+    Replace('{{primaryBackendUrl}}', $primaryBackendUrl).
+    Replace('{{secondaryBackendUrl}}', $SecondaryBackendUrl).
+    Replace('{{secondaryRegion}}', $SecondaryRegion)
 
 $opts = @{
     Name                = ("Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
