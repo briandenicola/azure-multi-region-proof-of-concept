@@ -1,0 +1,30 @@
+<policies>
+    <inbound>
+        <base />
+        <choose>
+            <when condition='@("{{secondaryRegion}}".Equals(context.Deployment.Region, StringComparison.OrdinalIgnoreCase))'>
+                <set-backend-service base-url="{{secondaryBackendUrl}}" />
+            </when>
+            <otherwise>
+                <set-backend-service base-url="{{primaryBackendUrl}}" />
+            </otherwise>
+        </choose>
+        <rewrite-uri template="/api/keys" />
+        <set-body>
+        @{
+            var keys = context.Request.MatchedParameters["NumberOfKeys"];
+            var body = $"{{ \"NumberOfKeys\" : {keys} }}";
+            return body;
+        }
+        </set-body>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

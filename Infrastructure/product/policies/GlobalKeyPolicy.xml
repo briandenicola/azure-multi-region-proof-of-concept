@@ -1,0 +1,49 @@
+<policies>
+    <inbound>
+        <base />
+        <choose>
+            <when condition='@("{{secondaryRegion}}".Equals(context.Deployment.Region, StringComparison.OrdinalIgnoreCase))'>
+                <set-backend-service base-url="{{secondaryBackendUrl}}/api/keys" />
+            </when>
+            <otherwise>
+                <set-backend-service base-url="{{primaryBackendUrl}}/api/keys" />
+            </otherwise>
+        </choose>
+        <set-header name="X-Forwarded-Host" exists-action="override">
+            <value>@(context.Request.OriginalUrl.ToUri().Host)</value>
+        </set-header>
+        <set-header name="Correlation-Id" exists-action="override">
+            <value>@(context.RequestId.ToString("N"))</value>
+        </set-header>
+        <cors>
+            <allowed-origins>
+                <origin>*</origin>
+            </allowed-origins>
+            <allowed-methods>
+                <method>GET</method>
+                <method>POST</method>
+                <method>PUT</method>
+                <method>DELETE</method>
+                <method>HEAD</method>
+                <method>OPTIONS</method>
+                <method>PATCH</method>
+                <method>TRACE</method>
+            </allowed-methods>
+            <allowed-headers>
+                <header>*</header>
+            </allowed-headers>
+            <expose-headers>
+                <header>*</header>
+            </expose-headers>
+        </cors>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
