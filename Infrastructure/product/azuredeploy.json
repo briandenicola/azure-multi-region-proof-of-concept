@@ -13,6 +13,16 @@
         },
         "createKeyPolicy": {
             "type": "string"
+        },
+        "rateLimitPolicy": {
+            "type": "string"
+        },
+        "mockPolicy": {
+            "type": "string"
+        },
+        "apiSet": {
+            "type": "string",
+            "defaultValue": "[newGuid()]"
         }
     },
     "variables": {
@@ -31,27 +41,107 @@
             }
         },
         {
+            "type": "Microsoft.ApiManagement/service/products",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('apiManagementName'), '/key-service-1rps')]",
+            "properties": {
+                "displayName": "Key Service (1rps)",
+                "description": "Key Service with only 1 request per second ",
+                "subscriptionRequired": true,
+                "approvalRequired": false,
+                "state": "published"
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service/apiVersionSets",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('apiManagementName'), '/', parameters('apiSet'))]",
+            "properties": {
+                "displayName": "Key Service",
+                "versioningScheme": "Query",
+                "versionQueryName": "api-version"
+            }
+        },
+        {
             "type": "Microsoft.ApiManagement/service/apis",
-            "apiVersion": "2019-01-01",
+            "apiVersion": "2019-12-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apiVersionSets', parameters('apiManagementName'), parameters('apiSet'))]"
+            ],
             "properties": {
                 "displayName": "Key Service",
                 "apiRevision": "1",
                 "subscriptionRequired": true,
-                "serviceUrl": "[concat(parameters('primaryBackendUrl'), '/api/keys')]",
+                "serviceUrl": "[concat(parameters('primaryBackendUrl'),'/api/keys')]",
                 "path": "k",
                 "protocols": [
                     "https"
                 ],
-                "isCurrent": true
+                "isCurrent": true,
+                "apiVersionSetId": "[resourceId('Microsoft.ApiManagement/service/apiVersionSets', parameters('apiManagementName'), parameters('apiSet'))]"
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service/apis",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('apiManagementName'), '/key-api-v2')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apiVersionSets', parameters('apiManagementName'), parameters('apiSet'))]"
+            ],
+            "properties": {
+                "displayName": "Key Service",
+                "apiRevision": "1",
+                "subscriptionRequired": true,
+                "serviceUrl": "[concat(parameters('primaryBackendUrl'),'/api/keys')]",
+                "path": "k",
+                "protocols": [
+                    "https"
+                ],
+                "isCurrent": true,
+                "apiVersion": "2020-05-04",
+                "apiVersionSetId": "[resourceId('Microsoft.ApiManagement/service/apiVersionSets', parameters('apiManagementName'), parameters('apiSet'))]"
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service/apis/operations",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('apiManagementName'), '/key-api/create-keys')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]",
+            ],
+            "properties": {
+                "displayName": "Create Keys",
+                "method": "POST",
+                "urlTemplate": "/{NumberOfKeys}",
+                "templateParameters": [
+                    {
+                        "name": "NumberOfKeys",
+                        "required": true,
+                        "values": [],
+                        "type": null
+                    }
+                ],
+                "responses": [
+                    {
+                        "statusCode": 200,
+                        "representations": [
+                            {
+                                "contentType": "application/json",
+                                "sample": "{\r\n    \"text\": \"Please supply api-version in query string\"\r\n}"
+                            }
+                        ],
+                        "headers": []
+                    }
+                ]
             }
         },
         {
             "type": "Microsoft.ApiManagement/service/apis/operations",
             "apiVersion": "2019-01-01",
-            "name": "[concat(parameters('apiManagementName'), '/key-api/create-keys')]",
+            "name": "[concat(parameters('apiManagementName'), '/key-api-v2/create-keys')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api-v2')]"
             ],
             "properties": {
                 "displayName": "Create Keys",
@@ -68,12 +158,13 @@
                 "responses": []
             }
         },
+
         {
             "type": "Microsoft.ApiManagement/service/apis/operations",
             "apiVersion": "2019-01-01",
-            "name": "[concat(parameters('apiManagementName'), '/key-api/get-key')]",
+            "name": "[concat(parameters('apiManagementName'), '/key-api-v2/get-key')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api-v2')]"
             ],
             "properties": {
                 "displayName": "Get Key",
@@ -92,11 +183,35 @@
             }
         },
         {
+            "type": "Microsoft.ApiManagement/service/products/policies",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('apiManagementName'), '/key-service-1rps/policy')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/products', parameters('apiManagementName'), 'key-service-1rps')]",
+            ],
+            "properties": {
+                "value": "[parameters('rateLimitPolicy')]",
+                "format": "xml"
+            }
+        },
+        {
             "type": "Microsoft.ApiManagement/service/apis/policies",
-            "apiVersion": "2019-01-01",
+            "apiVersion": "2019-12-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api/policy')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]",
+            ],
+            "properties": {
+                "value": "[parameters('mockPolicy')]",
+                "format": "xml"
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service/apis/policies",
+            "apiVersion": "2019-01-01",
+            "name": "[concat(parameters('apiManagementName'), '/key-api-v2/policy')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api-v2')]"
             ],
             "properties": {
                 "value": "[parameters('globalKeyPolicy')]",
@@ -106,10 +221,10 @@
         {
             "type": "Microsoft.ApiManagement/service/apis/operations/policies",
             "apiVersion": "2019-01-01",
-            "name": "[concat(parameters('apiManagementName'), '/key-api/create-keys/policy')]",
+            "name": "[concat(parameters('apiManagementName'), '/key-api-v2/create-keys/policy')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('apiManagementName'), 'key-api', 'create-keys')]",
-                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
+                "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('apiManagementName'), 'key-api-v2', 'create-keys')]",
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api-v2')]"
             ],
             "properties": {
                 "value": "[parameters('createKeyPolicy')]",

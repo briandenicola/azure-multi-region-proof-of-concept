@@ -23,7 +23,7 @@ if([string]::IsNullOrEmpty($SecondaryBackendUrl)) {
 }
 
 if([string]::IsNullOrEmpty($SecondaryRegion)) {
-    $SecondaryRegion = "Central US"
+    $SecondaryRegion = $ResourceLocation
 }
 
 $GlobalKeyPolicy = Get-Content -Raw -Path ".\policies\GlobalKeyPolicy.xml"
@@ -38,6 +38,9 @@ $CreateKeyPolicy = $CreateKeyPolicy.
     Replace('{{secondaryBackendUrl}}', $SecondaryBackendUrl).
     Replace('{{secondaryRegion}}', $SecondaryRegion)
 
+$RateLimitPolicy = Get-Content -Raw -Path ".\policies\RateLimitPolicy.xml"
+$MockPolicy = Get-Content -Raw -Path ".\policies\MockPolicy.xml"
+
 $opts = @{
     Name                = ("Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
     ResourceGroupName   = $ResourceGroupName
@@ -46,6 +49,8 @@ $opts = @{
     primaryBackendUrl   = $PrimaryBackendUrl
     globalKeyPolicy     = $GlobalKeyPolicy
     createKeyPolicy     = $CreateKeyPolicy
+    rateLimitPolicy     = $RateLimitPolicy
+    mockPolicy          = $MockPolicy
 }
 
 New-AzResourcegroup -Name $ResourceGroupName -Location $ResourceLocation -Verbose
