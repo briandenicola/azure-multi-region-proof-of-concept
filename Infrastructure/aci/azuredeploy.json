@@ -13,7 +13,7 @@
         "westLocation": "australiaeast",
         "eastLocation": "ukwest",
         "westContainerGroupName": "utils-auseast",
-        "eastContainerGroupName": "utils-useast",
+        "eastContainerGroupName": "utils-ukeast",
         "request": "[concat('$h = @{''Ocp-Apim-Subscription-Key''=''', parameters('apimSubscriptionKey'), '''}; Invoke-RestMethod -Uri https://', parameters('frontDoorUrl'), '/k/1?api-version=2020-05-04 -Method Post -Headers $h')]"
     },
     "resources": [
