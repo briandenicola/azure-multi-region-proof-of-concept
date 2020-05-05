@@ -1,0 +1,79 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apimSubscriptionKey": {
+            "type": "string"
+        },
+        "frontDoorUrl": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "westLocation": "australiaeast",
+        "eastLocation": "ukwest",
+        "westContainerGroupName": "utils-auseast",
+        "eastContainerGroupName": "utils-useast",
+        "request": "[concat('$h = @{''Ocp-Apim-Subscription-Key''=''', parameters('apimSubscriptionKey'), '''}; Invoke-RestMethod -Uri https://', parameters('frontDoorUrl'), '/k/1?api-version=2020-05-04 -Method Post -Headers $h')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2018-10-01",
+            "name": "[variables('westContainerGroupName')]",
+            "location": "[variables('westLocation')]",
+            "properties": {
+                "containers": [
+                    {
+                        "name": "[variables('westContainerGroupName')]",
+                        "properties": {
+                            "image": "bjd145/utils:1.2",
+                            "command": [
+                                "/usr/bin/pwsh",
+                                "-command",
+                                "[variables('request')]"
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "restartPolicy": "OnFailure",
+                "osType": "Linux"
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2018-10-01",
+            "name": "[variables('eastContainerGroupName')]",
+            "location": "[variables('eastLocation')]",
+            "properties": {
+                "containers": [
+                    {
+                        "name": "[variables('eastContainerGroupName')]",
+                        "properties": {
+                            "image": "bjd145/utils:1.2",
+                            "command": [
+                                "/usr/bin/pwsh",
+                                "-command",
+                                "[variables('request')]"
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "restartPolicy": "OnFailure",
+                "osType": "Linux"
+            }
+        }
+    ]
+}
