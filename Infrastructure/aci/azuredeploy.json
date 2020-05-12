@@ -12,8 +12,10 @@
     "variables": {
         "westLocation": "australiaeast",
         "eastLocation": "westeurope",
+        "blockLocation": "japaneast",
         "westContainerGroupName": "utils-auseast",
         "eastContainerGroupName": "utils-westeurope",
+        "blockContainerGroupName": "utils-japaneast",
         "postRequest": "[concat('$h = @{''Ocp-Apim-Subscription-Key''=''', parameters('apimSubscriptionKey'), '''}; Invoke-RestMethod -Uri https://', parameters('frontDoorUrl'), '/k/1?api-version=2020-05-04 -Method Post -Headers $h | Select -Expand SyncRoot')]",
         "getRequest": "[concat('$h = @{''Ocp-Apim-Subscription-Key''=''', parameters('apimSubscriptionKey'), '''}; Invoke-RestMethod -Uri https://', parameters('frontDoorUrl'), '/k/d5487b75-dd69-3dbe-9468-3b9f1e3e8fc3?api-version=2020-05-04 -Headers $h | Select -Expand SyncRoot')]"
     },
@@ -110,6 +112,35 @@
             "apiVersion": "2018-10-01",
             "name": "[concat(variables('eastContainerGroupName'),'-get')]",
             "location": "[variables('eastLocation')]",
+            "properties": {
+                "containers": [
+                    {
+                        "name": "[variables('eastContainerGroupName')]",
+                        "properties": {
+                            "image": "bjd145/utils:1.2",
+                            "command": [
+                                "/usr/bin/pwsh",
+                                "-command",
+                                "[variables('getRequest')]"
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "restartPolicy": "OnFailure",
+                "osType": "Linux"
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2018-10-01",
+            "name": "[concat(variables('blockContainerGroupName'),'-get')]",
+            "location": "[variables('blockLocation')]",
             "properties": {
                 "containers": [
                     {

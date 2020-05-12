@@ -35,6 +35,24 @@
                 },
                 "customRules": {
                     "rules": [
+                        {
+                            "name": "BlockJapan",
+                            "priority": 200,
+                            "ruleType": "MatchRule",
+                            "rateLimitDurationInMinutes": 1,
+                            "rateLimitThreshold": 100,
+                            "matchConditions": [
+                                {
+                                    "matchVariable": "RemoteAddr",
+                                    "operator": "GeoMatch",
+                                    "negateCondition": false,
+                                    "matchValue": [
+                                        "JP"
+                                    ]
+                                }
+                            ],
+                            "action": "Block"
+                        }   
                     ]
                 },
                 "managedRules": {
