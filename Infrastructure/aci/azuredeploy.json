@@ -35,11 +35,7 @@
                         "name": "[variables('westContainerGroupName')]",
                         "properties": {
                             "image": "bjd145/utils:1.2",
-                            "command": [
-                                "/usr/bin/pwsh",
-                                "-command",
-                                "[variables('postRequest')]"
-                            ],
+                            "command": [ "/usr/bin/pwsh", "-command", "[variables('postRequest')]" ],
                             "resources": {
                                 "requests": {
                                     "memoryInGB": 1.5,
@@ -64,11 +60,7 @@
                         "name": "[variables('eastContainerGroupName')]",
                         "properties": {
                             "image": "bjd145/utils:1.2",
-                            "command": [
-                                "/usr/bin/pwsh",
-                                "-command",
-                                "[variables('postRequest')]"
-                            ],
+                            "command": [ "/usr/bin/pwsh", "-command", "[variables('postRequest')]" ],
                             "resources": {
                                 "requests": {
                                     "memoryInGB": 1.5,
@@ -93,10 +85,7 @@
                         "name": "[variables('westContainerGroupName')]",
                         "properties": {
                             "image": "bjd145/utils:1.2",
-                            "command": [
-                                "/usr/bin/pwsh",
-                                "-command",
-                                "[variables('getRequest')]"
+                            "command": [ "/usr/bin/pwsh", "-command", "[variables('getRequest')]"
                             ],
                             "resources": {
                                 "requests": {
@@ -122,11 +111,7 @@
                         "name": "[variables('eastContainerGroupName')]",
                         "properties": {
                             "image": "bjd145/utils:1.2",
-                            "command": [
-                                "/usr/bin/pwsh",
-                                "-command",
-                                "[variables('getRequest')]"
-                            ],
+                            "command": [ "/usr/bin/pwsh", "-command", "[variables('getRequest')]" ],
                             "resources": {
                                 "requests": {
                                     "memoryInGB": 1.5,
@@ -151,11 +136,7 @@
                         "name": "[variables('eastContainerGroupName')]",
                         "properties": {
                             "image": "bjd145/utils:1.2",
-                            "command": [
-                                "/usr/bin/pwsh",
-                                "-command",
-                                "[variables('getRequest')]"
-                            ],
+                            "command": [ "/usr/bin/pwsh", "-command", "[variables('getRequest')]" ],
                             "resources": {
                                 "requests": {
                                     "memoryInGB": 1.5,
