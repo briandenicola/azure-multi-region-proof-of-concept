@@ -2,6 +2,8 @@
 A very simple setup for Command Query Responsibility Separation (CQRS) in Azure that can be deployed to one or more Azure regions.
 In other words, the world's most expensive random number generator....
 
+![Architecture](./architecture.png)
+
 # Setup
 
 ## Infrastructure Steps
