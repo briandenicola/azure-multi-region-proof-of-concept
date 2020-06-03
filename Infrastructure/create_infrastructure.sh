@@ -14,12 +14,8 @@ while (( "$#" )); do
       appName=$2
       shift 2
       ;;
-    --client-secret)
-      CLIENT_SECRET=$2
-      shift 2
-      ;;
     -h|--help)
-      echo "Usage: ./create_infrastructure.sh -n {App Name} -g {Resource Group} -r {region} --client-secret {SPN secret} [-r {secondary region}]"
+      echo "Usage: ./create_infrastructure.sh -n {App Name} -g {Resource Group} -r {region} [-r {secondary region}]"
       exit 0
       ;;
     --) 
@@ -60,6 +56,8 @@ if [[ -z "${RG}" ]]; then
   exit 1
 fi 
 
+public_ip=`curl -s http://checkip.amazonaws.com/`
+
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
   az login
@@ -77,9 +75,6 @@ cosmosDBAccountName=db${appName}001
 acrAccountName=acr${appName}001
 appInsightsName=ai${appName}001
 logAnalyticsWorkspace=logs${appName}001
-
-#Variables
-CLIENT_ID='4e565daf-621d-48d3-b010-1208da519cbe'
 
 #Create Cosmos
 database=AesKeys
@@ -99,7 +94,6 @@ az cosmosdb sql container create -g ${RG} -a ${cosmosDBAccountName} -d ${databas
 
 #Create ACR
 az acr create -n ${acrAccountName} -g ${RG} -l ${primary} --sku Premium
-acrid=`az acr show -n ${acrAccountName} -g ${RG} --query 'id' -o tsv`
 
 # Create Application Insights
 az monitor app-insights component create --app ${appInsightsName} --location ${primary} --kind web -g ${RG} --application-type web
@@ -162,10 +156,18 @@ do
     --service-cidr $SERVICE_CIDR \
     --dns-service-ip $DNS_IP \
     --network-plugin azure \
-    --service-principal $CLIENT_ID \
-    --client-secret $CLIENT_SECRET \
+    --enable-cluster-autoscaler \
+    --max-count 10 \
+    --min-count 3 \
+    --enable-managed-identity \
+    --uptime-sla \
+    --max-pods 40 \
+    --api-server-authorized-ip-ranges ${public_ip}/32 \
     --location ${region}
-  az aks update -n ${aks} -g ${RG} --enable-acr --acr ${acrid}    
+  
+  CLIENT_ID=`az aks show -n ${aks} -g ${RG} --query 'identity.principalId' -o tsv`
+  az role assignment create --assignee-object-id ${CLIENT_ID} --role "Network Contributor" -g ${RG}
+  az role assignment create --assignee-object-id ${CLIENT_ID} --role "acrpull" -g ${RG}
 
   ## Get Pod Credentials 
   az aks get-credentials -n ${aks} -g ${RG} 
