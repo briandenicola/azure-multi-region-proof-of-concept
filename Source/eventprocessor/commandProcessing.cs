@@ -7,52 +7,37 @@ using Newtonsoft.Json;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Fbeltrao.AzureFunctionExtensions;
-using StackExchange.Redis;
-
+using Microsoft.Azure.Search;
+using Microsoft.Azure.Search.Models;
+                                
 namespace Eventing
 {
     public static class CommandProcessing
     {
+        private static string searchServiceName = Environment.GetEnvironmentVariable("SEARCH_SERVICENAME", EnvironmentVariableTarget.Process);
+        private static string searchAdminKey    = Environment.GetEnvironmentVariable("SEARCH_ADMINKEY", EnvironmentVariableTarget.Process);
+        private static string searchIndexName   = Environment.GetEnvironmentVariable("SEARCH_INDEXNAME", EnvironmentVariableTarget.Process);
+
+        private static SearchServiceClient serviceClient = new SearchServiceClient(
+            searchServiceName, 
+            new SearchCredentials(searchAdminKey)
+        );
+
         [FunctionName("CommandProcessing")]
         public static async Task Run(
-        
-            [EventHubTrigger(
-                "events", 
+            [EventHubTrigger( "events", 
                 Connection = "EVENTHUB_CONNECTIONSTRING")] EventData[] events,
-            [CosmosDB(
-                databaseName: "AesKeys", 
-                collectionName: "Items", 
-                ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
-            [RedisOutput(
-                Connection = "%REDISCACHE_CONNECTIONSTRING%")] IAsyncCollector<RedisOutput> cacheKeys,
-                
             ILogger log)
         {
             var exceptions = new List<Exception>();         
+            var indexClient = serviceClient.Indexes.GetClient(searchIndexName);
 
-            foreach (EventData eventData in events)
-            {
-                try {
-                    string messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
-                    log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
-                    var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
-
-                    var redisItem = new RedisOutput()
-                    {
-                        Key = key.keyId,
-                        TextValue = messageBody
-                    };
-
-                    await keys.AddAsync(key);
-                    await cacheKeys.AddAsync(redisItem);
-                    await Task.Yield();
-        
-                }
-                catch (Exception e) {
-                    exceptions.Add(e);
-                }
-            }
+            var data = events.Select( eventData => 
+                JsonConvert.DeserializeObject<AesKey>(Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count))
+            );
+            
+            var batch = IndexBatch.MergeOrUpload<AesKey>(data);
+            indexClient.Documents.Index(batch);
 
             if (exceptions.Count > 1)
                 throw new AggregateException(exceptions);

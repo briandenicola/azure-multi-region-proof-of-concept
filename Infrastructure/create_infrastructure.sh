@@ -71,26 +71,9 @@ az extension add --name log-analytics
 az group create -n $RG -l $primary
 
 #Resource Names
-cosmosDBAccountName=db${appName}001
 acrAccountName=acr${appName}001
 appInsightsName=ai${appName}001
 logAnalyticsWorkspace=logs${appName}001
-
-#Create Cosmos
-database=AesKeys
-collection=Items
-
-cosmosdb_cmd="az cosmosdb create -g ${RG} -n ${cosmosDBAccountName} --kind GlobalDocumentDB --enable-multiple-write-locations"
-failoverPriority=0
-for region in ${regions[@]}
-do
-  cosmosdb_cmd+=" --locations regionName=${region} failoverPriority=${failoverPriority}"
-  failoverPriority=$((failoverPriority+1))
-done
-$cosmosdb_cmd
-
-az cosmosdb sql database create  -g ${RG} -a ${cosmosDBAccountName} -n ${database}
-az cosmosdb sql container create -g ${RG} -a ${cosmosDBAccountName} -d ${database} -n ${collection} --partition-key-path '/keyId'
 
 #Create ACR
 az acr create -n ${acrAccountName} -g ${RG} -l ${primary} --sku Premium
@@ -108,9 +91,9 @@ do
   #Resource Names
   vnetName=vnet${appName}00${count}
   eventHubNameSpace=hub${appName}00${count}
-  redisName=cache${appName}00${count}
   aks=k8s${appName}00${count}
   storageAccountName=${appName}sa00${count}
+  searchServiceName=srch${appName}00${count}
   nodeRG=${RG}_${region}_nodes 
 
   #ACR Update
@@ -123,8 +106,8 @@ do
   az eventhubs namespace create -g ${RG} -n ${eventHubNameSpace} -l ${region} --sku Standard --enable-auto-inflate --maximum-throughput-units 5 --enable-kafka
   az eventhubs eventhub create -g ${RG} --namespace-name ${eventHubNameSpace} -n ${hub} --message-retention 7 --partition-count 1
 
-  #Create Redis Cache
-  az redis create  -g ${RG} -n ${redisName} -l ${region} --sku standard --vm-size c1 --minimum-tls-version 1.2   
+  #Create Azure Search 
+  az search service create -g ${RG} -n ${searchServiceName} --sku standard -l ${location} --partition-count 6 --replica-count 3
 
   #Create Azure Storage
   az storage account create --name ${storageAccountName} --resource-group $RG --sku Standard_LRS -l ${region}
@@ -166,8 +149,11 @@ do
     --location ${region}
   
   CLIENT_ID=`az aks show -n ${aks} -g ${RG} --query 'identity.principalId' -o tsv`
+  NODE_CLIENT_ID=`az aks show -n ${aks} -g ${RG} --query 'identityProfile.kubeletidentity.objectId' -o tsv`
+
   az role assignment create --assignee-object-id ${CLIENT_ID} --role "Network Contributor" -g ${RG}
   az role assignment create --assignee-object-id ${CLIENT_ID} --role "acrpull" -g ${RG}
+  az role assignment create --assignee-object-id ${NODE_CLIENT_ID} --role "acrpull" -g ${RG}
 
   ## Get Pod Credentials 
   az aks get-credentials -n ${aks} -g ${RG} 

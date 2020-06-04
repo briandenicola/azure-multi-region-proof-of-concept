@@ -2,7 +2,7 @@ package aeskeyapi
 
 import (
 	"context"
-	"crypto/tls"
+	//"crypto/tls"
 	"time"
 	"os"
 	"encoding/json"
@@ -37,36 +37,36 @@ type AESKeyDB struct {
 
 //NewKeysDB - Initialize connections to Event Hub, Cosmos and Redis 
 func NewKeysDB() (*AESKeyDB, error){
-	var err error
+	//var err error
 
 	db := new(AESKeyDB)
-	db.Database   = COSMOS_DATABASE_NAME 
-	db.Collection = COSMOS_COLLECTION_NAME
+	//db.Database   = COSMOS_DATABASE_NAME 
+	//db.Collection = COSMOS_COLLECTION_NAME
 	db.EventHub   = EVENT_HUB_NAME
 
 	kafkaConStr := parseEventHubConnectionString( os.Getenv("EVENTHUB_CONNECTIONSTRING") ) 
 	db.kafkaClient, _ = eventhub.NewHubFromConnectionString(kafkaConStr)
 	
-	redisServer, redisPasswords := parseRedisConnectionString( os.Getenv("REDISCACHE_CONNECTIONSTRING") )
-	db.redisClient = redis.NewClient(&redis.Options{
-		Addr:     		redisServer,
-		Password: 		redisPasswords, 
-		DB:       		0,
-		TLSConfig:		&tls.Config{InsecureSkipVerify: true},
-	})
+	//redisServer, redisPasswords := parseRedisConnectionString( os.Getenv("REDISCACHE_CONNECTIONSTRING") )
+	//db.redisClient = redis.NewClient(&redis.Options{
+	//	Addr:     		redisServer,
+	//	Password: 		redisPasswords, 
+	//	DB:       		0,
+	//	TLSConfig:		&tls.Config{InsecureSkipVerify: true},
+	//})
 	//defer db.redisClient.Close()
 
-	cosmsosURL, cosomosMasterKey := parseCosmosConnectionString( os.Getenv("COSMOSDB_CONNECTIONSTRING") )
-	cosmosConfig := documentdb.NewConfig(&documentdb.Key{
-		Key: cosomosMasterKey,
-	})
-	db.cosmosClient = documentdb.New(cosmsosURL, cosmosConfig)
+	//cosmsosURL, cosomosMasterKey := parseCosmosConnectionString( os.Getenv("COSMOSDB_CONNECTIONSTRING") )
+	//cosmosConfig := documentdb.NewConfig(&documentdb.Key{
+	//	Key: cosomosMasterKey,
+	//})
+	//db.cosmosClient = documentdb.New(cosmsosURL, cosmosConfig)
 
-	err = db.findDatabase(db.Database)
-	if err != nil {
-		panic(err)
-	}
-	db.findCollection(db.Collection)
+	//err = db.findDatabase(db.Database)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//db.findCollection(db.Collection)
 
 	return db, nil
 }
