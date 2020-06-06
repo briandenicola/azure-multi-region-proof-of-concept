@@ -37,7 +37,7 @@ namespace Eventing
             );
             
             var batch = IndexBatch.MergeOrUpload<AesKey>(data);
-            indexClient.Documents.Index(batch);
+            await indexClient.Documents.IndexAsync(batch);
 
             if (exceptions.Count > 1)
                 throw new AggregateException(exceptions);
