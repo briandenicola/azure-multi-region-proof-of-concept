@@ -104,7 +104,7 @@ do
   #Create Event Hub
   hub=events
   az eventhubs namespace create -g ${RG} -n ${eventHubNameSpace} -l ${region} --sku Standard --enable-auto-inflate --maximum-throughput-units 5 --enable-kafka
-  az eventhubs eventhub create -g ${RG} --namespace-name ${eventHubNameSpace} -n ${hub} --message-retention 7 --partition-count 1
+  az eventhubs eventhub create -g ${RG} --namespace-name ${eventHubNameSpace} -n ${hub} --message-retention 7 --partition-count 15
 
   #Create Azure Search 
   az search service create -g ${RG} -n ${searchServiceName} --sku standard -l ${location} --partition-count 6 --replica-count 3
