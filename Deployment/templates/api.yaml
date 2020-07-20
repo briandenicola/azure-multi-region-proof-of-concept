@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api
@@ -7,6 +7,9 @@ metadata:
     app: cqrsapi
     component: api
 spec:
+  selector:
+    matchLabels:
+      app: cqrsapi
   replicas: 1
   strategy:
     type: RollingUpdate
