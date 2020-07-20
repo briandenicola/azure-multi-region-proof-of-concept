@@ -10,6 +10,7 @@ spec:
   selector:
     matchLabels:
       app: cqrsapi
+      component: api
   replicas: 1
   strategy:
     type: RollingUpdate
