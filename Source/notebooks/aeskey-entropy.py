@@ -10,6 +10,8 @@ df = (spark
 )     
 
 # COMMAND ----------
+import base64 
+import json
 
 w = (df.select("body")
      .rdd
