@@ -32,6 +32,7 @@ done
 
 count=1
 hub=events
+accessRule=spark
 consumerGroup=databricks
 
 for region in ${regions[@]}
@@ -40,7 +41,8 @@ do
     az eventhubs eventhub consumer-group create -g ${RG} --namespace-name ${eventHubNameSpace} --eventhub-name ${hub} -n ${consumerGroup} >& /dev/null
     
     echo ${eventHubNameSpace} Primary ConnectionString
-    az eventhubs namespace authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace} --name RootManageSharedAccessKey -o tsv --query primaryConnectionString
+    az eventhubs eventhub authorization-rule show -g ${RG} --namespace-name ${eventHubNameSpace}  --eventhub-name ${hub} -n ${accessRule} --rights Listen
+    az eventhubs eventhub authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace}   --eventhub-name ${hub} --name ${accessRule} -o tsv --query primaryConnectionString
     count=$((count+1))
 done
   
