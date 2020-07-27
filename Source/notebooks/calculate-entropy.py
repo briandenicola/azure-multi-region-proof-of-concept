@@ -25,7 +25,6 @@ w = (df.select("body")
 
 display(w)
 
-
 # COMMAND ----------
 
 

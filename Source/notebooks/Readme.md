@@ -36,9 +36,10 @@ The second notebook takes the parquet files and generates a graph of the distriu
 * databricks secrets write --scope entropy-demo --key eventhub-connnection-string --string-value {Event Hub ConnectionString}
 
 ## Cluster Library
-* Requires - com.microsoft.azure:azure-eventhubs-spark_2.11:2.3.1 (https://github.com/Azure/azure-event-hubs-spark/)
+* Requires - com.microsoft.azure:azure-eventhubs-spark_2.11:2.3.12 (https://github.com/Azure/azure-event-hubs-spark/)
     * Install using Maven into the cluster
 
 ## Notebook Deployment
-* databricks workspace import -l python ../../Source/notebooks/aeskey-entropy.py /Shared/aeskey-entropy.py
-* databricks workspace import -l python ../../Source/notebooks/eventhub-stream-writer.py /Shared/eventhub-stream-writer.py 
+* databricks workspace import -l python ../../Source/notebooks/caculate-entropy.py /Shared/calculate-entropy.py
+* databricks workspace import -l python ../../Source/notebooks/eventhub-stream-reader.py /Shared/eventhub-stream-reader.py
+* databricks workspace import -l python ../../Source/notebooks/stream-to-delta-table.py /Shared/stream-to-delta-table.py
