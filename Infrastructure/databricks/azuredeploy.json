@@ -20,10 +20,24 @@
         "metadata": {
           "description": "Location for all resources."
         }
+      },
+      "primaryVnetName": {
+        "type": "string",
+        "metadata": {
+          "description": "Vnet Name"
+        }
+      },
+      "primaryVnetResourceGroup": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().name]",
+        "metadata": {
+          "description": "Vnet Resource Group"
+        }
       }
     },
     "variables": {
-      "managedResourceGroupName": "[concat(resourceGroup().name, '-Databricks-Nodes')]"
+      "managedResourceGroupName": "[concat(resourceGroup().name, '-Databricks-Nodes')]",
+      "vnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')))]"
     },
     "resources": [
         {
@@ -35,7 +49,16 @@
                 "name": "premium"
             },
             "properties": {
-                "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]"
+                "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]",
+                "parameters": {
+                  "customPrivateSubnetName": {
+                    "value": "databricks-private"
+                  },
+                  "customPublicSubnetName": {
+                    "value": "databricks-public"
+                  },
+                  "customVirtualNetworkId": "[variables('vnetId')]"
+                }
             }
         },
         {

@@ -143,6 +143,14 @@ do
   k8sSubnetRange="10.${count}.4.0/22"
   k8ssubnetid=`az network vnet subnet create -g ${RG} --vnet-name ${vnetName} -n ${k8sSubnet} --address-prefixes ${k8sSubnetRange} --query 'id' -o tsv`
 
+  databricksPrivateSubnet=databricks-private
+  databricksPrivateSubnetRange="10.${count}.10.0/24"
+  az network vnet subnet create -g ${RG} --vnet-name ${vnetName} -n ${databricksPrivateSubnet} --address-prefixes ${databricksPrivateSubnetRange}
+
+  databricksPublicSubnet=databricks-public
+  databricksPublicSubnetRange="10.${count}.11.0/24"
+  az network vnet subnet create -g ${RG} --vnet-name ${vnetName} -n ${databricksPublicSubnet} --address-prefixes ${databricksPublicSubnetRange}
+
   #Create AKS
   SERVICE_CIDR="10.19${count}.0.0/16"
   DNS_IP="10.19${count}.0.10"
