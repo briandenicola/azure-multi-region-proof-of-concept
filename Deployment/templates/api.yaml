@@ -39,6 +39,7 @@ spec:
         volumeMounts:
         - name: config-data
           mountPath: /env
+          readOnly: true
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
@@ -58,6 +59,11 @@ spec:
             port: 8081
           initialDelaySeconds: 3
           periodSeconds: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsUser: 1000
+          runAsGroup: 1000
       volumes:
       - name: config-data
         emptyDir: {}
