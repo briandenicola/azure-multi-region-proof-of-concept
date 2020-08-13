@@ -19,7 +19,7 @@ while (( "$#" )); do
       shift 2
       ;;
     -h|--help)
-      echo "Usage: ./deploy_application.sh -n {App Name} -g {Resource Group} -r {region} -v {Version. Default=1.0}  [-r {secondary region}]"
+      echo "Usage: ./deploy_application.sh -n {App Name} -r {region} -v {Version. Default=1.0}  [-r {secondary region}]"
       exit 0
       ;;
     --) 
@@ -53,6 +53,9 @@ if [[ -z "${regions[0]}" ]]; then
 fi 
 primary=${regions[0]}
 
+#Set Global RG Name
+rgGlobal="${appName}_Global_RG"
+
 #Set Subscription and login into ACR
 az acr login -n ${acrAccountName}
 
@@ -70,11 +73,11 @@ docker push ${acrAccountName}.azurecr.io/cqrs/eventprocessor:${version}
 cd ${cwd}
 
 ## Get Cosmos Connection String
-cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${RG} --query 'connectionStrings[0].connectionString' -o tsv`
+cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${rgGlobal} --query 'connectionStrings[0].connectionString' -o tsv`
 cosmosEncoded=`echo -n ${cosmosConnectionString} | base64 -w 0`
 
 ## Get Application Insight Key
-instrumentationKey=`az monitor app-insights component  show --app ${appInsightsName} -g ${RG} --query instrumentationKey -o tsv`
+instrumentationKey=`az monitor app-insights component  show --app ${appInsightsName} -g ${rgGlobal} --query instrumentationKey -o tsv`
 instrumentationKeyEncoded=`echo -n ${instrumentationKey} | base64 -w 0`
 
 cd Deployment
@@ -83,10 +86,12 @@ count=1
 for region in ${regions[@]}
 do
 
+  RG="${appName}_${region}_RG"
+
   eventHubNameSpace=hub${appName}00${count}
   redisName=cache${appName}00${count}
   aks=k8s${appName}00${count}
-  storageAccountName=${appName}sa00${count}
+  storageAccountName=sa${appName}00${count}
 
   ## Get Redis Connection String
   redisKey=`az redis list-keys  -g ${RG} -n ${redisName} -o tsv --query primaryKey`
