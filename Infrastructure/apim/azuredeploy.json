@@ -46,8 +46,8 @@
     },
     "variables": {
         "skuCount": 1,
-        "publisherName": "Denicolafamily",
-        "publisherEmail": "brdenico@microsoft.com",
+        "publisherName": "bjdazuretech",
+        "publisherEmail": "brian@bjdazure.tech",
         "subnetName" : "/subnets/APIM",
         "apimNsgName": "apimNSGrules",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
