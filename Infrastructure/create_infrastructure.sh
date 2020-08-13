@@ -211,8 +211,8 @@ do
   NODE_CLIENT_ID=`az aks show -n ${aks} -g ${RG} --query 'identityProfile.kubeletidentity.objectId' -o tsv`
   
   az role assignment create --assignee-object-id ${CLIENT_ID} --role "Network Contributor" -g ${RG}
-  az role assignment create --assignee-object-id ${CLIENT_ID} --role "acrpull" -g ${RG}
-  az role assignment create --assignee-object-id ${NODE_CLIENT_ID} --role "acrpull" -g ${RG}
+  az role assignment create --assignee-object-id ${CLIENT_ID} --role "acrpull" -g ${rgGlobal}
+  az role assignment create --assignee-object-id ${NODE_CLIENT_ID} --role "acrpull" -g ${rgGlobal}
 
   ## Get Pod Credentials 
   az aks get-credentials -n ${aks} -g ${RG} 
