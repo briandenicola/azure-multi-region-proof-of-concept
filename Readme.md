@@ -97,8 +97,10 @@ In other words, the world's most expensive random number generator....
 - [x] Add Application Insights - Azure Funtions
 - [x] Log Analytics automation 
 - [x] Update deployments to Helm 3
-- [x] Multiple Region Deployment 
-- [ ] Convert Azure cli scripts to Terraform 
+- [x] Multiple Region Deployment with Azure Front Door
+- [ ] Add support for Cosmos DB and Redis Cache (preview) private endpoints
+- [ ] Add support for Azure Private Zone DNS
+- [ ] GitHub Actions pipeline 
 
 # Issues
 - [x] Docker build on Azure Functions has warnings. func kubernetes deploy does not
