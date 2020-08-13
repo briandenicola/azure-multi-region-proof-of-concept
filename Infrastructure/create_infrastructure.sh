@@ -111,7 +111,7 @@ do
   redisName=cache${appName}00${count}
   aks=k8s${appName}00${count}
   storageAccountName=sa${appName}00${count}
-  nodeRG=${RG}_${region}_nodes 
+  nodeRG=${RG}_k8s_nodes 
 
   #ACR Update
   if [ $region != $primary ]; then 
