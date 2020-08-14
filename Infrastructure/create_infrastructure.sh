@@ -104,7 +104,7 @@ do
 
   #Create Resource Group
   RG="${appName}_${region}_rg"
-  az group create -n ${RG} -l $primary
+  az group create -n ${RG} -l $region
 
   #Resource Names
   vnetName=vnet${appName}00${count}
