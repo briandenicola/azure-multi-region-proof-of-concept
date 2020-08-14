@@ -3,16 +3,13 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "workspaceName": {
-            "value": ""
+            "value": "bjddatabricks004"
         },
         "storageAccountName": {
-            "value": ""
+            "value": "bjddatalake004"
         },
         "primaryVnetName": {
-            "value": ""
-        },
-        "primaryVnetResourceGroup": {
-            "value": ""
+            "value": "vnetxaznakpj001"
         }
     }
 }

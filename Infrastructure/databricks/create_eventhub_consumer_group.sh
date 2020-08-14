@@ -16,7 +16,7 @@ while (( "$#" )); do
       shift 2
       ;;
     -h|--help)
-      echo "Usage: ./create_eventhub_consumer_group.sh -n {App Name} -g {Resource Group} -r {region} [-r {secondary region}]"
+      echo "Usage: ./create_eventhub_consumer_group.sh -n {App Name} -r {region} [-r {secondary region}]"
       exit 0
       ;;
     --) 
@@ -37,6 +37,9 @@ consumerGroup=databricks
 
 for region in ${regions[@]}
 do
+
+    RG="${appName}_${region}_RG"
+
     eventHubNameSpace=hub${appName}00${count}
     az eventhubs eventhub consumer-group create -g ${RG} --namespace-name ${eventHubNameSpace} --eventhub-name ${hub} -n ${consumerGroup} >& /dev/null
     

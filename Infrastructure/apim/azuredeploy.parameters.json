@@ -3,25 +3,28 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "apiManagementName": {
-            "value": "bjdapim004"
+            "value": "bjdapim001"
         },
         "multiRegionDeployment": {
-            "value": "false"
+            "value": "true"
         },
         "primaryVnetName": {
-            "value": "vnetfnaxhszq001"
+            "value": "vnetfqrmcwib001"
         },
         "primaryVnetResourceGroup": {
-            "value": "DevSub02_CQRS04_RG"
+            "value": "fqrmcwib_eastus2_rg"
+        },
+        "secondaryLocation": {
+            "value": "UK West"
+        },
+        "secondaryVnetName": {
+            "value": "vnetfqrmcwib002"
+        },
+        "secondaryVnetResourceGroup": {
+            "value": "fqrmcwib_ukwest_rg"
         },
         "customDomain":{
             "value": "bjdcsa.cloud"
-        },
-        "customDomainCertificateData":{
-            "value": ""
-        },
-        "customDomainCertificatePassword":{
-            "value": ""
         }
     }
 }

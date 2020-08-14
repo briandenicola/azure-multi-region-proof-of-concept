@@ -29,6 +29,9 @@ while (( "$#" )); do
   esac
 done
 
+#Define Global Resource Group
+rgGlobal="${appName}_Global_RG"
+
 cosmosDBAccountName=db${appName}001
 eventHubNameSpace=hub${appName}001
 redisName=cache${appName}001
@@ -38,8 +41,8 @@ logAnalyticsWorkspace=logs${appName}001
 diagSettingsName=diag
 
 # Get Resource IDs
-workspace_id=`az monitor log-analytics workspace show -n ${logAnalyticsWorkspace} -g ${RG} -o tsv --query id`
-cosmos_id=`az cosmosdb show -n ${cosmosDBAccountName} -g ${RG} -o tsv --query id`
+workspace_id=`az monitor log-analytics workspace show -n ${logAnalyticsWorkspace} -g ${rgGlobal} -o tsv --query id`
+cosmos_id=`az cosmosdb show -n ${cosmosDBAccountName} -g ${rgGlobal} -o tsv --query id`
 redis_id=`az redis show -n ${redisName} -g ${RG} -o tsv --query id`
 eventHub_id=`az eventhubs namespace show -n ${eventHubNameSpace} -g ${RG} -o tsv --query id`
 

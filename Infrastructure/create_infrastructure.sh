@@ -15,7 +15,7 @@ while (( "$#" )); do
       shift 2
       ;;
     -h|--help)
-      echo "Usage: ./create_infrastructure.sh -n {App Name} -g {Resource Group} -r {region} [-r {secondary region}]"
+      echo "Usage: ./create_infrastructure.sh -n {App Name} -r {region} [-r {secondary region}]"
       exit 0
       ;;
     --) 
@@ -51,11 +51,6 @@ if [[ -z "${regions[0]}" ]]; then
 fi 
 primary=${regions[0]}
 
-if [[ -z "${RG}" ]]; then
-  echo "This script requires a Resource Group name defined"
-  exit 1
-fi 
-
 public_ip=`curl -s http://checkip.amazonaws.com/`
 
 az account show  >> /dev/null 2>&1
@@ -68,7 +63,8 @@ az extension add --name application-insights
 az extension add --name log-analytics
 
 #Create Resource Group
-az group create -n $RG -l $primary
+rgGlobal="${appName}_global_rg"
+az group create -n ${rgGlobal} -l $primary
 
 #Resource Names
 cosmosDBAccountName=db${appName}001
@@ -80,7 +76,7 @@ logAnalyticsWorkspace=logs${appName}001
 database=AesKeys
 collection=Items
 
-cosmosdb_cmd="az cosmosdb create -g ${RG} -n ${cosmosDBAccountName} --kind GlobalDocumentDB --enable-multiple-write-locations"
+cosmosdb_cmd="az cosmosdb create -g ${rgGlobal} -n ${cosmosDBAccountName} --kind GlobalDocumentDB --enable-multiple-write-locations"
 failoverPriority=0
 for region in ${regions[@]}
 do
@@ -89,33 +85,38 @@ do
 done
 $cosmosdb_cmd
 
-az cosmosdb sql database create  -g ${RG} -a ${cosmosDBAccountName} -n ${database}
-az cosmosdb sql container create -g ${RG} -a ${cosmosDBAccountName} -d ${database} -n ${collection} --partition-key-path '/keyId'
+az cosmosdb sql database create  -g ${rgGlobal} -a ${cosmosDBAccountName} -n ${database}
+az cosmosdb sql container create -g ${rgGlobal} -a ${cosmosDBAccountName} -d ${database} -n ${collection} --partition-key-path '/keyId'
+cosmosdbId=`az cosmosdb show -g ${rgGlobal} -n ${cosmosDBAccountName} -o tsv --query id`
 
 #Create ACR
-az acr create -n ${acrAccountName} -g ${RG} -l ${primary} --sku Premium
+az acr create -n ${acrAccountName} -g ${rgGlobal} -l ${primary} --sku Premium
 
 # Create Application Insights
-az monitor app-insights component create --app ${appInsightsName} --location ${primary} --kind web -g ${RG} --application-type web
+az monitor app-insights component create --app ${appInsightsName} --location ${primary} --kind web -g ${rgGlobal} --application-type web
 
 # Create Log Analytics Workspace 
-az monitor log-analytics workspace create -n ${logAnalyticsWorkspace} --location ${primary} -g ${RG}
+az monitor log-analytics workspace create -n ${logAnalyticsWorkspace} --location ${primary} -g ${rgGlobal}
 
 count=1
 for region in ${regions[@]}
 do
+
+  #Create Resource Group
+  RG="${appName}_${region}_rg"
+  az group create -n ${RG} -l $region
 
   #Resource Names
   vnetName=vnet${appName}00${count}
   eventHubNameSpace=hub${appName}00${count}
   redisName=cache${appName}00${count}
   aks=k8s${appName}00${count}
-  storageAccountName=${appName}sa00${count}
-  nodeRG=${RG}_${region}_nodes 
+  storageAccountName=sa${appName}00${count}
+  nodeRG=${RG}_k8s_nodes 
 
   #ACR Update
   if [ $region != $primary ]; then 
-    az acr replication create -r ${acrAccountName} -l ${region}
+    az acr replication create -r ${acrAccountName} -l ${region} -g ${rgGlobal}
   fi
 
   #Create Event Hub
@@ -127,7 +128,8 @@ do
   az redis create  -g ${RG} -n ${redisName} -l ${region} --sku standard --vm-size c1 --minimum-tls-version 1.2   
 
   #Create Azure Storage
-  az storage account create --name ${storageAccountName} --resource-group $RG --sku Standard_LRS -l ${region}
+  az storage account create --name ${storageAccountName} --resource-group ${RG} --sku Standard_LRS -l ${region} --kind StorageV2
+  storageAcountId=`az storage account show -g ${RG} -n ${storageAccountName} -o tsv --query id`
 
   #Create Virtual Network and Subnets
   vnetIPRange="10.${count}.0.0/16"
@@ -150,6 +152,61 @@ do
   databricksPublicSubnet=databricks-public
   databricksPublicSubnetRange="10.${count}.11.0/24"
   az network vnet subnet create -g ${RG} --vnet-name ${vnetName} -n ${databricksPublicSubnet} --address-prefixes ${databricksPublicSubnetRange}
+
+  privateEndPointSubnet=private-endpoints
+  privateDndPointSubnetRange="10.${count}.20.0/24"
+  az network vnet subnet create -g ${RG} --vnet-name ${vnetName} -n ${privateEndPointSubnet} --address-prefixes ${privateDndPointSubnetRange}
+  az network vnet subnet update -g ${RG} --vnet-name ${vnetName} -n ${privateEndPointSubnet} --disable-private-endpoint-network-policies true
+  privateEndPointSubnetId=`az network vnet subnet show -n ${privateEndPointSubnet} --vnet-name ${vnetName} -g ${RG} -o tsv --query id`
+
+  #Private Zone Network Link
+  zoneLinkName="${vnetName}-link"
+  zoneNames=("privatelink.documents.azure.com" "privatelink.blob.core.windows.net" )
+  for zoneName in ${zoneNames[@]}
+  do 
+    if ! `az network private-dns zone show -g ${RG} -n ${zoneName} -o none`
+    then
+      az network private-dns zone create --resource-group ${RG} --name ${zoneName}
+      az network private-dns link vnet create -g ${RG} --zone-name ${zoneName} --name ${zoneLinkName} --virtual-network ${vnetName} --registration-enabled false
+    fi
+  done
+
+  #Create Cosmsos DB Private Endpoint
+  cosmosPrivateEndPointName="${cosmosDBAccountName}-${region}-ep"
+  az network private-endpoint create --name ${cosmosPrivateEndPointName} \
+    --resource-group ${RG} \
+    --subnet ${privateEndPointSubnetId} \
+    --private-connection-resource-id ${cosmosdbId} \
+    --group-id "sql" \
+    --location ${region} \
+    --connection-name ${cosmosPrivateEndPointName}
+
+  # Create CosmosDB Private Endpoint DNS Entries
+  customConfig=`az network private-endpoint show --name ${cosmosPrivateEndPointName} --resource-group ${RG} -o json --query customDnsConfigs`
+  for record in `echo $customConfig | jq -r '.[] | "\(.fqdn):\(.ipAddresses[0])"'`; do
+    dns_array=($(echo $record | tr ":" "\n"))
+    dnsName=`echo ${dns_array[0]} | awk -F . '{print $1}'`
+    az network private-dns record-set a create --name ${dnsName} --zone-name "privatelink.documents.azure.com" -g ${RG}
+    az network private-dns record-set a add-record --record-set-name ${dnsName} --zone-name "privatelink.documents.azure.com" -g ${RG} -a ${dns_array[1]}
+  done
+
+  #Create Blob Storage Account Private Endpoint
+  storagePrivateEndPointName="${storageAccountName}-${region}-ep"
+  az network private-endpoint create --name ${storagePrivateEndPointName} \
+    --resource-group ${RG} \
+    --subnet ${privateEndPointSubnetId} \
+    --private-connection-resource-id ${storageAcountId} \
+    --group-id "blob" \
+    --location ${region} \
+    --connection-name ${storagePrivateEndPointName}
+
+  #Create Blob Storage Account Private Endpoint DNS Entries
+  az network private-endpoint dns-zone-group create \
+    --endpoint-name ${storagePrivateEndPointName} \
+    --resource-group ${RG} \
+    --private-dns-zone "privatelink.blob.core.windows.net" \
+    --name "default" \
+    --zone-name "blob.core.windows.net"
 
   #Create AKS
   SERVICE_CIDR="10.19${count}.0.0/16"
@@ -177,8 +234,8 @@ do
   NODE_CLIENT_ID=`az aks show -n ${aks} -g ${RG} --query 'identityProfile.kubeletidentity.objectId' -o tsv`
   
   az role assignment create --assignee-object-id ${CLIENT_ID} --role "Network Contributor" -g ${RG}
-  az role assignment create --assignee-object-id ${CLIENT_ID} --role "acrpull" -g ${RG}
-  az role assignment create --assignee-object-id ${NODE_CLIENT_ID} --role "acrpull" -g ${RG}
+  az role assignment create --assignee-object-id ${CLIENT_ID} --role "acrpull" -g ${rgGlobal}
+  az role assignment create --assignee-object-id ${NODE_CLIENT_ID} --role "acrpull" -g ${rgGlobal}
 
   ## Get Pod Credentials 
   az aks get-credentials -n ${aks} -g ${RG} 
