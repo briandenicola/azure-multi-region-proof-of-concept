@@ -3,16 +3,16 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "frontDoorName": {
-            "value": ""
+            "value": "bjdapifd001"
         },
         "frontDoorUrl": {
-            "value": ""
+            "value": "api.bjdcsa.cloud"
         },
         "primaryBackendEndFQDN": {
-            "value": ""
+            "value": "api.us.bjdcsa.cloud"
         },
         "secondaryBackendEndFQDN": {
-            "value": ""
+            "value": "api.uk.bjdcsa.cloud"
         }
     }
 }

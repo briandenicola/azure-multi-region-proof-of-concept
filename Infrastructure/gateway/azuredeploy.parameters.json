@@ -6,22 +6,28 @@
             "value": "bjdgw001"
         },
         "multiRegionDeployment": {
-            "value": "false"
+            "value": "true"
         },
         "primaryVnetName": {
-            "value": "vnetnbbgqhjr001"
+            "value": "vnetfqrmcwib001"
         },
         "primaryVnetResourceGroup": {
-            "value": "DevSub02_CQRS_RG"
+            "value": "fqrmcwib_eastus2_rg"
         },
-        "domainCertificateData":{
-            "value": "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"
+        "secondaryLocation": {
+            "value": "ukwest"
         },
-        "domainCertificatePassword":{
-            "value": "abc123"
+        "secondaryVnetName": {
+            "value": "vnetfqrmcwib002"
+        },
+        "secondaryVnetResourceGroup": {
+            "value": "fqrmcwib_ukwest_rg"
         },
         "primaryBackendEndFQDN": {
             "value": "api-internal.us.bjdcsa.cloud"
+        },
+        "secondaryBackendEndFQDN": {
+            "value": "api-internal.uk.bjdcsa.cloud"
         }
     }
 }
