@@ -8,16 +8,31 @@ In other words, the world's most expensive random number generator....
 
 ## Infrastructure Steps
 * cd ./Infrastructure
-* ./create_infrastructure.sh -g CQRS_RG -r centralus -r ukwest --client-secret {SPN secret} 
-* ./setup_diagnostics.sh -n ${appName} -g CQRS_RG -r centralus _optional_
+* ./create_infrastructure.sh -r centralus -r ukwest
+    * Autogenerates an Application Name 
+    * Creates a Resource Group name ${appName}_global_rg and ${appName}_${region}_rg
+* ./setup_diagnostics.sh -n ${appName} -r centralus _optional_
     * appName will be display at the end of the create_infrastructure.sh script 
 
 ## Application Deployment 
 * cd ./Infrastructure
-* ./deploy_application.sh -n ${appName} -g CQRS_RG -r centralus -r ukwest -v 1.0
+* ./deploy_application.sh -n ${appName} -r centralus -r ukwest -v 1.0
 
 ## Expose API Externally _optional_ 
 * The create_infrastructure and deploy_application scripts create the foundations for this demo. The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway.  
+
+### Prerequisite
+* A public domain that you can create DNS records
+* DNS Records:
+    * api.bjdcsa.cloud - CNAME to the Azure Front Door Name ()
+    * api.us.bjdcsa.cloud - Public IP Address of Azure Gateway US Region.
+        * This can be created after the App Gateway is configured
+    * api.uk.bjdcsa.cloud - Public IP Address of Azure Gateway UK Region
+        * This can be created after the App Gateway is configured
+    * api-intenal.us.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
+    * api-intenal.uk.bjdcsa.cloud - Private IP Address of Azure APIM UK Region. Typically 10.2.2.5 or 10.2.2.6
+    * portal.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
+    * developer.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
 
 ### SSL Cert Requirements 
 * To expose the application externally, TLS certificates and a Domain name are required. I used Let's Encrypt and Azure DNS to host my domain name.
@@ -35,30 +50,32 @@ In other words, the world's most expensive random number generator....
 * Update apim\azuredeploy.parameters.json 
     * apiManagementName: bjdapim001
     * secondaryLocation: ukwest
-    * primaryVnetName/secondaryVnetName: Names determined from the create_infrastructure script
-    * primaryVnetResourceGroup/secondaryVnetResourceGroup: CQRS_RG
+    * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
+    * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
     * customDomain: bjdcsa.cloud
     * customDomainCertificateData: Base64 output of portal.bjdcsa.cloud.pfx
     * customDomainCertificatePassword: password for pfx file
     * multiRegionDeployment: "true"
 * cd .\apim
-* New-AzResourceGroupDeployment -Name apim -ResourceGroupName CQRS_RG -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
+* New-AzResourceGroupDeployment -Name apim -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
 * cd ..\product
-* .\Deploy.ps1 -ResourceGroupName CQRS_RG -ResourceLocation centralus -SecondaryRegion "UK West" -ApiManagementName bjdapim001 -primaryBackendUrl http://10.1.4.97 -SecondaryBackendUrl http://10.2.4.97
+* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation eastus2 -SecondaryRegion "UK West" -ApiManagementName bjdapim001 -primaryBackendUrl http://10.1.4.127 -SecondaryBackendUrl http://10.2.4.127
+* MANUAL ALERT - You need to log into the Azure Portal > APIM and associate the AesKey APIs with the KeyService Products
+    * TBD to automate this
 
 ### APP Gateway 
 * Update gateway\azuredeploy.parameters.json
     * appGatewayName: bjdgw001
     * multiRegionDeployment: true
     * secondaryLocation: ukwest
-    * primaryVnetName/secondaryVnetName: Names determined from the create_infrastructure script
-    * primaryVnetResourceGroup/secondaryVnetResourceGroup: CQRS_RG
+    * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
+    * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
     * domainCertificateData: Base64 output of api.bjdcsa.cloud.pfx
     * domainCertificatePassword: password for pfx file
     * primaryBackendEndFQDN: api-internal.us.bjdcsa.cloud
     * secondaryBackendEndFQDN: api-internal.uk.bjdcsa.cloud
 * cd .\gateway
-* New-AzResourceGroupDeployment -Name appgw -ResourceGroupName CQRS_RG -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
+* New-AzResourceGroupDeployment -Name appgw -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
 
 ### Front Door
 * Update frontdoor\azuredeploy.parameters.json
@@ -67,22 +84,30 @@ In other words, the world's most expensive random number generator....
     * primaryBackendEndFQDN: api.us.bjdcsa.cloud
     * secondaryBackendEndFQDN: api.uk.bjdcsa.cloud
 * cd ..\frontdoor
-* New-AzResourceGroupDeployment -Name frontdoor -ResourceGroupName CQRS_RG -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
+* New-AzResourceGroupDeployment -Name frontdoor -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
 
 ## Test
-* ./Scripts/create_keys.sh 100 
-    * You will need to be on a system that has connectivity to the Internal IP of the AKS Ingress controller
-* Check Cosmos db and Redis Cache to validate the keys have been written to both Cosmos and Redis
-    * Redis Console Commands
-        * LIST *
-        * GET <keyid>
-* If you created the services to expose the API externally then you can do:
-    * Get subscription Key from APIM for Key-Service product
-    * Invoke-RestMethod -UseBasicParsing -Uri https://api.bjdcsa.cloud/k/1000?subscription-key={apikey} -Method Post
-        * if you do a k get pods -w you should see KEDA scale the number of pods servicing the Event Hub processor function.
-    * Invoke-RestMethod -UseBasicParsing -Uri https://api.bjdcsa.cloud/k/{guid}?subscription-key={apikey} -Method Get
-    * Can also use api.us.bjdcsa.cloud and api.uk.bjdcsa.cloud
-    
+* Test Local Deployment directly on AKS clusters 
+    * ./Scripts/create_keys.sh 100 
+* Test Individual Application Gateways
+    * Obtain your APIM
+    * h = New-APIMHeader -key $apiSubscriptionKey 
+        * New-APIMHeader is a method in bjd.Azure.Functions
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjdcsa.cloud/k/10?api-version=2020-05-04 -Method Post -Headers $h
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjdcsa.cloud/k/10?api-version=2020-05-04 -Method Post -Headers $h
+    * $keyId = copy a reply from the commands above
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjdcsa.cloud/k/${keyId}?api-version=2020-05-04 -Headers $h
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjdcsa.cloud/k/${keyId}?api-version=2020-05-04 -Headers $h
+* Test Azure Front Door globally with Azure ACI
+    * cd .\Infrastructure\ACI
+    * New-AzResourceGroup -Name ${appName}_tests_rg -l useast2
+    * New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_tests_rgg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjdcsa.cloud -keyGuid ${keyId}
+    * az container logs --resource-group fqrmcwib_tests_rg --name utils-australiaeast-get
+    * az container logs --resource-group fqrmcwib_tests_rg --name utils-australiaeast-post
+    * az container logs --resource-group fqrmcwib_tests_rg --name utils-westeurope-get
+    * az container logs --resource-group fqrmcwib_tests_rg --name utils-westeurope-post
+    * az container logs --resource-group fqrmcwib_tests_rg --name utils-japaneast-get
+
 # To Do List 
 - [x] Infrastructure 
 - [x] Test Flexvol with local.settings.json for Functions in container
@@ -102,7 +127,8 @@ In other words, the world's most expensive random number generator....
 - [x] Add support for Storage private endpoint
 - [ ] Add support for Redis Cache (preview)
 - [x] Add support for Azure Private DNS Zones
-- [ ] Update diagrams and documention
+- [ ] Update diagrams 
+- [x] Update documention
 - [ ] GitHub Actions pipeline 
 
 # Issues
