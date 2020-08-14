@@ -98,9 +98,10 @@ In other words, the world's most expensive random number generator....
 - [x] Log Analytics automation 
 - [x] Update deployments to Helm 3
 - [x] Multiple Region Deployment with Azure Front Door
-- [ ] Add support for Cosmos DB private endpoint
+- [x] Add support for Cosmos DB private endpoint
+- [x] Add support for Storage private endpoint
 - [ ] Add support for Redis Cache (preview)
-- [ ] Add support for Azure Private Zone DNS
+- [x] Add support for Azure Private DNS Zones
 - [ ] Update diagrams and documention
 - [ ] GitHub Actions pipeline 
 

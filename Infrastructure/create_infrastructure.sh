@@ -63,7 +63,7 @@ az extension add --name application-insights
 az extension add --name log-analytics
 
 #Create Resource Group
-rgGlobal="${appName}_Global_RG"
+rgGlobal="${appName}_global_rg"
 az group create -n ${rgGlobal} -l $primary
 
 #Resource Names
@@ -87,6 +87,7 @@ $cosmosdb_cmd
 
 az cosmosdb sql database create  -g ${rgGlobal} -a ${cosmosDBAccountName} -n ${database}
 az cosmosdb sql container create -g ${rgGlobal} -a ${cosmosDBAccountName} -d ${database} -n ${collection} --partition-key-path '/keyId'
+cosmosdbId=`az cosmosdb show -g ${rgGlobal} -n ${cosmosDBAccountName} -o tsv --query id`
 
 #Create ACR
 az acr create -n ${acrAccountName} -g ${rgGlobal} -l ${primary} --sku Premium
@@ -102,7 +103,7 @@ for region in ${regions[@]}
 do
 
   #Create Resource Group
-  RG="${appName}_${region}_RG"
+  RG="${appName}_${region}_rg"
   az group create -n ${RG} -l $primary
 
   #Resource Names
@@ -118,9 +119,15 @@ do
     az acr replication create -r ${acrAccountName} -l ${region} -g ${rgGlobal}
   fi
 
-  # Create Private Zone DNS
-  zoneName="privatelink.documents.azure.com"
-  az network private-dns zone create --resource-group ${RG} --name ${zoneName}
+  # Create Private DNS zones
+  zoneNames=("privatelink.documents.azure.com" "privatelink.b.lob.core.windows.net" )
+  for zoneName in ${zoneNames[@]}
+  do 
+    if ! `az network private-dns zone show -g ${RG} -n ${zoneName} -o none`
+    then
+      az network private-dns zone create --resource-group ${RG} --name ${zoneName}
+    fi
+  done
 
   #Create Event Hub
   hub=events
@@ -131,7 +138,8 @@ do
   az redis create  -g ${RG} -n ${redisName} -l ${region} --sku standard --vm-size c1 --minimum-tls-version 1.2   
 
   #Create Azure Storage
-  az storage account create --name ${storageAccountName} --resource-group ${RG} --sku Standard_LRS -l ${region}
+  az storage account create --name ${storageAccountName} --resource-group ${RG} --sku Standard_LRS -l ${region} --kind StorageV2
+  storageAcountId=`az storage account show -g ${RG} -n ${storageAccountName} -o tsv --query id`
 
   #Create Virtual Network and Subnets
   vnetIPRange="10.${count}.0.0/16"
@@ -162,12 +170,11 @@ do
 
   #Private Zone Network Link
   zoneLinkName="${vnetName}-link"
-  az network private-dns link vnet create -g ${RG} --zone-name ${zoneName} --name ${zoneLinkName} --virtual-network ${vnetName}--registration-enabled false
+  az network private-dns link vnet create -g ${RG} --zone-name ${zoneName} --name ${zoneLinkName} --virtual-network ${vnetName} --registration-enabled false
+  privateEndPointSubnetId=`az network vnet subnet show -n ${privateEndPointSubnet} --vnet-name ${vnetName} -g ${RG} -o tsv --query id`
 
   #Create Cosmsos DB Private Endpoint
   privateEndPointName="${cosmosDBAccountName}-${region}-ep"
-  privateEndPointSubnetId=`az network vnet subnet show -n ${privateEndPointSubnet} --vnet-name ${vnetName} -g ${RG} -o tsv --query id`
-  cosmosdbId=`az cosmosdb show -g ${rgGlobal} -n ${cosmosDBAccountName} -o tsv --query id`
   az network private-endpoint create --name ${privateEndPointName} \
     --resource-group ${RG} \
     --subnet ${privateEndPointSubnetId} \
@@ -176,7 +183,7 @@ do
     --location ${region} \
     --connection-name ${privateEndPointName}
 
-  # Create Cosmos DB Private Endpoint DNS
+  # Create CosmosDB Private Endpoint DNS Entries
   customConfig=`az network private-endpoint show --name ${privateEndPointName} --resource-group ${RG} -o json --query customDnsConfigs`
   for record in `echo $customConfig | jq -r '.[] | "\(.fqdn):\(.ipAddresses[0])"'`; do
     dns_array=($(echo $record | tr ":" "\n"))
@@ -184,6 +191,24 @@ do
     az network private-dns record-set a create --name ${dnsName} --zone-name ${zoneName} -g ${RG}
     az network private-dns record-set a add-record --record-set-name ${dnsName} --zone-name ${zoneName} -g ${RG} -a ${dns_array[1]}
   done
+
+  #Create Blob Storage Account Private Endpoint
+  privateEndPointName="${storageAccountName}-${region}-ep"
+  az network private-endpoint create --name ${privateEndPointName} \
+    --resource-group ${RG} \
+    --subnet ${privateEndPointSubnetId} \
+    --private-connection-resource-id ${storageAcountId} \
+    --group-id "blob" \
+    --location ${region} \
+    --connection-name ${privateEndPointName}
+
+  #Create Blob Storage Account Private Endpoint DNS Entries
+  az network private-endpoint dns-zone-group create \
+    --endpoint-name ${privateEndPointName} \
+    --resource-group ${RG} \
+    --private-dns-zone "privatelink.blob.core.windows.net" \
+    --name "default" \
+    --zone-name "blob.core.windows.net"
 
   #Create AKS
   SERVICE_CIDR="10.19${count}.0.0/16"
