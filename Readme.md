@@ -127,9 +127,9 @@ In other words, the world's most expensive random number generator....
 - [x] Add support for Storage private endpoint
 - [ ] Add support for Redis Cache (preview)
 - [x] Add support for Azure Private DNS Zones
-- [ ] Update diagrams 
+- [x] Update diagrams 
 - [x] Update documention
-- [ ] GitHub Actions pipeline 
+- [ ] Update for Terraforms and GitHub Actions pipeline 
 
 # Issues
 - [x] Docker build on Azure Functions has warnings. func kubernetes deploy does not
