@@ -37,6 +37,12 @@
         "customDomain":{
             "type": "string"
         },
+        "primaryBackendEndFQDN": {
+            "type": "string"
+        },
+        "secondaryBackendEndFQDN": {
+            "type": "string"
+        },
         "customDomainCertificateData":{
             "type": "string"
         },
@@ -322,7 +328,7 @@
                     },
                     {
                         "type": "Proxy",
-                        "hostName": "[concat('api-internal.us.', parameters('customDomain'))]",
+                        "hostName": "[parameters('primaryBackendEndFQDN')]",
                         "negotiateClientCertificate": false,
                         "encodedCertificate": "[parameters('customDomainCertificateData')]",
                         "certificatePassword": "[parameters('customDomainCertificatePassword')]",
@@ -330,7 +336,7 @@
                     },
                     {
                         "type": "Proxy",
-                        "hostName": "[concat('api-internal.uk.', parameters('customDomain'))]",
+                        "hostName": "[parameters('secondaryBackendEndFQDN')]",
                         "negotiateClientCertificate": false,
                         "encodedCertificate": "[parameters('customDomainCertificateData')]",
                         "certificatePassword": "[parameters('customDomainCertificatePassword')]",
