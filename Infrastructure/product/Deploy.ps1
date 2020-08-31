@@ -9,9 +9,11 @@ param (
     [string]    $ApiManagementName,
 
     [Parameter(Mandatory=$true)]
+    [ValidateScript({[system.uri]::IsWellFormedUriString($_,[System.UriKind]::Absolute)})]
     [string]    $primaryBackendUrl,
 
     [Parameter(Mandatory=$false)]
+    [ValidateScript({[system.uri]::IsWellFormedUriString($_,[System.UriKind]::Absolute)})]
     [string]    $SecondaryBackendUrl,
 
     [Parameter(Mandatory=$false)]
