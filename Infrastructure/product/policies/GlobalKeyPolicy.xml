@@ -1,14 +1,6 @@
 <policies>
     <inbound>
         <base />
-        <choose>
-            <when condition='@("{{secondaryRegion}}".Equals(context.Deployment.Region, StringComparison.OrdinalIgnoreCase))'>
-                <set-backend-service base-url="{{secondaryBackendUrl}}/api/keys" />
-            </when>
-            <otherwise>
-                <set-backend-service base-url="{{primaryBackendUrl}}/api/keys" />
-            </otherwise>
-        </choose>
         <set-header name="X-Forwarded-Host" exists-action="override">
             <value>@(context.Request.OriginalUrl.ToUri().Host)</value>
         </set-header>

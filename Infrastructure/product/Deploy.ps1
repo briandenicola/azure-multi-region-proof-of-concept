@@ -10,36 +10,12 @@ param (
 
     [Parameter(Mandatory=$true)]
     [ValidateScript({[system.uri]::IsWellFormedUriString($_,[System.UriKind]::Absolute)})]
-    [string]    $primaryBackendUrl,
+    [string]    $primaryBackendUrl
 
-    [Parameter(Mandatory=$false)]
-    [ValidateScript({[system.uri]::IsWellFormedUriString($_,[System.UriKind]::Absolute)})]
-    [string]    $SecondaryBackendUrl,
-
-    [Parameter(Mandatory=$false)]
-    [string]    $SecondaryRegion
 )  
 
-if([string]::IsNullOrEmpty($SecondaryBackendUrl)) {
-    $SecondaryBackendUrl = $PrimaryBackendUrl
-}
-
-if([string]::IsNullOrEmpty($SecondaryRegion)) {
-    $SecondaryRegion = $ResourceLocation
-}
-
 $GlobalKeyPolicy = Get-Content -Raw -Path ".\policies\GlobalKeyPolicy.xml"
-$GlobalKeyPolicy = $GlobalKeyPolicy.
-    Replace('{{primaryBackendUrl}}', $primaryBackendUrl).
-    Replace('{{secondaryBackendUrl}}', $SecondaryBackendUrl).
-    Replace('{{secondaryRegion}}', $SecondaryRegion)
-
 $CreateKeyPolicy = Get-Content -Raw -Path ".\policies\CreateKeyPolicy.xml"
-$CreateKeyPolicy = $CreateKeyPolicy.
-    Replace('{{primaryBackendUrl}}', $primaryBackendUrl).
-    Replace('{{secondaryBackendUrl}}', $SecondaryBackendUrl).
-    Replace('{{secondaryRegion}}', $SecondaryRegion)
-
 $RateLimitPolicy = Get-Content -Raw -Path ".\policies\RateLimitPolicy.xml"
 $MockPolicy = Get-Content -Raw -Path ".\policies\MockPolicy.xml"
 
