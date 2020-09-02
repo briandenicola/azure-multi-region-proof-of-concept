@@ -8,15 +8,16 @@ In other words, the world's most expensive random number generator....
 
 ## Infrastructure Steps
 * cd ./Infrastructure
-* ./create_infrastructure.sh -r centralus -r ukwest
+* ./create_infrastructure.sh -r centralus -r ukwest --domain bjdcsa.cloud
     * Autogenerates an Application Name 
     * Creates a Resource Group name ${appName}_global_rg and ${appName}_${region}_rg
+    * Will create a Private Zone DNS for ${domain} in each region
 * ./setup_diagnostics.sh -n ${appName} -r centralus _optional_
     * appName will be display at the end of the create_infrastructure.sh script 
 
 ## Application Deployment 
 * cd ./Infrastructure
-* ./deploy_application.sh -n ${appName} -r centralus -r ukwest -v 1.0
+* ./deploy_application.sh -n ${appName} -r centralus -r ukwest --domain  bjdcsa.cloud --ingress api.ingress
 
 ## Expose API Externally _optional_ 
 * The create_infrastructure and deploy_application scripts create the foundations for this demo. The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway.  
@@ -29,8 +30,9 @@ In other words, the world's most expensive random number generator....
         * This can be created after the App Gateway is configured
     * api.uk.bjdcsa.cloud - Public IP Address of Azure Gateway UK Region
         * This can be created after the App Gateway is configured
-    * api-intenal.us.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
-    * api-intenal.uk.bjdcsa.cloud - Private IP Address of Azure APIM UK Region. Typically 10.2.2.5 or 10.2.2.6
+    * api.ingress.bjdcsa.cloud - Private IP Address of ingress controll in both US UK Region. Typically 10.1.4.127 or 10.2.4.127
+    * api.apim.us.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
+    * api.apim.uk.bjdcsa.cloud - Private IP Address of Azure APIM UK Region. Typically 10.2.2.5 or 10.2.2.6
     * portal.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
     * developer.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
 
@@ -58,8 +60,9 @@ In other words, the world's most expensive random number generator....
     * multiRegionDeployment: "true"
 * cd .\apim
 * New-AzResourceGroupDeployment -Name apim -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
+* .\Update-DNS.ps1 -AppName ${appName} -ApiMgmtName ${apiManagementName} -DomainName ${domainName} -Uris @("api.apim.us", "api.apim.uk")
 * cd ..\product
-* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation eastus2 -SecondaryRegion "UK West" -ApiManagementName bjdapim001 -primaryBackendUrl http://10.1.4.127 -SecondaryBackendUrl http://10.2.4.127
+* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation eastus2 -SecondaryRegion "UK West" -ApiManagementName ${apiManagementName} -primaryBackendUrl https://api.ingress.bjdcsa.cloud 
 * MANUAL ALERT - You need to log into the Azure Portal > APIM and associate the AesKey APIs with the KeyService Products
     * TBD to automate this
 

@@ -6,10 +6,6 @@ while (( "$#" )); do
       appName=$2
       shift 2
       ;;
-    -g|--resource-group)
-      RG=$2
-      shift 2
-      ;;
     -r|--region)
       regions+=($2)
       shift 2
@@ -18,8 +14,23 @@ while (( "$#" )); do
       version=$2
       shift 2
       ;;
+    --domain)
+      domainName=$2
+      shift 2
+      ;;
+    --ingress)
+      ingressUri=$2
+      shift 2
+      ;;
     -h|--help)
-      echo "Usage: ./deploy_application.sh -n {App Name} -r {region} -v {Version. Default=1.0}  [-r {secondary region}]"
+      echo "Usage: ./deploy_application.sh -n {App Name} -r {region} --ingress {uri} --domain {domain name} [-v {Version} -r {secondary region}] 
+        --name(n)    - The name of the application. Should be taken from the output of ./create_infrastructure.sh script
+        --region(r)  - Primary Region 
+        --ingress    - The Uri of the ingress controller. Will be joined with --domain flag to form fully qualified domain name  Example: api.ingress. 
+        --domain     - The domain name for the application. Example: bjd.demo
+        --version(v) - The version for container. (Optional). Default: 1.0
+        --region(r)  - Additional regions defined to deploy application
+      "
       exit 0
       ;;
     --) 
@@ -121,6 +132,10 @@ do
     --set api_version=${version} \
     --set eventprocessor_version=${version} \
     cqrs .
+
+    #Create DNS records for Ingress
+    ip=`kubectl get service traefik -o jsonpath={.status.loadBalancer.ingress[].ip}`
+    az network private-dns record-set a add-record --record-set-name ${ingressUri} --zone-name ${domainName}  -g ${RG} -a ${ip}
 
     count=$((count+1))
 done

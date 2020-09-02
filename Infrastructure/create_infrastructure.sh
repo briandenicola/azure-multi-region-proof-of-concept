@@ -2,10 +2,6 @@
 
 while (( "$#" )); do
   case "$1" in
-    -g|--resource-group)
-      RG=$2
-      shift 2
-      ;;
     -r|--region)
       regions+=($2)
       shift 2
@@ -14,8 +10,17 @@ while (( "$#" )); do
       appName=$2
       shift 2
       ;;
+    --domain)
+      domainName=$2
+      shift 2
+      ;;
     -h|--help)
-      echo "Usage: ./create_infrastructure.sh -n {App Name} -r {region} [-r {secondary region}]"
+      echo "Usage: ./create_infrastructure.sh -r {region}  --domain {domain name} [-n {Application Name} -r {secondary region}]
+        --region(r)  - Primary Region 
+        --domain     - The domain name for the application. Example: bjd.demo
+        --name(n)    - A defined name for the Application. Will be auto-generated if not supplied (Optional)
+        --region(r)  - Additional regions defined to deploy application
+      "
       exit 0
       ;;
     --) 
@@ -161,7 +166,7 @@ do
 
   #Private Zone Network Link
   zoneLinkName="${vnetName}-link"
-  zoneNames=("privatelink.documents.azure.com" "privatelink.blob.core.windows.net" )
+  zoneNames=("privatelink.documents.azure.com" "privatelink.blob.core.windows.net" ${domainName} )
   for zoneName in ${zoneNames[@]}
   do 
     if ! `az network private-dns zone show -g ${RG} -n ${zoneName} -o none`
