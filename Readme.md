@@ -8,7 +8,7 @@ In other words, the world's most expensive random number generator....
 
 ## Infrastructure Steps
 * cd ./Infrastructure
-* ./create_infrastructure.sh -r centralus -r ukwest --domain bjdcsa.cloud
+* ./create_infrastructure.sh -r centralus -r ukwest --domain bjd.demo
     * Autogenerates an Application Name 
     * Creates a Resource Group name ${appName}_global_rg and ${appName}_${region}_rg
     * Will create a Private Zone DNS for ${domain} in each region
@@ -17,36 +17,43 @@ In other words, the world's most expensive random number generator....
 
 ## Application Deployment 
 * cd ./Infrastructure
-* ./deploy_application.sh -n ${appName} -r centralus -r ukwest --domain  bjdcsa.cloud --ingress api.ingress
+* ./deploy_application.sh -n ${appName} -r centralus -r ukwest --domain bjd.demo --ingress api.ingress
 
 ## Expose API Externally _optional_ 
 * The create_infrastructure and deploy_application scripts create the foundations for this demo. The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway.  
 
 ### Prerequisite
 * A public domain that you can create DNS records
-* DNS Records:
-    * api.bjdcsa.cloud - CNAME to the Azure Front Door Name ()
-    * api.us.bjdcsa.cloud - Public IP Address of Azure Gateway US Region.
+    * Will use bjd.demo
+* Public DNS Records:
+    * api.bjd.demo - CNAME to the Azure Front Door Name ()
+    * api.us.bjd.demo - Public IP Address of Azure Gateway US Region.
         * This can be created after the App Gateway is configured
-    * api.uk.bjdcsa.cloud - Public IP Address of Azure Gateway UK Region
+    * api.uk.bjd.demo - Public IP Address of Azure Gateway UK Region
         * This can be created after the App Gateway is configured
-    * api.ingress.bjdcsa.cloud - Private IP Address of ingress controll in both US UK Region. Typically 10.1.4.127 or 10.2.4.127
-    * api.apim.us.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
-    * api.apim.uk.bjdcsa.cloud - Private IP Address of Azure APIM UK Region. Typically 10.2.2.5 or 10.2.2.6
-    * portal.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
-    * developer.bjdcsa.cloud - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
+* Private Zone DNS Records: _Should be setup automatically_
+    * api.ingress.bjd.demo - Private IP Address of ingress controll in both US UK Region. Typically 10.1.4.127 or 10.2.4.127
+    * api.apim.us.bjd.demo - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
+    * api.apim.uk.bjd.demo - Private IP Address of Azure APIM UK Region. Typically 10.2.2.5 or 10.2.2.6
+    * portal.bjd.demo - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
+    * developer.bjd.demo - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
 
 ### SSL Cert Requirements 
 * To expose the application externally, TLS certificates and a Domain name are required. I used Let's Encrypt and Azure DNS to host my domain name.
 * We need to create 2 certificates. One for API Management and one for APP Gateway
 * Steps:
     * curl https://get.acme.sh | sh
-    * acme.sh --issue --dns dns_azure -d portal.bjdcsa.cloud -d management.bjdcsa.cloud -d developer.bjdcsa.cloud -d api-internal.us.bjdcsa.cloud -d api-internal.uk.bjdcsa.cloud -d management.scm.bjdcsa.cloud
-    * acme.sh --issue --dns dns_azure -d api.bjdcsa.cloud -d api.us.bjdcsa.cloud -d api.uk.bjdcsa.cloud
-    * acme.sh --toPkcs -d portal.bjdcsa.cloud
-    * acme.sh --toPkcs -d api.bjdcsa.cloud
-    * pwsh > [convert]::ToBase64String( (Get-Content -AsByteStream .\portal.bjdcsa.cloud.pfx) _This will be used in the Azure ARM Templates_
-    * pwsh > [convert]::ToBase64String( (Get-Content -AsByteStream .\api.bjdcsa.cloud.pfx) _This will be used in the Azure ARM Templates_
+    * acme.sh --issue --dns dns_azure -d api.ingress.bjd.demo 
+    * acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
+    * acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.us.bjd.demo -d api.uk.bjd.demo
+    * acme.sh --toPkcs -d portal.bjd.demo
+    * acme.sh --toPkcs -d api.bjd.demo
+    * pwsh > [convert]::ToBase64String( (Get-Content -AsByteStream .\portal.bjd.demo.pfx) _This will be used in the Azure ARM Templates_
+    * pwsh > [convert]::ToBase64String( (Get-Content -AsByteStream .\api.bjd.demo.pfx) _This will be used in the Azure ARM Templates_
+
+### Ingress Controller 
+_optional_
+* ./config_ingress_tls.sh --domain bjd.demo --ingress api.ingress --key ${Path to Cert Private Key} --cert ${Path to Certificate file} 
 
 ### API Management 
 * Update apim\azuredeploy.parameters.json 
@@ -54,15 +61,15 @@ In other words, the world's most expensive random number generator....
     * secondaryLocation: ukwest
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
     * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
-    * customDomain: bjdcsa.cloud
-    * customDomainCertificateData: Base64 output of portal.bjdcsa.cloud.pfx
+    * customDomain: bjd.demo
+    * customDomainCertificateData: Base64 output of portal.bjd.demo.pfx
     * customDomainCertificatePassword: password for pfx file
     * multiRegionDeployment: "true"
 * cd .\apim
 * New-AzResourceGroupDeployment -Name apim -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
 * .\Update-DNS.ps1 -AppName ${appName} -ApiMgmtName ${apiManagementName} -DomainName ${domainName} -Uris @("api.apim.us", "api.apim.uk")
 * cd ..\product
-* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation eastus2 -SecondaryRegion "UK West" -ApiManagementName ${apiManagementName} -primaryBackendUrl https://api.ingress.bjdcsa.cloud 
+* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation eastus2 -ApiManagementName ${apiManagementName} -primaryBackendUrl https://api.ingress.bjd.demo 
 * MANUAL ALERT - You need to log into the Azure Portal > APIM and associate the AesKey APIs with the KeyService Products
     * TBD to automate this
 
@@ -73,19 +80,19 @@ In other words, the world's most expensive random number generator....
     * secondaryLocation: ukwest
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
     * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
-    * domainCertificateData: Base64 output of api.bjdcsa.cloud.pfx
+    * domainCertificateData: Base64 output of api.bjd.demo.pfx
     * domainCertificatePassword: password for pfx file
-    * primaryBackendEndFQDN: api-internal.us.bjdcsa.cloud
-    * secondaryBackendEndFQDN: api-internal.uk.bjdcsa.cloud
+    * primaryBackendEndFQDN: api-internal.us.bjd.demo
+    * secondaryBackendEndFQDN: api-internal.uk.bjd.demo
 * cd .\gateway
 * New-AzResourceGroupDeployment -Name appgw -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
 
 ### Front Door
 * Update frontdoor\azuredeploy.parameters.json
     * frontDoorName: bjdfd001
-    * frontDoorUrl: api.bjdcsa.cloud
-    * primaryBackendEndFQDN: api.us.bjdcsa.cloud
-    * secondaryBackendEndFQDN: api.uk.bjdcsa.cloud
+    * frontDoorUrl: api.bjd.demo
+    * primaryBackendEndFQDN: api.us.bjd.demo
+    * secondaryBackendEndFQDN: api.uk.bjd.demo
 * cd ..\frontdoor
 * New-AzResourceGroupDeployment -Name frontdoor -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
 
@@ -96,15 +103,15 @@ In other words, the world's most expensive random number generator....
     * Obtain your APIM
     * h = New-APIMHeader -key $apiSubscriptionKey 
         * New-APIMHeader is a method in bjd.Azure.Functions
-    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjdcsa.cloud/k/10?api-version=2020-05-04 -Method Post -Headers $h
-    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjdcsa.cloud/k/10?api-version=2020-05-04 -Method Post -Headers $h
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
     * $keyId = copy a reply from the commands above
-    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjdcsa.cloud/k/${keyId}?api-version=2020-05-04 -Headers $h
-    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjdcsa.cloud/k/${keyId}?api-version=2020-05-04 -Headers $h
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
 * Test Azure Front Door globally with Azure ACI
     * cd .\Infrastructure\ACI
     * New-AzResourceGroup -Name ${appName}_tests_rg -l useast2
-    * New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_tests_rgg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjdcsa.cloud -keyGuid ${keyId}
+    * New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_tests_rgg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjd.demo -keyGuid ${keyId}
     * az container logs --resource-group fqrmcwib_tests_rg --name utils-australiaeast-get
     * az container logs --resource-group fqrmcwib_tests_rg --name utils-australiaeast-post
     * az container logs --resource-group fqrmcwib_tests_rg --name utils-westeurope-get
