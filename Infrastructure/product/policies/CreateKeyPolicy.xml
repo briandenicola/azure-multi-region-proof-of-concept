@@ -1,6 +1,7 @@
 <policies>
     <inbound>
         <base />
+        <set-backend-service base-url="{{primaryBackendUrl}}" />
         <rewrite-uri template="/api/keys" />
         <set-body>
         @{
