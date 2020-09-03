@@ -30,7 +30,7 @@
                         "name": "OnlyAllowFrontDoorAccess",
                         "priority": 1,
                         "ruleType": "MatchRule",
-                        "action": "Deny",
+                        "action": "Block",
                         "matchConditions": [
                             {
                                 "matchVariables": [
