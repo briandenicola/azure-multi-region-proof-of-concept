@@ -30,7 +30,7 @@
                         "name": "OnlyAllowFrontDoorAccess",
                         "priority": 1,
                         "ruleType": "MatchRule",
-                        "action": "Allow",
+                        "action": "Deny",
                         "matchConditions": [
                             {
                                 "matchVariables": [
@@ -40,6 +40,7 @@
                                     }
                                 ],
                                 "operator": "Equal",
+                                "negationConditon": true,
                                 "matchValues": [
                                     "[parameters('AzureFrontDoorID')]"
                                 ],
