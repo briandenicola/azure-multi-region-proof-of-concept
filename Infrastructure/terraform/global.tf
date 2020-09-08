@@ -13,12 +13,6 @@ resource "azurerm_resource_group" "cqrs_global" {
   location              = var.locations[0]
 }
 
-resource "azurerm_resource_group" "cqrs_region" {
-  count                 = length(var.locations)  
-  name                  = "${var.application_name}_${var.locations[count.index]}_rg"
-  location              = var.locations[count.index]
-}
-
 resource "azurerm_cosmosdb_account" "cqrs_db" {
   name                            = var.cosmosdb_name
   resource_group_name             = azurerm_resource_group.cqrs_global.name
@@ -44,6 +38,22 @@ resource "azurerm_cosmosdb_account" "cqrs_db" {
       failover_priority           = 1
     }
   }
+}
+
+resource "azurerm_cosmosdb_sql_database" "cqrs_db" {
+  name                = var.cosmosdb_database_name
+  resource_group_name = data.azurerm_cosmosdb_account.cqrs_db.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.cqrs_db.name
+  throughput          = 400
+}
+
+resource "azurerm_cosmosdb_sql_container" "cqrs_db" {
+  name                = var.cosmosdb_collections_name
+  resource_group_name = azurerm_cosmosdb_account.cqrs_db.resource_group_name
+  account_name        = azurerm_cosmosdb_account.cqrs_db.name
+  database_name       = azurerm_cosmosdb_sql_database.cqrs_db.name
+  partition_key_path  = "/keyId"
+  throughput          = 400
 }
 
 resource "azurerm_container_registry" "cqrs_acr" {

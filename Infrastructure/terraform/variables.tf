@@ -45,3 +45,33 @@ variable "loganalytics_account_name" {
   type        = string
   default     = "logsgawwaslc001"
 }
+
+variable "vnet_name" {
+  description = "Virtual Network Name"
+  type        = string
+  default     = "vnetgawwaslc00"
+}
+
+variable "eventhub_namespace_name" {
+  description = "Event Hub Namespace"
+  type        = string
+  default     = "hubgawwaslc00"
+}
+
+variable "redis_name" {
+  description = "Redis Cache"
+  type        = string
+  default     = "cachegawwaslc00"
+}
+
+variable "aks_name" {
+  description = "AKS Cluster"
+  type        = string
+  default     = "k8sgawwaslc00"
+}
+
+variable "storage_name" {
+  description = "Storage Account"
+  type        = string
+  default     = "sagawwaslc00"
+}

@@ -61,6 +61,11 @@ cosmosDBAccountName=db${appName}001
 acrAccountName=acr${appName}001
 appInsightsName=ai${appName}001
 logAnalyticsWorkspace=logs${appName}001
+vnetName=vnet${appName}00
+eventHubNameSpace=hub${appName}00
+redisName=cache${appName}00
+aks=k8s${appName}00
+storageAccountName=sa${appName}00
 
 #Public IP of Client connection
 public_ip=`curl -s http://checkip.amazonaws.com/`
@@ -72,6 +77,11 @@ cosmosdb_name = "${cosmosDBAccountName}"
 acr_account_name = "${acrAccountName}"
 ai_account_name = "${appInsightsName}"
 loganalytics_account_name = "${logAnalyticsWorkspace}"
+vnet_name = ${vnetName}
+eventhub_namespace_name = ${eventHubNameSpace}
+redis_name = ${redisName}
+aks_name = ${aks}
+storage_name = ${storageAccountName}
 EOF
 
 terraform init 
