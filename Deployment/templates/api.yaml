@@ -95,3 +95,22 @@ spec:
           serviceName: cqrsapisvc
           servicePort: 8081
         path: /
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cqrsapitls
+  annotations:
+        kubernetes.io/ingress.class: traefik
+        traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+  - host: {{ .Values.uri }}   
+    http:
+      paths:
+      - backend:
+          serviceName: cqrsapisvc
+          servicePort: 8081
+        path: /
+  tls:
+  - secretName: traefik-api-cert

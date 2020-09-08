@@ -242,22 +242,6 @@ do
   az role assignment create --assignee-object-id ${CLIENT_ID} --role "acrpull" -g ${rgGlobal}
   az role assignment create --assignee-object-id ${NODE_CLIENT_ID} --role "acrpull" -g ${rgGlobal}
 
-  ## Get Pod Credentials 
-  az aks get-credentials -n ${aks} -g ${RG} 
-
-  if [[ $? -eq 0 ]]; then
-    ## Install Traefik Ingress 
-    helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-    helm repo update
-    helm upgrade -i traefik stable/traefik --set rbac.enabled=true --set ssl.insecureSkipVerify=true --set ssl.enabled=true --set service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-internal"=true
- 
-    ## Install Keda
-    helm repo add kedacore https://kedacore.github.io/charts
-    helm repo update
-    kubectl create namespace keda
-    helm upgrade -i keda kedacore/keda --namespace keda
-  fi
-
   count=$((count+1))
 done 
 
