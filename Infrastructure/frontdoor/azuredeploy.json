@@ -62,7 +62,7 @@
         },
         {
             "type": "Microsoft.Network/frontdoors",
-            "apiVersion": "2018-08-01",
+            "apiVersion": "2020-01-01",
             "name": "[parameters('frontDoorName')]",
             "location": "Global",
             "dependsOn": [
@@ -173,9 +173,12 @@
                             "patternsToMatch": [
                                 "/*"
                             ],
-                            "forwardingProtocol": "HttpsOnly",
-                            "backendPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/BackendPools/', variables('backendPoolName'))]"
+                            "routeConfiguration": {
+                                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration",                                
+                                "forwardingProtocol": "HttpsOnly",
+                                "backendPool": {
+                                    "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/BackendPools/', variables('backendPoolName'))]"
+                                }                                
                             },
                             "enabledState": "Enabled",
                             "resourceState": "Enabled"
@@ -186,5 +189,11 @@
                 "friendlyName": "[parameters('frontDoorName')]"
             }
         }
-    ]
+    ],
+    "outputs": {
+        "Front Door ID" : {
+            "type" : "string",
+            "value": "[reference(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '2020-01-01', 'Full').properties.frontDoorId]"
+        }
+    }
 }
