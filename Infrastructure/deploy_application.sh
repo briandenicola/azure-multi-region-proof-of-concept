@@ -18,7 +18,7 @@ while (( "$#" )); do
       domainName=$2
       shift 2
       ;;
-    --ingress)
+    --hostname)
       ingressUri=$2
       shift 2
       ;;
@@ -31,15 +31,14 @@ while (( "$#" )); do
       shift 2
       ;;
     -h|--help)
-      echo "Usage: ./deploy_application.sh -n {App Name} -r {region} --ingress {uri} --domain {domain name} -k {TLS key file} -c {TLS certificate file} [-v {Version} -r {secondary region}] 
+      echo "Usage: ./deploy_application.sh -n {App Name} -r {region} --hostname {uri} --domain {domain name} -k {TLS Key} -c {TLS Certificate} [-r {secondary region}] 
         --name(n)    - The name of the application. Should be taken from the output of ./create_infrastructure.sh script
         --region(r)  - Primary Region 
-        --ingress    - The Uri of the ingress controller. Will be joined with --domain flag to form fully qualified domain name  Example: api.ingress 
+        --hostname   - The hostname of the ingress controller. Will be joined with --domain flag to form fully qualified domain name  Example: api.ingress 
         --domain     - The domain name for the application. Example: bjd.demo
-        --version(v) - The version for container. (Optional). Default: 1.0
         --region(r)  - Additional regions defined to deploy application
-        --key(k)     - The path to the certificate private key
-        --cert(c)    - The path to the certificate
+        --key(k)     - The path to the certificate private key file in PEM format
+        --cert(c)    - The path to the certificate file in PEM format
       "
       exit 0
       ;;
@@ -54,19 +53,23 @@ while (( "$#" )); do
   esac
 done
 
+/etc/init.d/docker status >> /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+  echo Docker is not running. Must start it as root.
+  sudo /etc/init.d/docker start
+fi
+
 acrAccountName=acr${appName}001
 cosmosDBAccountName=db${appName}001
 appInsightsName=ai${appName}001
 eventHub=events
 
+version=`git rev-parse HEAD | fold -w 8 | head -n1`
+
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
   az login
 fi
-
-if [[ -z "${version}" ]]; then
-  version="1.0"
-fi 
 
 if [[ -z "${regions[0]}" ]]; then
   echo "This script requires at least one region defined"
@@ -142,7 +145,8 @@ do
       --set rbac.enabled=true \
       --set ssl.insecureSkipVerify=true \
       --set ssl.enabled=true \
-      --set service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-internal"=true
+      --set service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-internal"=true \
+      --wait
  
     ## Install Keda
     helm repo add kedacore https://kedacore.github.io/charts
