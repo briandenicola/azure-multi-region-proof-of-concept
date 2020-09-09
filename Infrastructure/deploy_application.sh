@@ -18,18 +18,27 @@ while (( "$#" )); do
       domainName=$2
       shift 2
       ;;
-    --ingress)
+    --hostname)
       ingressUri=$2
       shift 2
       ;;
+    -k|--key)
+      key=$2
+      shift 2
+      ;;
+    -c|--cert)
+      cert=$2
+      shift 2
+      ;;
     -h|--help)
-      echo "Usage: ./deploy_application.sh -n {App Name} -r {region} --ingress {uri} --domain {domain name} [-v {Version} -r {secondary region}] 
+      echo "Usage: ./deploy_application.sh -n {App Name} -r {region} --hostname {uri} --domain {domain name} -k {TLS Key} -c {TLS Certificate} [-r {secondary region}] 
         --name(n)    - The name of the application. Should be taken from the output of ./create_infrastructure.sh script
         --region(r)  - Primary Region 
-        --ingress    - The Uri of the ingress controller. Will be joined with --domain flag to form fully qualified domain name  Example: api.ingress. 
+        --hostname   - The hostname of the ingress controller. Will be joined with --domain flag to form fully qualified domain name  Example: api.ingress 
         --domain     - The domain name for the application. Example: bjd.demo
-        --version(v) - The version for container. (Optional). Default: 1.0
         --region(r)  - Additional regions defined to deploy application
+        --key(k)     - The path to the certificate private key file in PEM format
+        --cert(c)    - The path to the certificate file in PEM format
       "
       exit 0
       ;;
@@ -44,19 +53,23 @@ while (( "$#" )); do
   esac
 done
 
+/etc/init.d/docker status >> /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+  echo Docker is not running. Must start it as root.
+  sudo /etc/init.d/docker start
+fi
+
 acrAccountName=acr${appName}001
 cosmosDBAccountName=db${appName}001
 appInsightsName=ai${appName}001
 eventHub=events
 
+version=`git rev-parse HEAD | fold -w 8 | head -n1`
+
 az account show  >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
   az login
 fi
-
-if [[ -z "${version}" ]]; then
-  version="1.0"
-fi 
 
 if [[ -z "${regions[0]}" ]]; then
   echo "This script requires at least one region defined"
@@ -91,6 +104,9 @@ cosmosEncoded=`echo -n ${cosmosConnectionString} | base64 -w 0`
 instrumentationKey=`az monitor app-insights component  show --app ${appInsightsName} -g ${rgGlobal} --query instrumentationKey -o tsv`
 instrumentationKeyEncoded=`echo -n ${instrumentationKey} | base64 -w 0`
 
+tlsCertData=`cat ${cert} | base64 -w 0`
+tlsSecretData=`cat ${key} | base64 -w 0`
+
 cd Deployment
 
 count=1
@@ -119,25 +135,46 @@ do
   eventHubEncoded=`echo -n "${ehConnectionString};EntityPath=${eventHub}" | base64 -w 0`
 
   ## Switch K8S Context 
-  kubectl config use-context ${aks}
+  az aks get-credentials -n ${aks} -g ${RG} 
 
-  #Install App
-  helm upgrade --install \
-    --set acr_name=${acrAccountName} \
-    --set AzureWebJobsStorage=${storageEncoded} \
-    --set EVENTHUB_CONNECTIONSTRING=${eventHubEncoded} \
-    --set COSMOSDB_CONNECTIONSTRING=${cosmosEncoded} \
-    --set REDISCACHE_CONNECTIONSTRING=${redisEncoded} \
-    --set APPINSIGHTS_INSTRUMENTATIONKEY=${instrumentationKeyEncoded} \
-    --set api_version=${version} \
-    --set eventprocessor_version=${version} \
-    cqrs .
+  if [[ $? -eq 0 ]]; then
+    ## Install Traefik Ingress 
+    helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+    helm repo update
+    helm upgrade -i traefik stable/traefik \
+      --set rbac.enabled=true \
+      --set ssl.insecureSkipVerify=true \
+      --set ssl.enabled=true \
+      --set service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-internal"=true \
+      --wait
+ 
+    ## Install Keda
+    helm repo add kedacore https://kedacore.github.io/charts
+    helm repo update
+    kubectl create namespace keda
+    helm upgrade -i keda kedacore/keda --namespace keda
+
+    #Install App
+    helm upgrade --install \
+      --set acr_name=${acrAccountName} \
+      --set AzureWebJobsStorage=${storageEncoded} \
+      --set EVENTHUB_CONNECTIONSTRING=${eventHubEncoded} \
+      --set COSMOSDB_CONNECTIONSTRING=${cosmosEncoded} \
+      --set REDISCACHE_CONNECTIONSTRING=${redisEncoded} \
+      --set APPINSIGHTS_INSTRUMENTATIONKEY=${instrumentationKeyEncoded} \
+      --set api_version=${version} \
+      --set eventprocessor_version=${version} \
+      --set uri=${ingressUri}.${domainName} \
+      --set tlsCertificate=${tlsCertData} \
+      --set tlsSecret=${tlsSecretData} \
+      cqrs .
 
     #Create DNS records for Ingress
     ip=`kubectl get service traefik -o jsonpath={.status.loadBalancer.ingress[].ip}`
     az network private-dns record-set a add-record --record-set-name ${ingressUri} --zone-name ${domainName}  -g ${RG} -a ${ip}
+  fi
 
-    count=$((count+1))
+  count=$((count+1))
 done
 
 

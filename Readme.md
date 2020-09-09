@@ -6,54 +6,52 @@ In other words, the world's most expensive random number generator....
 
 # Setup
 
-## Infrastructure Steps
-* cd ./Infrastructure
-* ./create_infrastructure.sh -r centralus -r ukwest --domain bjd.demo
-    * Autogenerates an Application Name 
-    * Creates a Resource Group name ${appName}_global_rg and ${appName}_${region}_rg
-    * Will create a Private Zone DNS for ${domain} in each region
-* ./setup_diagnostics.sh -n ${appName} -r centralus _optional_
-    * appName will be display at the end of the create_infrastructure.sh script 
-
-## Application Deployment 
-* cd ./Infrastructure
-* ./deploy_application.sh -n ${appName} -r centralus -r ukwest --domain bjd.demo --ingress api.ingress
-
-## Expose API Externally _optional_ 
-* The create_infrastructure and deploy_application scripts create the foundations for this demo. The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway.  
-
-### Prerequisite
+## Prerequisite
+* Azure PowerShell, Azure Cli, Terraform, Helm and Kubectl
 * A public domain that you can create DNS records
-    * Will use bjd.demo
-* Public DNS Records:
-    * api.bjd.demo - CNAME to the Azure Front Door Name ()
+    * Will use bjd.demo throughout the documentation 
+    * The Public domain is used by Let's Encrypt to valiate domain ownership before granting tls certificates 
+* Private Zone DNS Records: _Will be setup automatically_
+    * api.ingress.bjd.demo - Private IP Address of ingress controll in all Region. 
+* Private Zone DNS Records: _Need to be setup with Update-Dns.ps1 script_
+    * api.apim.us.bjd.demo - Private IP Address of Azure APIM in the primary Region.
+    * api.apim.uk.bjd.demo - Private IP Address of Azure APIM in the secondary Region. 
+    * developer.bjd.demo - The APIM Developer portal. It resolves to the Private IP Address of Azure APIM in the primary Region.
+    * management.bjd.demo - The APIM API endpoint. It resolves to the Private IP Address of Azure APIM in the primary Region.
+* Public DNS Records: _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
+    * api.bjd.demo - CNAME to the Azure Front Door Name 
     * api.us.bjd.demo - Public IP Address of Azure Gateway US Region.
-        * This can be created after the App Gateway is configured
+        * This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
     * api.uk.bjd.demo - Public IP Address of Azure Gateway UK Region
-        * This can be created after the App Gateway is configured
-* Private Zone DNS Records: _Should be setup automatically_
-    * api.ingress.bjd.demo - Private IP Address of ingress controll in both US UK Region. Typically 10.1.4.127 or 10.2.4.127
-    * api.apim.us.bjd.demo - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
-    * api.apim.uk.bjd.demo - Private IP Address of Azure APIM UK Region. Typically 10.2.2.5 or 10.2.2.6
-    * portal.bjd.demo - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
-    * developer.bjd.demo - Private IP Address of Azure APIM US Region. Typically 10.1.2.5 or 10.1.2.6
+        * This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
 
-### SSL Cert Requirements 
-* To expose the application externally, TLS certificates and a Domain name are required. I used Let's Encrypt and Azure DNS to host my domain name.
-* We need to create 2 certificates. One for API Management and one for APP Gateway
-* Steps:
+## SSL Cert Requirements 
+* I used Let's Encrypt and Azure DNS (which host my domain name) for domain validation
+* Required Steps:
     * curl https://get.acme.sh | sh
-    * acme.sh --issue --dns dns_azure -d api.ingress.bjd.demo 
-    * acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
-    * acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.us.bjd.demo -d api.uk.bjd.demo
+    * acme.sh --issue --dns dns_azure -d api.ingress.bjd.demo
+* Optional Steps: _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
+    * APIM Certificate: acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
+    * AppGateway Certificate: acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.us.bjd.demo -d api.uk.bjd.demo
     * acme.sh --toPkcs -d portal.bjd.demo
     * acme.sh --toPkcs -d api.bjd.demo
     * pwsh > [convert]::ToBase64String( (Get-Content -AsByteStream .\portal.bjd.demo.pfx) _This will be used in the Azure ARM Templates_
     * pwsh > [convert]::ToBase64String( (Get-Content -AsByteStream .\api.bjd.demo.pfx) _This will be used in the Azure ARM Templates_
 
-### Ingress Controller 
-_optional_
-* ./config_ingress_tls.sh --domain bjd.demo --ingress api.ingress --key ${Path to Cert Private Key} --cert ${Path to Certificate file} 
+## Infrastructure Steps
+* cd ./Infrastructure
+* ./create_infrastructure.sh -r centralus -r ukwest --domain bjd.demo
+    * Generates a Terraform variable file with a random Application Name. 
+    * Then calls Terraforms to plan then apply configuration
+* ./setup_diagnostics.sh -n ${appName} -r centralus -r ukwest _optional_
+    * appName will be display at the end of the create_infrastructure.sh script 
+
+## Application Deployment 
+* cd ./Infrastructure
+* ./deploy_application.sh -n ${appName} -r centralus -r ukwest --domain bjd.demo --ingress api.ingress --cert {Path to PEM Cert file} --key {Path to PEM Key file}
+
+## Expose API Externally _optional_ 
+* The create_infrastructure and deploy_application scripts create the foundations for this demo. The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway.  
 
 ### API Management 
 * Update apim\azuredeploy.parameters.json 
@@ -67,11 +65,11 @@ _optional_
     * multiRegionDeployment: "true"
 * cd .\apim
 * New-AzResourceGroupDeployment -Name apim -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
-* .\Update-DNS.ps1 -AppName ${appName} -ApiMgmtName ${apiManagementName} -DomainName ${domainName} -Uris @("api.apim.us", "api.apim.uk")
+* .\Update-DNS.ps1 -AppName ${appName} -ApiMgmtName bjdapim001 -DomainName bjd.demo -Uris @("api.apim.us", "api.apim.uk")
 * cd ..\product
-* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation eastus2 -ApiManagementName ${apiManagementName} -primaryBackendUrl https://api.ingress.bjd.demo 
+* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation centralus -ApiManagementName bjdapim001 -primaryBackendUrl https://api.ingress.bjd.demo 
 * MANUAL ALERT - You need to log into the Azure Portal > APIM and associate the AesKey APIs with the KeyService Products
-    * TBD to automate this
+    * TODO: Automate this steps in the ARM template
 
 ### APP Gateway 
 * Update gateway\azuredeploy.parameters.json
@@ -95,11 +93,18 @@ _optional_
     * secondaryBackendEndFQDN: api.uk.bjd.demo
 * cd ..\frontdoor
 * New-AzResourceGroupDeployment -Name frontdoor -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
+* _Optional: If you would like to lock down the AppGateways to only Azure Front Door_
+* cd .\appgw-waf-policies
+* New-AzResourceGroupDeployment -Name appgw -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -AzureFrontDoorID {Frond Door ID. Taken from output of Front Door ARM template}
+* MANUAL ALERT - You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their reginal WAF policy
+    * TODO: Automate this steps in the ARM template
 
 ## Test
 * Test Local Deployment directly on AKS clusters 
     * ./Scripts/create_keys.sh 100 
-* Test Individual Application Gateways
+    * ./Scripts/get_keys.sh ${keyId}
+        * Where ${keyId} is a GUID taken from the output of create_keys.sh
+* Test Application Gateways Individually
     * Obtain your APIM
     * h = New-APIMHeader -key $apiSubscriptionKey 
         * New-APIMHeader is a method in bjd.Azure.Functions
@@ -112,11 +117,11 @@ _optional_
     * cd .\Infrastructure\ACI
     * New-AzResourceGroup -Name ${appName}_tests_rg -l useast2
     * New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_tests_rgg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjd.demo -keyGuid ${keyId}
-    * az container logs --resource-group fqrmcwib_tests_rg --name utils-australiaeast-get
-    * az container logs --resource-group fqrmcwib_tests_rg --name utils-australiaeast-post
-    * az container logs --resource-group fqrmcwib_tests_rg --name utils-westeurope-get
-    * az container logs --resource-group fqrmcwib_tests_rg --name utils-westeurope-post
-    * az container logs --resource-group fqrmcwib_tests_rg --name utils-japaneast-get
+    * az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-get
+    * az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-post
+    * az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-get
+    * az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-post
+    * az container logs --resource-group ${appName}_tests_rg --name utils-japaneast-get
 
 # To Do List 
 - [x] Infrastructure 
@@ -135,11 +140,12 @@ _optional_
 - [x] Multiple Region Deployment with Azure Front Door
 - [x] Add support for Cosmos DB private endpoint
 - [x] Add support for Storage private endpoint
-- [ ] Add support for Redis Cache (preview)
+- [ ] Add support for Redis Cache private endpoint (preview)
 - [x] Add support for Azure Private DNS Zones
 - [x] Update diagrams 
 - [x] Update documention
-- [ ] Update for Terraforms and GitHub Actions pipeline 
+- [x] Update for Terraforms to create main infrastructure components
+- [ ] GitHub Actions pipeline 
 
 # Issues
 - [x] Docker build on Azure Functions has warnings. func kubernetes deploy does not

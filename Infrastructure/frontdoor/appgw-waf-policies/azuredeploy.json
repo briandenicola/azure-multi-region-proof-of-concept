@@ -1,0 +1,117 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "AzureFrontDoorID": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "secondaryLocation": {
+            "type": "string",
+            "defaultValue": "ukwest"
+        }
+    },
+    "variables": {
+        "ApplicationGatewayWebApplicationFirewallPolicyPrimaryName": "[concat('appgatewaywafpolicy-', parameters('location'))]",
+        "ApplicationGatewayWebApplicationFirewallPolicySecondaryName": "[concat('appgatewaywafpolicy-', parameters('secondaryLocation'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('ApplicationGatewayWebApplicationFirewallPolicyPrimaryName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "customRules": [
+                    {
+                        "name": "OnlyAllowFrontDoorAccess",
+                        "priority": 1,
+                        "ruleType": "MatchRule",
+                        "action": "Block",
+                        "matchConditions": [
+                            {
+                                "matchVariables": [
+                                    {
+                                        "variableName": "RequestHeaders",
+                                        "selector": "X-Azure-FDID"
+                                    }
+                                ],
+                                "operator": "Equal",
+                                "negationConditon": true,
+                                "matchValues": [
+                                    "[parameters('AzureFrontDoorID')]"
+                                ],
+                                "transforms": [
+                                    "Lowercase"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "policySettings": {
+                    "mode": "Prevention"
+                },
+                "managedRules": {
+                    "managedRuleSets": [
+                        {
+                            "ruleSetType": "OWASP",
+                            "ruleSetVersion": "3.0",
+                            "ruleGroupOverrides": []
+                        }
+                    ],
+                    "exclusions": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('ApplicationGatewayWebApplicationFirewallPolicySecondaryName')]",
+            "location": "[parameters('secondaryLocation')]",
+            "properties": {
+                "customRules": [
+                    {
+                        "name": "OnlyAllowFrontDoorAccess",
+                        "priority": 1,
+                        "ruleType": "MatchRule",
+                        "action": "Block",
+                        "matchConditions": [
+                            {
+                                "matchVariables": [
+                                    {
+                                        "variableName": "RequestHeaders",
+                                        "selector": "X-Azure-FDID"
+                                    }
+                                ],
+                                "operator": "Equal",
+                                "negationConditon": true,
+                                "matchValues": [
+                                    "[parameters('AzureFrontDoorID')]"
+                                ],
+                                "transforms": [
+                                    "Lowercase"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "policySettings": {
+                    "mode": "Prevention"
+                },
+                "managedRules": {
+                    "managedRuleSets": [
+                        {
+                            "ruleSetType": "OWASP",
+                            "ruleSetVersion": "3.0",
+                            "ruleGroupOverrides": []
+                        }
+                    ],
+                    "exclusions": []
+                }
+            }
+        }
+    ]
+}
