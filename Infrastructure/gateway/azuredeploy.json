@@ -50,12 +50,163 @@
         "appGatewaySecondaryName": "[concat(parameters('appGatewayName'),'-', parameters('secondaryLocation'))]",
         "appGatewayPrimaryPip": "[concat(variables('appGatewayName'),'-', 'pip')]",
         "appGatewaySecondaryPip": "[concat(variables('appGatewaySecondaryName'),'-','pip')]",
+        "appGatewayPrimaryNSG": "[concat(variables('appGatewayName'),'-nsg')]",
+        "appGatewaySecondaryNSG": "[concat(variables('appGatewaySecondaryName'),'-nsg')]",
         "subnetName" : "/subnets/AppGateway",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
         "secondarySubnetId": "[concat(resourceId(parameters('secondaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('secondaryVnetName')), variables('subnetName'))]"
-
     },
     "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('appGatewayPrimaryNSG')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "HealthProbes",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "65200-65535",
+                            "sourceAddressPrefix": "GatewayManager",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "Allow_FrontDoor_TLS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "AzureFrontDoor.Backend",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "Allow_FrontDoor_HTTP",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "AzureFrontDoor.Backend",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 111,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "Allow_AzureLoadBalancer",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAll",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 130,
+                            "direction": "Inbound" 
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('appGatewaySecondaryNSG')]",
+            "location": "[parameters('secondaryLocation')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "HealthProbes",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "65200-65535",
+                            "sourceAddressPrefix": "GatewayManager",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "Allow_FrontDoor_TLS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "AzureFrontDoor.Backend",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "Allow_FrontDoor_HTTP",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "AzureFrontDoor.Backend",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 111,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "Allow_AzureLoadBalancer",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAll",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 130,
+                            "direction": "Inbound" 
+                        }
+                    }
+                ]
+            }
+        },
         {
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2019-09-01",
