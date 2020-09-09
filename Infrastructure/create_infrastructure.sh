@@ -91,9 +91,16 @@ cd ./terraform
 terraform init 
 terraform plan -out="${tf_Plan_File}" -var-file="${tf_Variable_File}"
 terraform apply -auto-approve ${tf_Plan_File}
-cd ..
 
 # echo Application name
-echo ------------------------------------
-echo "Infrastructure built successfully. Application Name: ${appName}"
-echo ------------------------------------
+if [[ $? -eq 0 ]]; then
+  cd ..
+  echo ------------------------------------
+  echo "Infrastructure built successfully. Application Name: ${appName}"
+  echo ------------------------------------
+else
+  cd ..
+  echo ------------------------------------
+  echo "Errors encountered while building infrastructure. Please review. Application Name: ${appName}"
+  echo ------------------------------------
+fi
