@@ -1,13 +1,3 @@
-terraform {
-  required_providers {
-    azurerm = "~> 2.21"
-  }
-}
-
-provider "azurerm" {
-  features  {}
-}
-
 resource "azurerm_resource_group" "cqrs_region" {
   count                 = length(var.locations)  
   name                  = "${var.application_name}_${var.locations[count.index]}_rg"
@@ -32,11 +22,6 @@ resource "azurerm_virtual_network" "cqrs_region" {
   }
 
   subnet {
-    name           = "Kubernetes"
-    address_prefix = "10.${count.index+1}.4.0/22"
-  }
-
-  subnet {
     name           = "databricks-private"
     address_prefix = "10.${count.index+1}.10.0/24"
   }
@@ -45,6 +30,14 @@ resource "azurerm_virtual_network" "cqrs_region" {
     name           = "databricks-public"
     address_prefix = "10.${count.index+1}.11.0/24"
   }
+}
+
+resource "azurerm_subnet" "kubernetes" {
+  count                 = length(var.locations)  
+  name                  = "Kubernetes"
+  resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
+  virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
+  address_prefixes      = ["10.${count.index+1}.4.0/22"]
 }
 
 resource "azurerm_subnet" "private-endpoints" {
@@ -100,4 +93,132 @@ resource "azurerm_storage_account" "cqrs_region" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
+}
+
+resource "azurerm_kubernetes_cluster" "cqrs_region" {
+  count                     = length(var.locations)
+  name                      = "${var.aks_name}${count.index+1}"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  location                  = azurerm_resource_group.cqrs_region[count.index].location
+  node_resource_group       = "${azurerm_resource_group.cqrs_region[count.index].name}_k8s_nodes"
+  dns_prefix                = "${var.aks_name}${count.index+1}"
+  sku_tier                  = "Paid"
+  api_server_authorized_ip_ranges = var.api_server_authorized_ip_ranges
+  linux_profile {
+    admin_username          = "manager"
+
+    ssh_key {
+        key_data            = var.ssh_public_key
+    }
+  }
+
+  identity {
+    type                    = "SystemAssigned"
+  }
+
+  default_node_pool  {
+    name                    = "default"
+    node_count              = 3
+    vm_size                = "Standard_B4ms"
+    os_disk_size_gb         = 30
+    vnet_subnet_id          = azurerm_subnet.kubernetes[count.index].id
+    type                    = "VirtualMachineScaleSets"
+    enable_auto_scaling     = true
+    min_count               = 3
+    max_count               = 10
+    max_pods                = 40
+  }
+
+  role_based_access_control {
+    enabled                 = "true"
+  }
+
+  network_profile {
+    dns_service_ip          = "10.19${count.index}.0.10"
+    service_cidr            = "10.19${count.index}.0.0/16"
+    docker_bridge_cidr      = "172.17.0.1/16"
+    network_plugin          = "azure"
+    load_balancer_sku       = "standard"
+  }
+
+  addon_profile {
+    oms_agent {
+      enabled                    = true
+      log_analytics_workspace_id = azurerm_log_analytics_workspace.cqrs_logs.id
+    }
+  }
+}
+
+resource "azurerm_role_assignment" "acr_pullrole_node" {
+  count                     = length(var.locations)
+  scope                     = azurerm_container_registry.cqrs_acr.id
+  role_definition_name      = "AcrPull"
+  principal_id              = azurerm_kubernetes_cluster.cqrs_region[count.index].kubelet_identity.0.object_id 
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "acr_pullrole_cluster" {
+  count                     = length(var.locations)
+  scope                     = azurerm_container_registry.cqrs_acr.id
+  role_definition_name      = "AcrPull"
+  principal_id              = azurerm_kubernetes_cluster.cqrs_region[count.index].identity.0.principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "network_contributor_cluster" {
+  count                     = length(var.locations)
+  scope                     = azurerm_resource_group.cqrs_region[count.index].id
+  role_definition_name      = "Network Contributor"
+  principal_id              = azurerm_kubernetes_cluster.cqrs_region[count.index].kubelet_identity.0.object_id 
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "network_contributor_node" {
+  count                     = length(var.locations)
+  scope                     = azurerm_resource_group.cqrs_region[count.index].id
+  role_definition_name      = "Network Contributor"
+  principal_id              = azurerm_kubernetes_cluster.cqrs_region[count.index].identity.0.principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_private_dns_zone" "privatelink_documents_azure_com" {
+  count                     = length(var.locations)
+  name                      = "privatelink.documents.azure.com"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_documents_azure_com" {
+  count                     = length(var.locations)
+  name                      = "${azurerm_virtual_network.cqrs_region[count.index].name}-link"
+  private_dns_zone_name     = azurerm_private_dns_zone.privatelink_documents_azure_com[count.index].name
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  virtual_network_id        = azurerm_virtual_network.cqrs_region[count.index].id
+}
+
+resource "azurerm_private_dns_zone" "privatelink_blob_core_windows_net" {
+  count                     = length(var.locations)
+  name                      = "privatelink.blob.core.windows.net"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_blob_core_windows_net" {
+  count                     = length(var.locations)
+  name                      = "${azurerm_virtual_network.cqrs_region[count.index].name}-link"
+  private_dns_zone_name     = azurerm_private_dns_zone.privatelink_blob_core_windows_net[count.index].name
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  virtual_network_id        = azurerm_virtual_network.cqrs_region[count.index].id
+}
+
+resource "azurerm_private_dns_zone" "custom_domain" {
+  count                     = length(var.locations)
+  name                      = var.custom_domain
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "custom_domain" {
+  count                     = length(var.locations)
+  name                      = "${azurerm_virtual_network.cqrs_region[count.index].name}-link"
+  private_dns_zone_name     = azurerm_private_dns_zone.custom_domain[count.index].name
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  virtual_network_id        = azurerm_virtual_network.cqrs_region[count.index].id
 }

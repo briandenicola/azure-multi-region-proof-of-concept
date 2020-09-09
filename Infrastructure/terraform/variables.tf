@@ -75,3 +75,18 @@ variable "storage_name" {
   type        = string
   default     = "sagawwaslc00"
 }
+
+variable "ssh_public_key" {
+  description = "SSH Public Key"
+  type        = string
+}
+
+variable "api_server_authorized_ip_ranges" {
+  description = "IP Range for K8S API Access"
+  type        = list(string) 
+}
+
+variable "custom_domain" {
+  description = "Domain Name for application"
+  type        = string
+}

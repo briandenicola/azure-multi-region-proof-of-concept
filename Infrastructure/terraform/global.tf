@@ -41,13 +41,15 @@ resource "azurerm_cosmosdb_account" "cqrs_db" {
 }
 
 resource "azurerm_cosmosdb_sql_database" "cqrs_db" {
+  depends_on          = [ azurerm_cosmosdb_account.cqrs_db ]
   name                = var.cosmosdb_database_name
-  resource_group_name = data.azurerm_cosmosdb_account.cqrs_db.resource_group_name
-  account_name        = data.azurerm_cosmosdb_account.cqrs_db.name
+  resource_group_name = azurerm_cosmosdb_account.cqrs_db.resource_group_name
+  account_name        = azurerm_cosmosdb_account.cqrs_db.name
   throughput          = 400
 }
 
 resource "azurerm_cosmosdb_sql_container" "cqrs_db" {
+  depends_on          = [ azurerm_cosmosdb_sql_database.cqrs_db ]
   name                = var.cosmosdb_collections_name
   resource_group_name = azurerm_cosmosdb_account.cqrs_db.resource_group_name
   account_name        = azurerm_cosmosdb_account.cqrs_db.name
