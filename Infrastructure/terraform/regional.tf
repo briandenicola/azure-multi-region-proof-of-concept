@@ -10,26 +10,38 @@ resource "azurerm_virtual_network" "cqrs_region" {
   location            = azurerm_resource_group.cqrs_region[count.index].location
   resource_group_name = azurerm_resource_group.cqrs_region[count.index].name
   address_space       = ["10.${count.index+1}.0.0/16"]
+}
 
-  subnet {
-    name           = "AppGateway"
-    address_prefix = "10.${count.index+1}.1.0/24"
-  }
+resource "azurerm_subnet" "AppGateway" {
+  count                 = length(var.locations)  
+  name                  = "AppGateway"
+  resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
+  virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
+  address_prefixes      = ["10.${count.index+1}.1.0/24"]
+}
 
-  subnet {
-    name           = "APIM"
-    address_prefix = "10.${count.index+1}.2.0/24"
-  }
+resource "azurerm_subnet" "APIM" {
+  count                 = length(var.locations)  
+  name                  = "APIM"
+  resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
+  virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
+  address_prefixes      = ["10.${count.index+1}.2.0/24"]
+}
 
-  subnet {
-    name           = "databricks-private"
-    address_prefix = "10.${count.index+1}.10.0/24"
-  }
+resource "azurerm_subnet" "databricks-private" {
+  count                 = length(var.locations)  
+  name                  = "databricks-private"
+  resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
+  virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
+  address_prefixes      = ["10.${count.index+1}.10.0/24"]
+}
 
-  subnet {
-    name           = "databricks-public"
-    address_prefix = "10.${count.index+1}.11.0/24"
-  }
+resource "azurerm_subnet" "databricks-public" {
+  count                 = length(var.locations)  
+  name                  = "databricks-public"
+  resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
+  virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
+  address_prefixes      = ["10.${count.index+1}.11.0/24"]
 }
 
 resource "azurerm_subnet" "kubernetes" {
@@ -47,8 +59,7 @@ resource "azurerm_subnet" "private-endpoints" {
   virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
   address_prefixes      = ["10.${count.index+1}.20.0/24"]
 
-  enforce_private_link_endpoint_network_policies = false
-
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_eventhub_namespace" "cqrs_region" {
@@ -221,4 +232,39 @@ resource "azurerm_private_dns_zone_virtual_network_link" "custom_domain" {
   private_dns_zone_name     = azurerm_private_dns_zone.custom_domain[count.index].name
   resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
   virtual_network_id        = azurerm_virtual_network.cqrs_region[count.index].id
+}
+
+resource "azurerm_private_endpoint" "cosmos_db" {
+  count                     = length(var.locations)
+  name                      = "${var.cosmosdb_name}-${var.locations[count.index]}-ep"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  location                  = azurerm_resource_group.cqrs_region[count.index].location
+  subnet_id                 = azurerm_subnet.private-endpoints[count.index].id
+
+  private_service_connection {
+    name                           = "${var.cosmosdb_name}-${var.locations[count.index]}-ep"
+    private_connection_resource_id = azurerm_cosmosdb_account.cqrs_db.id
+    subresource_names              = [ "sql" ]
+    is_manual_connection           = false
+  }
+}
+
+resource "azurerm_private_endpoint" "storage_account" {
+  count                     = length(var.locations)
+  name                      = "${var.storage_name}-${var.locations[count.index]}-ep"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  location                  = azurerm_resource_group.cqrs_region[count.index].location
+  subnet_id                 = azurerm_subnet.private-endpoints[count.index].id
+
+  private_service_connection {
+    name                           = "${var.storage_name}-${var.locations[count.index]}-ep"
+    private_connection_resource_id = azurerm_storage_account.cqrs_region[count.index].id
+    subresource_names              = [ "blob" ]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                          = azurerm_private_dns_zone.privatelink_blob_core_windows_net[count.index].name
+    private_dns_zone_ids          = [ azurerm_private_dns_zone.privatelink_blob_core_windows_net[count.index].id ]
+  }
 }
