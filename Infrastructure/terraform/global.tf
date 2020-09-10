@@ -64,7 +64,7 @@ resource "azurerm_container_registry" "cqrs_acr" {
   location                 = azurerm_resource_group.cqrs_global.location
   sku                      = "Premium"
   admin_enabled            = false
-  georeplication_locations = slice(var.locations, 1, length(var.locations))
+  georeplication_locations = length(var.locations) - 1 >= 1 ? slice(var.locations, 1, length(var.locations)) : null
 }
 
 resource "azurerm_log_analytics_workspace" "cqrs_logs" {
