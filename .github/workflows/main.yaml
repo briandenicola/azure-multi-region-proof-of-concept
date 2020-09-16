@@ -30,7 +30,7 @@ jobs:
       with:
         tf_actions_version: 0.12.13
         tf_actions_subcommand: "plan"
-        args: '-out="cqrs.plan" -var "api_server_authorized_ip_ranges=${{ secrets.PUBLIC_IP_ADDRESS }}" -var "custom_domain=${{ secrets.CUSTOM_DOMAIN }}"'
+        args: '-out="cqrs.plan" -var "ssh_public_key="${{ secrets.SSH_PUBLIC_KEY }}"" -var "api_server_authorized_ip_ranges=${{ secrets.PUBLIC_IP_ADDRESS }}" -var "custom_domain=${{ secrets.CUSTOM_DOMAIN }}"'
     - name: "Terraform Apply"
       uses: hashicorp/terraform-github-actions@master
       with:
