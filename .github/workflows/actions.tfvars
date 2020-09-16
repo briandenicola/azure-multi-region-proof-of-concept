@@ -1,0 +1,11 @@
+application_name = "rpnyecrt"
+locations = ["eastus2","ukwest"]
+cosmosdb_name = "dbrpnyecrt001"
+acr_account_name = "acrrpnyecrt001"
+ai_account_name = "airpnyecrt001"
+loganalytics_account_name = "logsrpnyecrt001"
+vnet_name = "vnetrpnyecrt00"
+eventhub_namespace_name = "hubrpnyecrt00"
+redis_name = "cacherpnyecrt00"
+aks_name = "k8srpnyecrt00"
+storage_name = "sarpnyecrt00"
