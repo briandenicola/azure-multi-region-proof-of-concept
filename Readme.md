@@ -145,7 +145,7 @@ In other words, the world's most expensive random number generator....
 - [x] Update diagrams 
 - [x] Update documention
 - [x] Update for Terraforms to create main infrastructure components
-- [ ] GitHub Actions pipeline 
+- [x] GitHub Actions pipeline 
 
 # Issues
 - [x] Docker build on Azure Functions has warnings. func kubernetes deploy does not
