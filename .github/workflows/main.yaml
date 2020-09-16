@@ -1,0 +1,39 @@
+name: CQRS deploy to Azure
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Sample GitHub Actions deployment using Terraform to Azure'
+
+jobs:
+  deploy:
+    name: Deploy CQRS
+    runs-on: ubuntu-latest
+    env:
+        ARM_CLIENT_ID=${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET=${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID=${{ secrets.ARM_TENANT_ID }}
+    defaults:
+      run:
+        working-directory: Infrastructure/terraform
+    steps:
+    - name: "Checkout"
+      uses: actions/checkout@master
+    - name: "Terraform Init"
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: 0.12.13
+        tf_actions_subcommand: "init"
+    - name: "Terraform Plan"
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: 0.12.13
+        tf_actions_subcommand: "plan"
+        args: '-out="cqrs.plan" -var-file="../../.github/workflows/action.tfvars"'
+    - name: "Terraform Init"
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: 0.12.13
+        tf_actions_subcommand: "apply"
+        args: '-auto-approve cqrs.plan'
