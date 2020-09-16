@@ -29,7 +29,7 @@ jobs:
         tf_actions_version: 0.12.13
         tf_actions_subcommand: "plan"
         tf_actions_working_dir: './Infrastructure/terraform'  
-        args: '-out="cqrs.plan" -var "api_server_authorized_ip_ranges=${{ secrets.PUBLIC_IP_ADDRESS }}" -var "custom_domain=${{ secrets.CUSTOM_DOMAIN }}"'
+        args: '-out="cqrs.plan" -var "custom_domain=${{ secrets.CUSTOM_DOMAIN }}"'
     - name: "Terraform Apply"
       uses: hashicorp/terraform-github-actions@master
       with:
