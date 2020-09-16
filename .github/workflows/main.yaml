@@ -16,23 +16,28 @@ jobs:
         ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
     defaults:
       run:
-        working-directory: Infrastructure/terraform
     steps:
     - name: "Checkout"
       uses: actions/checkout@master
+    - name: "List local files"
+      working-directory: ./Infrastructure/terraform
+      run: ls -al
     - name: "Terraform Init"
       uses: hashicorp/terraform-github-actions@master
+      working-directory: ./Infrastructure/terraform
       with:
         tf_actions_version: 0.12.13
         tf_actions_subcommand: "init"
     - name: "Terraform Plan"
       uses: hashicorp/terraform-github-actions@master
+      working-directory: ./Infrastructure/terraform
       with:
         tf_actions_version: 0.12.13
         tf_actions_subcommand: "plan"
         args: '-out="cqrs.plan" -var-file="actions.tfvars"'
     - name: "Terraform Apply"
       uses: hashicorp/terraform-github-actions@master
+      working-directory: ./Infrastructure/terraform
       with:
         tf_actions_version: 0.12.13
         tf_actions_subcommand: "apply"
