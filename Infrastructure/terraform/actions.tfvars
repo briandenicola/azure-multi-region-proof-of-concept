@@ -1,0 +1,12 @@
+application_name = "vnozsbyp"
+locations = ["eastus2","ukwest"]
+cosmosdb_name = "dbvnozsbyp001"
+acr_account_name = "acrvnozsbyp001"
+ai_account_name = "aivnozsbyp001"
+loganalytics_account_name = "logsvnozsbyp001"
+vnet_name = "vnetvnozsbyp00"
+eventhub_namespace_name = "hubvnozsbyp00"
+redis_name = "cachevnozsbyp00"
+aks_name = "k8svnozsbyp00"
+storage_name = "savnozsbyp00"
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGUfWYw+OI3udPmdcIklEeLapnR/9boHLNOpHwglZ+fxv959rjmXyq+ZB55xfHQqjYgvUARLbYmvnBgIpDDI95fo2tepHjspvw4nmM1OwRCt+DwY7Y7Rmq/5LRIj6RvJe0V2TsS8xE0VI907zLoatqQ6cO9kedlbr9KY4ZrRXYHOZWapHqcliyI29lZIPGdmAFjmtdkngmu4sgss9V+2gwWghp+bnMXyyn96oBxeQjCNDiP/90yucjYgoDPHslkLXc7jgdfnb+oxa0iG9bHutzgTdQ7ZkCZOnd++ZJISIvKhIIJAfqaQNVY1B7cXzFDcTJbZxpptZvKbaUaWhRS1uJ briandenicola@harpocrates.denicolafamily.com"
