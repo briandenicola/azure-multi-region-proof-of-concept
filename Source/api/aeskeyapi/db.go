@@ -99,20 +99,19 @@ func (k *AESKeyDB) Get(id string)(*AesKey,error) {
 
 	result, err := k.redisClient.Get(id).Result()
 	
-	if err == redis.Nil {
-		query := documentdb.NewQuery("SELECT * FROM c WHERE c.keyId=@keyId", documentdb.P{Name: "@keyId", Value: id})
-		_, err = k.cosmosClient.QueryDocuments(k.collection.Self, query, &keys)
-
-		if len(keys) != 0  {
-			return keys[0],nil
-		} 
-
-	} else if err == nil {
-		err = json.Unmarshal([]byte(result), &key)
+	if err == nil {
+		_ = json.Unmarshal([]byte(result), &key)
 		return key, nil
 	}
 
-	return nil, err 
+	query := documentdb.NewQuery("SELECT * FROM c WHERE c.keyId=@keyId", documentdb.P{Name: "@keyId", Value: id})
+	_, err = k.cosmosClient.QueryDocuments(k.collection.Self, query, &keys)
+
+	if err == nil && len(keys) != 0  {
+		return keys[0],nil
+	} 
+	
+	return nil, err
 
 }
 
