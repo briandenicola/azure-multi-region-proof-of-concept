@@ -2,20 +2,16 @@
 
 while (( "$#" )); do
   case "$1" in
-    -g|--resource-group)
-      RG=$2
-      shift 2
-      ;;
-    -s|--subscription)
-      subscription=$2
-      shift 2
-      ;;
     -n|--name)
       appName=$2
       shift 2
       ;;
+    -r|--region)
+      regions+=($2)
+      shift 2
+      ;;
     -h|--help)
-      echo "Usage: ./setup_diag_settings.sh -n {App Name} -g {Resource Group} -s {Subscription Name}"
+      echo "Usage: ./setup_diag_settings.sh -n {App Name} -r centralus -r ukwest"
       exit 0
       ;;
     --) 
@@ -33,9 +29,6 @@ done
 rgGlobal="${appName}_Global_RG"
 
 cosmosDBAccountName=db${appName}001
-eventHubNameSpace=hub${appName}001
-redisName=cache${appName}001
-aks=k8s${appName}001
 logAnalyticsWorkspace=logs${appName}001
 
 diagSettingsName=diag
@@ -43,9 +36,6 @@ diagSettingsName=diag
 # Get Resource IDs
 workspace_id=`az monitor log-analytics workspace show -n ${logAnalyticsWorkspace} -g ${rgGlobal} -o tsv --query id`
 cosmos_id=`az cosmosdb show -n ${cosmosDBAccountName} -g ${rgGlobal} -o tsv --query id`
-redis_id=`az redis show -n ${redisName} -g ${RG} -o tsv --query id`
-eventHub_id=`az eventhubs namespace show -n ${eventHubNameSpace} -g ${RG} -o tsv --query id`
-
 # Setup Cosmos Diagnostic Settings
 cosmos_metrics='[
   {"categories": "requests", "enabled": true}
@@ -64,30 +54,44 @@ az monitor diagnostic-settings create -n ${diagSettingsName} \
  --logs "${cosmos_logs}" \
  --metrics "${cosmos_metrics}"
 
-# Setup Redis Diagnostic Settings
-redis_metrics='[
-  {"categories": "AllMetrics", "enabled": true}
-]'
-az monitor diagnostic-settings create -n ${diagSettingsName} \
-  --resource ${redis_id} \
-  --workspace ${logAnalyticsWorkspace} \
-  --metrics "${redis_metrics}"
+count=1
+for region in ${regions[@]}
+do
+  RG="${appName}_${region}_RG"
 
-# Setup Event Hub Diagnostic Settings
-hub_metrics='[
-  {"categories": "AllMetrics", "enabled": true}
-]'
-hub_logs='[
-  { "category": "ArchiveLogs", "enabled": true},
-  { "category": "OperationalLogs", "enabled": true},
-  { "category": "AutoScaleLogs", "enabled": true},
-  { "category": "CustomerManagedKeyUserLogs", "enabled": true}
-]'
-az monitor diagnostic-settings create -n ${diagSettingsName} \
-  --resource ${eventHub_id} \
-  --workspace ${logAnalyticsWorkspace} \
-  --log "${hub_logs}" \
-  --metrics "${hub_metrics}"
+  eventHubNameSpace=hub${appName}00${count}
+  redisName=cache${appName}00${count}
+  aks=k8s${appName}00${count}
+  
+  redis_id=`az redis show -n ${redisName} -g ${RG} -o tsv --query id`
+  eventHub_id=`az eventhubs namespace show -n ${eventHubNameSpace} -g ${RG} -o tsv --query id`
 
-# Setup Azure Monitor with AKS
-az aks enable-addons -a monitoring -n ${aks} -g ${RG} --workspace-resource-id ${workspace_id}
+  # Setup Redis Diagnostic Settings
+  redis_metrics='[
+    {"categories": "AllMetrics", "enabled": true}
+  ]'
+  az monitor diagnostic-settings create -n ${diagSettingsName} \
+    --resource ${redis_id} \
+    --workspace ${workspace_id} \
+    --metrics "${redis_metrics}"
+
+  # Setup Event Hub Diagnostic Settings
+  hub_metrics='[
+    {"categories": "AllMetrics", "enabled": true}
+  ]'
+  hub_logs='[
+    { "category": "ArchiveLogs", "enabled": true},
+    { "category": "OperationalLogs", "enabled": true},
+    { "category": "AutoScaleLogs", "enabled": true},
+    { "category": "CustomerManagedKeyUserLogs", "enabled": true}
+  ]'
+  az monitor diagnostic-settings create -n ${diagSettingsName} \
+    --resource ${eventHub_id} \
+    --workspace ${workspace_id} \
+    --log "${hub_logs}" \
+    --metrics "${hub_metrics}"
+
+  # Setup Azure Monitor with AKS
+  az aks enable-addons -a monitoring -n ${aks} -g ${RG} --workspace-resource-id ${workspace_id}
+  count=$((count+1))
+done
