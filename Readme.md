@@ -48,7 +48,7 @@ In other words, the world's most expensive random number generator....
 
 ## Application Deployment 
 * cd ./Infrastructure
-* ./deploy_application.sh -n ${appName} -r centralus -r ukwest --domain bjd.demo --ingress api.ingress --cert {Path to PEM Cert file} --key {Path to PEM Key file}
+* ./deploy_application.sh -n ${appName} -r centralus -r ukwest --domain bjd.demo --hostname api.ingress --cert {Path to PEM Cert file} --key {Path to PEM Key file}
 
 ## Expose API Externally _optional_ 
 * The create_infrastructure and deploy_application scripts create the foundations for this demo. The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway.  
