@@ -106,9 +106,8 @@ func (a *AESApi) parseRequestBody(r *http.Request) (int) {
 	return k.NumberOfKeys	
 }
 
-
 //writeRequestReply - Write JSON Reply
-func (a *AESApi) writeRequestReply(w http.ResponseWriter, args ...interface{}) {
+func (a *AESApi) writeRequestReply(w http.ResponseWriter, args interface{}) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	json.NewEncoder(w).Encode(args)
 }
@@ -144,7 +143,7 @@ func (a *AESApi) GetById(w http.ResponseWriter, r *http.Request) {
 		key.ReadHost = getHost()
 	}
 
-	a.writeRequestReply(w, []*AesKey{key})
+	a.writeRequestReply(w, key)
 }
 
 //Post - HTTP POST Handler 
@@ -158,7 +157,6 @@ func (a *AESApi) Post(w http.ResponseWriter, r *http.Request) {
 		i++
 	}
 	savedKeys, err := a.keydb.Save()
-
 	if err != nil {
 		a.errorHandler(err)
 		a.writeRequestReply(w, err)
