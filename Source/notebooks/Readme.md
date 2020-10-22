@@ -36,7 +36,7 @@ The second notebook takes the parquet files and generates a graph of the distriu
 * databricks secrets write --scope entropy-demo --key eventhub-connnection-string --string-value {Event Hub ConnectionString}
 
 ## Cluster Library
-* Requires - com.microsoft.azure:azure-eventhubs-spark_2.11:2.3.12 (https://github.com/Azure/azure-event-hubs-spark/)
+* Requires - com.microsoft.azure:azure-eventhubs-spark_2.12:2.3.17 (https://github.com/Azure/azure-event-hubs-spark/)
     * Install using Maven into the cluster
 
 ## Notebook Deployment

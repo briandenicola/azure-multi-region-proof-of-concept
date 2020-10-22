@@ -46,7 +46,7 @@ schema = StructType([
 ])
 
 ehConf = {
-  'eventhubs.connectionString' : connectionString,
+  'eventhubs.connectionString' : sc._jvm.org.apache.spark.eventhubs.EventHubsUtils.encrypt(connectionString),
   'eventhubs.consumerGroup': "databricks"
 }
 

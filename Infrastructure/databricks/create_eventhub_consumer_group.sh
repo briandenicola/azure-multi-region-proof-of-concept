@@ -40,11 +40,14 @@ do
     RG="${appName}_${region}_RG"
 
     eventHubNameSpace=hub${appName}00${count}
-    az eventhubs eventhub consumer-group create -g ${RG} --namespace-name ${eventHubNameSpace} --eventhub-name ${hub} -n ${consumerGroup} >& /dev/null
     
-    echo ${eventHubNameSpace} Primary ConnectionString
+    az eventhubs eventhub consumer-group create -g ${RG} --namespace-name ${eventHubNameSpace} --eventhub-name ${hub} -n ${consumerGroup} >& /dev/null
     az eventhubs eventhub authorization-rule create -g ${RG} --namespace-name ${eventHubNameSpace}  --eventhub-name ${hub} -n ${accessRule} --rights Listen
-    az eventhubs eventhub authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace}   --eventhub-name ${hub} --name ${accessRule} -o tsv --query primaryConnectionString
+    az eventhubs eventhub authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace} --eventhub-name ${hub} --name ${accessRule} -o tsv --query primaryConnectionString
+    key=`az eventhubs eventhub authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace} --eventhub-name ${hub} --name ${accessRule} -o tsv --query primaryKey`
+    connectionString="Endpoint=sb://${eventHubNameSpace}.servicebus.windows.net/${hub};EntityPath=${hub};SharedAccessKeyName=${accessRule};SharedAccessKey=${key}"
+
+    echo ${eventHubNameSpace} ${accessRule} ConnectionString: ${connectionString}
     count=$((count+1))
 done
   

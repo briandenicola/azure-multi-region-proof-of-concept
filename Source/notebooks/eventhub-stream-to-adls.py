@@ -22,7 +22,7 @@ dbutils.fs.mount(
 connectionString = dbutils.secrets.get(scope = "entropy-demo", key = "eventhub-connnection-string")
 
 ehConf = {
-  'eventhubs.connectionString' : connectionString,
+  'eventhubs.connectionString' : sc._jvm.org.apache.spark.eventhubs.EventHubsUtils.encrypt(connectionString),
   'eventhubs.consumerGroup': "databricks"
 }
 
