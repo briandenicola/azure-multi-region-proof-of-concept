@@ -43,7 +43,7 @@ do
     az eventhubs eventhub consumer-group create -g ${RG} --namespace-name ${eventHubNameSpace} --eventhub-name ${hub} -n ${consumerGroup} >& /dev/null
     
     echo ${eventHubNameSpace} Primary ConnectionString
-    az eventhubs eventhub authorization-rule show -g ${RG} --namespace-name ${eventHubNameSpace}  --eventhub-name ${hub} -n ${accessRule} --rights Listen
+    az eventhubs eventhub authorization-rule create -g ${RG} --namespace-name ${eventHubNameSpace}  --eventhub-name ${hub} -n ${accessRule} --rights Listen
     az eventhubs eventhub authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace}   --eventhub-name ${hub} --name ${accessRule} -o tsv --query primaryConnectionString
     count=$((count+1))
 done
