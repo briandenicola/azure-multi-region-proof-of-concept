@@ -95,7 +95,7 @@ In other words, the world's most expensive random number generator....
 * New-AzResourceGroupDeployment -Name frontdoor -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
 * _Optional: If you would like to lock down the AppGateways to only Azure Front Door_
 * cd .\appgw-waf-policies
-* New-AzResourceGroupDeployment -Name appgw -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -AzureFrontDoorID {Frond Door ID. Taken from output of Front Door ARM template}
+* New-AzResourceGroupDeployment -Name appgw -ResourceGroupName ${appName}_global_rg -TemplateFile .\azuredeploy.json -AzureFrontDoorID {Frond Door ID. Taken from output of Front Door ARM template}
 * MANUAL ALERT - You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their reginal WAF policy
     * TODO: Automate this steps in the ARM template
 
