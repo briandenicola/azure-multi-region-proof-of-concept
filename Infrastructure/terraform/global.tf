@@ -11,6 +11,9 @@ provider "azurerm" {
 resource "azurerm_resource_group" "cqrs_global" {
   name                  = "${var.application_name}_global_rg"
   location              = var.locations[0]
+  tags {
+    Application         = var.application_name
+  }
 }
 
 resource "azurerm_cosmosdb_account" "cqrs_db" {
