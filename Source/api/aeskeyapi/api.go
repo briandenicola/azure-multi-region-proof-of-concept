@@ -22,7 +22,7 @@ type API interface {
 	Post(w http.ResponseWriter, r *http.Request)
 	Options(w http.ResponseWriter, r *http.Request)
 	parseRequestBody(r *http.Request) int
-	writeRequestReply(w http.ResponseWriter, args ...interface{}) 
+	writeRequestReply(w http.ResponseWriter, args interface{}) 
 	logRequest(handler http.Handler) http.Handler 
 	errorHandler(err error)
 }
@@ -78,6 +78,7 @@ func (a *AESApi) logRequest (handler http.Handler) http.Handler {
 		duration := time.Now().Sub(startTime)
 
 		trace := appinsights.NewRequestTelemetry(r.Method, r.URL.Path, duration, strconv.Itoa(http.StatusOK) )
+		trace.Id = r.Header.Get("Correlation-Id")
 		trace.Timestamp = time.Now()
 		a.aiClient.Track(trace)
 	})
