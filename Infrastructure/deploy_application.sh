@@ -139,8 +139,8 @@ do
 
   if [[ $? -eq 0 ]]; then
     ## Install Traefik Ingress 
-	helm repo add traefik https://helm.traefik.io/traefik    
-	helm repo update
+    helm repo add traefik https://helm.traefik.io/traefik    
+    helm repo update
     helm upgrade -i traefik traefik/traefik \
       --set rbac.enabled=true \
       --set ssl.insecureSkipVerify=true \
