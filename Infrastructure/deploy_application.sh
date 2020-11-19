@@ -145,7 +145,9 @@ do
     #* Traefik deprecated their previous Helm Chart
     #* New chart location - https://helm.traefik.io/traefik
     #* Changed how to pass insecureSkipVerify and other paraemters
-    #* Appears to have broken passing annotations as well - https://github.com/traefik/traefik-helm-chart/issues/279
+    #* Appears to have broken passing annotations as well - 
+	#   * https://github.com/traefik/traefik-helm-chart/issues/279
+	#   * https://github.com/helm/helm/issues/4262
     #Workaround:
     #* Updated Repo URL to temporary deprecated chart untils issues new chart are resolved
 
