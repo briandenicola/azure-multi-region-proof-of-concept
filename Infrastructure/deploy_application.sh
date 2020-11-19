@@ -139,9 +139,27 @@ do
 
   if [[ $? -eq 0 ]]; then
     ## Install Traefik Ingress 
-    helm repo add traefik https://helm.traefik.io/traefik    
+
+    #11/19/2020:  
+    #Notes:
+    #* Traefik deprecated their previous Helm Chart
+    #* New chart location - https://helm.traefik.io/traefik
+    #* Changed how to pass insecureSkipVerify and other paraemters
+    #* Appears to have broken passing annotations as well - https://github.com/traefik/traefik-helm-chart/issues/279
+    #Workaround:
+    #* Updated Repo URL to temporary deprecated chart untils issues new chart are resolved
+
+    #Possible Updated Code:
+    #helm repo add traefik https://helm.traefik.io/traefik    
+    #helm upgrade -i traefik traefik/traefik \
+    #  --set ports.websecure.tls.enabled=true \
+    #  --set service.annotations."service\\.beta\\.kubernetes\\io/azure-load-balancer-internal"="true" \
+    #  --set "additionalArguments={--serverstransport.insecureskipverify}" \ 
+    ##
+    
+    helm repo add traefik17 https://repo.chartcenter.io
     helm repo update
-    helm upgrade -i traefik traefik/traefik \
+    helm upgrade -i traefik traefik17/stable/traefik \
       --set rbac.enabled=true \
       --set ssl.insecureSkipVerify=true \
       --set ssl.enabled=true \
