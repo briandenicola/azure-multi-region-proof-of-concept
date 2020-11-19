@@ -45,7 +45,7 @@ do
     az eventhubs eventhub authorization-rule create -g ${RG} --namespace-name ${eventHubNameSpace}  --eventhub-name ${hub} -n ${accessRule} --rights Listen
     az eventhubs eventhub authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace} --eventhub-name ${hub} --name ${accessRule} -o tsv --query primaryConnectionString
     key=`az eventhubs eventhub authorization-rule keys list -g ${RG} --namespace-name ${eventHubNameSpace} --eventhub-name ${hub} --name ${accessRule} -o tsv --query primaryKey`
-    connectionString="Endpoint=sb://${eventHubNameSpace}.servicebus.windows.net/${hub};EntityPath=${hub};SharedAccessKeyName=${accessRule};SharedAccessKey=${key}"
+    connectionString="Endpoint=sb://${eventHubNameSpace}.servicebus.windows.net/;SharedAccessKeyName=${accessRule};SharedAccessKey=${key};EntityPath=${hub}"
 
     echo ${eventHubNameSpace} ${accessRule} ConnectionString: ${connectionString}
     count=$((count+1))
