@@ -18,7 +18,7 @@ The second notebook takes the parquet files and generates a graph of the distriu
 * $credentials = New-Object Microsoft.Azure.Commands.ActiveDirectory.PSADPasswordCredential -Property @{StartDate=Get-Date; EndDate=Get-Date -Year 2024; Password=$botPass}
 * $sp = New-AzAdServicePrincipal -DisplayName bjdCQRSDatabricks -PasswordCredential $credentials
 * New-AzRoleAssignment -ApplicationId $sp.ApplicationId -RoleDefinitionName "Storage Blob Data Owner" -ResourceGroupName {Resource Group}
-* $tenantId = ("https://login.microsoftonline.com/{0}/oauth2/token" -f (Get-AzContext).Tenant.Id)
+* $tenantUri = ("https://login.microsoftonline.com/{0}/oauth2/token" -f (Get-AzContext).Tenant.Id)
 
 ## Databaricks Configuration
 
@@ -32,12 +32,14 @@ The second notebook takes the parquet files and generates a graph of the distriu
 * databricks secrets create-scope --scope entropy-demo
 * databricks secrets write --scope entropy-demo --key client-id --string-value $sp.ApplicationId
 * databricks secrets write --scope entropy-demo --key client-secret --string-value $botPass
-* databricks secrets write --scope entropy-demo --key client-tenant --string-value $tenantId
+* databricks secrets write --scope entropy-demo --key client-tenant --string-value $tenantUri
 * databricks secrets write --scope entropy-demo --key eventhub-connnection-string --string-value {Event Hub ConnectionString}
 
 ## Cluster Library
-* Requires - com.microsoft.azure:azure-eventhubs-spark_2.12:2.3.17 (https://github.com/Azure/azure-event-hubs-spark/)
-    * Install using Maven into the cluster
+* Requires - [com.microsoft.azure:azure-eventhubs-spark_2.12:2.3.18](https://github.com/Azure/azure-event-hubs-spark/)
+    * Cluster > Libraries > Install Into > Maven > Search Packages. 
+    * Search: eventhubs
+    * Select: com.microsoft.azure:azure-eventhubs-spark_2.12:2.3.18
 
 ## Notebook Deployment
 * databricks workspace import -l python ../../Source/notebooks/caculate-entropy.py /Shared/calculate-entropy.py
