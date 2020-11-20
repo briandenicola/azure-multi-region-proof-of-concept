@@ -1,0 +1,12 @@
+service:
+  annotations: {
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  }
+  
+ports:
+  websecure:
+    tls:
+      enabled: "true"
+
+additionalArguments: 
+- "--serverstransport.insecureskipverify"
