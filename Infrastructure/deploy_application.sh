@@ -97,7 +97,8 @@ docker push ${acrAccountName}.azurecr.io/cqrs/eventprocessor:${version}
 cd ${cwd}
 
 ## Get Cosmos Connection String
-cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${rgGlobal} --query 'connectionStrings[0].connectionString' -o tsv`
+#cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${rgGlobal} --query 'connectionStrings[0].connectionString' -o tsv`
+cosmosConnectionString=`az cosmosdb keys list --type connection-strings -n ${cosmosDBAccountName} -g ${rgGlobal} --query 'connectionStrings[0].connectionString' -o tsv`
 cosmosEncoded=`echo -n ${cosmosConnectionString} | base64 -w 0`
 
 ## Get Application Insight Key
@@ -140,7 +141,7 @@ do
   if [[ $? -eq 0 ]]; then
     ## Install Traefik Ingress 
     helm repo add traefik https://helm.traefik.io/traefik    
-    helm upgrade -i traefik -f traefik/values.yaml --wait
+    helm upgrade -i traefik traefik/traefik -f  ../Infrastructure/traefik/values.yaml --wait
          
     ## Install Keda
     helm repo add kedacore https://kedacore.github.io/charts
