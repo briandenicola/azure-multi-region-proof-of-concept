@@ -223,6 +223,34 @@ resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_blob_core_
   virtual_network_id        = azurerm_virtual_network.cqrs_region[count.index].id
 }
 
+resource "azurerm_private_dns_zone" "privatelink_servicebus_windows_net" {
+  count                     = length(var.locations)
+  name                      = "privatelink.servicebus.windows.net"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_servicebus_windows_net" {
+  count                     = length(var.locations)
+  name                      = "${azurerm_virtual_network.cqrs_region[count.index].name}-link"
+  private_dns_zone_name     = azurerm_private_dns_zone.privatelink_servicebus_windows_net[count.index].name
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  virtual_network_id        = azurerm_virtual_network.cqrs_region[count.index].id
+}
+
+resource "azurerm_private_dns_zone" "privatelink_redis_cache_windows_net" {
+  count                     = length(var.locations)
+  name                      = "privatelink.redis.cache.windows.net"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_redis_cache_windows_net" {
+  count                     = length(var.locations)
+  name                      = "${azurerm_virtual_network.cqrs_region[count.index].name}-link"
+  private_dns_zone_name     = azurerm_private_dns_zone.privatelink_redis_cache_windows_net[count.index].name
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  virtual_network_id        = azurerm_virtual_network.cqrs_region[count.index].id
+}
+
 resource "azurerm_private_dns_zone" "custom_domain" {
   count                     = length(var.locations)
   name                      = var.custom_domain
@@ -274,5 +302,45 @@ resource "azurerm_private_endpoint" "storage_account" {
   private_dns_zone_group {
     name                          = azurerm_private_dns_zone.privatelink_blob_core_windows_net[count.index].name
     private_dns_zone_ids          = [ azurerm_private_dns_zone.privatelink_blob_core_windows_net[count.index].id ]
+  }
+}
+
+resource "azurerm_private_endpoint" "eventhub_namespace" {
+  count                     = length(var.locations)
+  name                      = "${var.eventhub_namespace_name}-${var.locations[count.index]}-ep"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  location                  = azurerm_resource_group.cqrs_region[count.index].location
+  subnet_id                 = azurerm_subnet.private-endpoints[count.index].id
+
+  private_service_connection {
+    name                           = "${var.eventhub_namespace_name}-${var.locations[count.index]}-ep"
+    private_connection_resource_id = azurerm_eventhub_namespace.cqrs_region[count.index].id
+    subresource_names              = [ "namespace" ]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                          = azurerm_private_dns_zone.privatelink_servicebus_windows_net[count.index].name
+    private_dns_zone_ids          = [ azurerm_private_dns_zone.privatelink_servicebus_windows_net[count.index].id ]
+  }
+}
+
+resource "azurerm_private_endpoint" "redis_account" {
+  count                     = length(var.locations)
+  name                      = "${var.redis_name}-${var.locations[count.index]}-ep"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  location                  = azurerm_resource_group.cqrs_region[count.index].location
+  subnet_id                 = azurerm_subnet.private-endpoints[count.index].id
+
+  private_service_connection {
+    name                           = "${var.redis_name}-${var.locations[count.index]}-ep"
+    private_connection_resource_id = azurerm_redis_cache.cqrs_region[count.index].id
+    subresource_names              = [ "redisCache" ]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                          = azurerm_private_dns_zone.privatelink_redis_cache_windows_net[count.index].name
+    private_dns_zone_ids          = [ azurerm_private_dns_zone.privatelink_redis_cache_windows_net[count.index].id ]
   }
 }
