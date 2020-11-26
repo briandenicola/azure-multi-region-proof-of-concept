@@ -140,12 +140,15 @@ In other words, the world's most expensive random number generator....
 - [x] Multiple Region Deployment with Azure Front Door
 - [x] Add support for Cosmos DB private endpoint
 - [x] Add support for Storage private endpoint
-- [ ] Add support for Redis Cache private endpoint (preview)
+- [x] Add support for Redis Cache private endpoint
+- [x] Add support for Azure Container Repo private endpoint
+- [x] Add support for Azure Event Hubs private endpoints
 - [x] Add support for Azure Private DNS Zones
 - [x] Update diagrams 
 - [x] Update documention
 - [x] Update for Terraforms to create main infrastructure components
 - [x] GitHub Actions pipeline 
+- [ ] Distributed Tracing support
 
 # Issues
 - [x] Docker build on Azure Functions has warnings. func kubernetes deploy does not
