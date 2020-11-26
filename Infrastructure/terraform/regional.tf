@@ -52,6 +52,7 @@ resource "azurerm_subnet" "kubernetes" {
   name                  = "Kubernetes"
   resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
   virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
+  service_endpoints     = ["Microsoft.ContainerRegistry"]
   address_prefixes      = ["10.${count.index+1}.4.0/22"]
 }
 
@@ -117,7 +118,7 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
   node_resource_group       = "${azurerm_resource_group.cqrs_region[count.index].name}_k8s_nodes"
   dns_prefix                = "${var.aks_name}${count.index+1}"
   sku_tier                  = "Paid"
-  api_server_authorized_ip_ranges = var.api_server_authorized_ip_ranges
+  api_server_authorized_ip_ranges = [ var.api_server_authorized_ip_ranges ]
   linux_profile {
     admin_username          = "manager"
 
