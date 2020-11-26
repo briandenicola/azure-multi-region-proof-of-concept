@@ -52,7 +52,6 @@ resource "azurerm_subnet" "kubernetes" {
   name                  = "Kubernetes"
   resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
   virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
-  service_endpoints     = ["Microsoft.ContainerRegistry"]
   address_prefixes      = ["10.${count.index+1}.4.0/22"]
 }
 
@@ -194,6 +193,20 @@ resource "azurerm_role_assignment" "network_contributor_node" {
   role_definition_name      = "Network Contributor"
   principal_id              = azurerm_kubernetes_cluster.cqrs_region[count.index].identity.0.principal_id
   skip_service_principal_aad_check = true
+}
+
+resource "azurerm_private_dns_zone" "privatelink_azurecr_io" {
+  count                     = length(var.locations)
+  name                      = "privatelink.azurecr.io"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_azurecr_io" {
+  count                     = length(var.locations)
+  name                      = "${azurerm_virtual_network.cqrs_region[count.index].name}-link"
+  private_dns_zone_name     = azurerm_private_dns_zone.privatelink_azurecr_io[count.index].name
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  virtual_network_id        = azurerm_virtual_network.cqrs_region[count.index].id
 }
 
 resource "azurerm_private_dns_zone" "privatelink_documents_azure_com" {
@@ -343,5 +356,25 @@ resource "azurerm_private_endpoint" "redis_account" {
   private_dns_zone_group {
     name                          = azurerm_private_dns_zone.privatelink_redis_cache_windows_net[count.index].name
     private_dns_zone_ids          = [ azurerm_private_dns_zone.privatelink_redis_cache_windows_net[count.index].id ]
+  }
+}
+
+resource "azurerm_private_endpoint" "acr_account" {
+  count                     = length(var.locations)
+  name                      = "${var.acr_account_name}-${var.locations[count.index]}-ep"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  location                  = azurerm_resource_group.cqrs_region[count.index].location
+  subnet_id                 = azurerm_subnet.private-endpoints[count.index].id
+
+  private_service_connection {
+    name                           = "${var.acr_account_name}-${var.locations[count.index]}-ep"
+    private_connection_resource_id = azurerm_container_registry.cqrs_acr.id
+    subresource_names              = [ "registry" ]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                          = azurerm_private_dns_zone.privatelink_azurecr_io[count.index].name
+    private_dns_zone_ids          = [ azurerm_private_dns_zone.privatelink_azurecr_io[count.index].id ]
   }
 }

@@ -75,20 +75,6 @@ resource "azurerm_container_registry" "cqrs_acr" {
       action              = "Allow"
       ip_range            =  var.api_server_authorized_ip_ranges
     }
-
-    #dynamic "virtual_network" {
-    #  for_each = toset(var.locatins)
-    #  content {
-    #    action            = "Allow"
-    #    subnet_id         = azurerm_subnet.kubernetes[virtual_network.key].id
-    #  }
-    #}
-    virtual_network = [
-      for location in var.locations: {
-        action            = "Allow"
-        subnet_id         = azurerm_subnet.kubernetes[index(var.locations, location)].id
-      }  
-    ]
   }
   
 }
