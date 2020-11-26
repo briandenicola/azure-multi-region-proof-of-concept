@@ -83,7 +83,8 @@ variable "ssh_public_key" {
 
 variable "api_server_authorized_ip_ranges" {
   description = "IP Range for K8S API Access"
-  type        = list(string) 
+  type        = string
+  #type        = list(string) 
 }
 
 variable "custom_domain" {

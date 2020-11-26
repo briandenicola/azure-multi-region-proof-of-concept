@@ -68,6 +68,15 @@ resource "azurerm_container_registry" "cqrs_acr" {
   sku                      = "Premium"
   admin_enabled            = false
   georeplication_locations = length(var.locations) - 1 >= 1 ? slice(var.locations, 1, length(var.locations)) : null
+
+  network_rule_set {
+    default_action = "Deny"
+    ip_rule {
+      action              = "Allow"
+      ip_range            =  var.api_server_authorized_ip_ranges
+    }
+  }
+  
 }
 
 resource "azurerm_log_analytics_workspace" "cqrs_logs" {

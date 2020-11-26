@@ -83,7 +83,7 @@ redis_name = "${redisName}"
 aks_name = "${aks}"
 storage_name = "${storageAccountName}"
 ssh_public_key = "${ssh_pub_key}"
-api_server_authorized_ip_ranges = [ "${public_ip}/32" ]
+api_server_authorized_ip_ranges = "${public_ip}/32"
 custom_domain = "${domainName}"
 EOF
 
