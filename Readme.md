@@ -4,6 +4,9 @@ In other words, the world's most expensive random number generator....
 
 ![Architecture](./architecture.png)
 
+# Deployment 
+![CQRS deploy to Azure](https://github.com/briandenicola/cqrs/workflows/CQRS%20deploy%20to%20Azure/badge.svg)
+
 # Setup
 
 ## Prerequisite
