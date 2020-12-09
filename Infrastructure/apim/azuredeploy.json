@@ -41,7 +41,8 @@
             "type": "string"
         },
         "secondaryBackendEndFQDN": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "undefined"
         },
         "customDomainCertificateData":{
             "type": "string"
