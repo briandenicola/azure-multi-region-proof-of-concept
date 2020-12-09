@@ -63,11 +63,13 @@ In other words, the world's most expensive random number generator....
     * customDomainCertificateData: Base64 output of portal.bjd.demo.pfx
     * customDomainCertificatePassword: password for pfx file
     * multiRegionDeployment: "true"
+    * primaryBackendEndFQDN: api.apim.us.bjd.demo
+    * secondaryBackendEndFQDN: api.apim.uk.bjd.demo
 * cd .\apim
-* New-AzResourceGroupDeployment -Name apim -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
+* New-AzResourceGroupDeployment -Name apim -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json -Verbose
 * .\Update-DNS.ps1 -AppName ${appName} -ApiMgmtName bjdapim001 -DomainName bjd.demo -Uris @("api.apim.us", "api.apim.uk")
 * cd ..\product
-* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation centralus -ApiManagementName bjdapim001 -primaryBackendUrl https://api.ingress.bjd.demo 
+* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation centralus -ApiManagementName bjdapim001 -primaryBackendUrl https://api.ingress.bjd.demo -Verbose
 * MANUAL ALERT - You need to log into the Azure Portal > APIM and associate the AesKey APIs with the KeyService Products
     * TODO: Automate this steps in the ARM template
 
