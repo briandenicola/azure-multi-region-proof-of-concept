@@ -1,5 +1,5 @@
 locals {
-  subnets = [for l in var.locations : cidrsubnet("10.0.0.0/8", 8, index(var.locations, l))]
+  subnets = [for l in var.locations : cidrsubnet("10.0.0.0/8", 8, index(var.locations, l)+1)]
 }
 
 resource "azurerm_resource_group" "cqrs_region" {
