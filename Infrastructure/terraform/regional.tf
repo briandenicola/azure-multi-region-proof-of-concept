@@ -1,3 +1,7 @@
+locals {
+  subnets = [for l in var.locations : cidrsubnet("10.0.0.0/8", 8, index(var.locations, l))]
+}
+
 resource "azurerm_resource_group" "cqrs_region" {
   count                 = length(var.locations)  
   name                  = "${var.application_name}_${var.locations[count.index]}_rg"
@@ -12,7 +16,7 @@ resource "azurerm_virtual_network" "cqrs_region" {
   name                = "${var.vnet_name}${count.index+1}"
   location            = azurerm_resource_group.cqrs_region[count.index].location
   resource_group_name = azurerm_resource_group.cqrs_region[count.index].name
-  address_space       = ["10.${count.index+1}.0.0/16"]
+  address_space       = [local.subnets[count.index]]
 }
 
 resource "azurerm_subnet" "AppGateway" {
@@ -20,7 +24,7 @@ resource "azurerm_subnet" "AppGateway" {
   name                  = "AppGateway"
   resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
   virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
-  address_prefixes      = ["10.${count.index+1}.1.0/24"]
+  address_prefixes      = [cidrsubnet(local.subnets[count.index], 8, 1)]
 }
 
 resource "azurerm_subnet" "APIM" {
@@ -28,7 +32,7 @@ resource "azurerm_subnet" "APIM" {
   name                  = "APIM"
   resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
   virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
-  address_prefixes      = ["10.${count.index+1}.2.0/24"]
+  address_prefixes      = [cidrsubnet(local.subnets[count.index], 8, 2)]
 }
 
 resource "azurerm_subnet" "databricks-private" {
@@ -36,7 +40,7 @@ resource "azurerm_subnet" "databricks-private" {
   name                  = "databricks-private"
   resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
   virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
-  address_prefixes      = ["10.${count.index+1}.10.0/24"]
+  address_prefixes      = [cidrsubnet(local.subnets[count.index], 8, 3)]
 }
 
 resource "azurerm_subnet" "databricks-public" {
@@ -44,15 +48,7 @@ resource "azurerm_subnet" "databricks-public" {
   name                  = "databricks-public"
   resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
   virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
-  address_prefixes      = ["10.${count.index+1}.11.0/24"]
-}
-
-resource "azurerm_subnet" "kubernetes" {
-  count                 = length(var.locations)  
-  name                  = "Kubernetes"
-  resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
-  virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
-  address_prefixes      = ["10.${count.index+1}.4.0/22"]
+  address_prefixes      = [cidrsubnet(local.subnets[count.index], 8, 4)]
 }
 
 resource "azurerm_subnet" "private-endpoints" {
@@ -60,9 +56,17 @@ resource "azurerm_subnet" "private-endpoints" {
   name                  = "private-endpoints"
   resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
   virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
-  address_prefixes      = ["10.${count.index+1}.20.0/24"]
+  address_prefixes      = [cidrsubnet(local.subnets[count.index], 8, 5)]
 
   enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_subnet" "kubernetes" {
+  count                 = length(var.locations)  
+  name                  = "Kubernetes"
+  resource_group_name   = azurerm_virtual_network.cqrs_region[count.index].resource_group_name
+  virtual_network_name  = azurerm_virtual_network.cqrs_region[count.index].name
+  address_prefixes      = [cidrsubnet(local.subnets[count.index], 6, 3)]
 }
 
 resource "azurerm_eventhub_namespace" "cqrs_region" {

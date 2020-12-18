@@ -1,5 +1,5 @@
 variable "application_name" {
-  description = "Unique Name for this deployment "
+  description = "Unique Name for this deployment"
   type        = string 
   default     = "gawwaslc"
 }
