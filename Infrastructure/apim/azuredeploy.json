@@ -133,7 +133,7 @@
         },
         {
             "condition": "[equals(parameters('multiRegionDeployment'),'true')]",
-            "apiVersion": "2017-08-01",
+            "apiVersion": "2019-10-01",
             "name": "update-apim-secondary-proxy-url",
             "type": "Microsoft.Resources/deployments",
             "resourceGroup": "[resourceGroup().name]",
@@ -150,7 +150,13 @@
                         "apiVersion": "2019-01-01",
                         "name": "[parameters('apiManagementName')]",
                         "location": "[parameters('location')]",
+                        "sku": {
+                            "name": "[variables('apimsku')]",
+                            "capacity": "[variables('skuCount')]"
+                        },
                         "properties": {
+                            "publisherEmail": "[variables('publisherEmail')]",
+                            "publisherName": "[variables('publisherName')]",
                             "hostnameConfigurations": [{
                                 "type": "Proxy",
                                 "hostName": "[parameters('secondaryProxyFQDN')]",
