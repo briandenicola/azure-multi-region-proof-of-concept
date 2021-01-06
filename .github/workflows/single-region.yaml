@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       tags:
-        description: 'Sample GitHub Actions deployment using Terraform to Azure'
+        description: 'CQRS Deployment to a single Azure Region'
 
 jobs:
   deploy:
@@ -29,7 +29,7 @@ jobs:
         tf_actions_version: 0.12.13
         tf_actions_subcommand: "plan"
         tf_actions_working_dir: './Infrastructure/terraform'  
-        args: '-out="cqrs.plan" -var "custom_domain=${{ secrets.CUSTOM_DOMAIN }}" -var "api_server_authorized_ip_ranges=${{ secrets.IP_ADDRESS }}" -var-file=actions.tfvars'
+        args: '-out="cqrs.plan" -var "custom_domain=${{ secrets.CUSTOM_DOMAIN }}" -var "api_server_authorized_ip_ranges=${{ secrets.IP_ADDRESS }}" -var-file=actions-singleregion.tfvars'
     - name: "Terraform Apply"
       uses: hashicorp/terraform-github-actions@master
       with:

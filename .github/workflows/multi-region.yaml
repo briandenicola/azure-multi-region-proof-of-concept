@@ -1,0 +1,39 @@
+name: CQRS deploy to Azure
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'CQRS Deployment to Multiple Azure Regions'
+
+jobs:
+  deploy:
+    name: Deploy CQRS
+    runs-on: ubuntu-latest
+    env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+    steps:
+    - name: "Checkout"
+      uses: actions/checkout@master
+    - name: "Terraform Init"
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: 0.12.13
+        tf_actions_subcommand: "init"
+        tf_actions_working_dir: './Infrastructure/terraform'
+    - name: "Terraform Plan"
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: 0.12.13
+        tf_actions_subcommand: "plan"
+        tf_actions_working_dir: './Infrastructure/terraform'  
+        args: '-out="cqrs.plan" -var "custom_domain=${{ secrets.CUSTOM_DOMAIN }}" -var "api_server_authorized_ip_ranges=${{ secrets.IP_ADDRESS }}" -var-file=actions.tfvars'
+    - name: "Terraform Apply"
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: 0.12.13
+        tf_actions_subcommand: "apply"
+        tf_actions_working_dir: './Infrastructure/terraform'  
+        args: '-auto-approve cqrs.plan'
