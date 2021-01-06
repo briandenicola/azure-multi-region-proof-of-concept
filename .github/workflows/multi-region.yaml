@@ -1,4 +1,4 @@
-name: CQRS deploy to Azure
+name: CQRS deploy to Azure (Multiple Regions)
 on:
   workflow_dispatch:
     inputs:
