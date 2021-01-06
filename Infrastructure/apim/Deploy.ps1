@@ -34,7 +34,7 @@ $pfxEncoded = Convert-CertificatetoBase64 -CertPath $PFXPath
 $TemplateFile = "azuredeploy.{0}-region.json" -f $DeploymentType
 $MandatoryUris = @("management", "portal", "developer", "management.scm")
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
-$ApiMgmtName = "apim-{0}-03" -f $ApplicationName
+$ApiMgmtName = "apim-{0}" -f $ApplicationName
 
 $opts = @{
     Name                            = ("ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
