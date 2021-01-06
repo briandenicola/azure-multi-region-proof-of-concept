@@ -62,17 +62,11 @@ In other words, the world's most expensive random number generator....
     * secondaryLocation: ukwest
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
     * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
-    * customDomain: bjd.demo
-    * customDomainCertificateData: Base64 output of portal.bjd.demo.pfx
-    * customDomainCertificatePassword: password for pfx file
     * multiRegionDeployment: "true"
-    * primaryBackendEndFQDN: api.apim.us.bjd.demo
-    * secondaryBackendEndFQDN: api.apim.uk.bjd.demo
-* cd .\apim
-* New-AzResourceGroupDeployment -Name apim -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json -Verbose
-* .\Update-DNS.ps1 -AppName ${appName} -ApiMgmtName bjdapim001 -DomainName bjd.demo -Uris @("api.apim.us", "api.apim.uk")
-* cd ..\product
-* .\Deploy.ps1 -ResourceGroupName ${appName}_global_rg -ResourceLocation centralus -ApiManagementName bjdapim001 -primaryBackendUrl https://api.ingress.bjd.demo -Verbose
+* cd ./apim
+* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -DomainName bjd.demo -ProxyHostNames @("api.apim.us", "api.apim.uk")
+* cd ../product
+* ./Deploy.ps1 -ApplicationName ${appName} -primaryBackendUrl https://api.ingress.bjd.demo -Verbose
 * MANUAL ALERT - You need to log into the Azure Portal > APIM and associate the AesKey APIs with the KeyService Products
     * TODO: Automate this steps in the ARM template
 
@@ -83,24 +77,12 @@ In other words, the world's most expensive random number generator....
     * secondaryLocation: ukwest
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
     * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
-    * domainCertificateData: Base64 output of api.bjd.demo.pfx
-    * domainCertificatePassword: password for pfx file
-    * primaryBackendEndFQDN: api-internal.us.bjd.demo
-    * secondaryBackendEndFQDN: api-internal.uk.bjd.demo
-* cd .\gateway
-* New-AzResourceGroupDeployment -Name appgw -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
+* cd ./gateway
+* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -DomainName bjd.demo -BackendHostNames @("api.apim,us", "api.apim.uk")
 
 ### Front Door
-* Update frontdoor\azuredeploy.parameters.json
-    * frontDoorName: bjdfd001
-    * frontDoorUrl: api.bjd.demo
-    * primaryBackendEndFQDN: api.us.bjd.demo
-    * secondaryBackendEndFQDN: api.uk.bjd.demo
-* cd ..\frontdoor
-* New-AzResourceGroupDeployment -Name frontdoor -ResourceGroupName ${appName}_global_rg -TemplateParameterFile .\azuredeploy.parameters.json -TemplateFile .\azuredeploy.json
-* _Optional: If you would like to lock down the AppGateways to only Azure Front Door_
-* cd .\appgw-waf-policies
-* New-AzResourceGroupDeployment -Name appgw -ResourceGroupName ${appName}_global_rg -TemplateFile .\azuredeploy.json -AzureFrontDoorID {Frond Door ID. Taken from output of Front Door ARM template}
+* cd ../frontdoor
+* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -DomainName bjd.demo -BackendHostNames @("api.us", "api.uk")
 * MANUAL ALERT - You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their reginal WAF policy
     * TODO: Automate this steps in the ARM template
 

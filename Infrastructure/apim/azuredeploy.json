@@ -37,10 +37,10 @@
         "customDomain":{
             "type": "string"
         },
-        "primaryBackendEndFQDN": {
+        "primaryProxyFQDN": {
             "type": "string"
         },
-        "secondaryBackendEndFQDN": {
+        "secondaryProxyFQDN": {
             "type": "string",
             "defaultValue": "undefined"
         },
@@ -107,15 +107,7 @@
                     },
                     {
                         "type": "Proxy",
-                        "hostName": "[parameters('primaryBackendEndFQDN')]",
-                        "negotiateClientCertificate": false,
-                        "encodedCertificate": "[parameters('customDomainCertificateData')]",
-                        "certificatePassword": "[parameters('customDomainCertificatePassword')]",
-                        "defaultSslBinding": true
-                    },
-                    {
-                        "type": "Proxy",
-                        "hostName": "[parameters('secondaryBackendEndFQDN')]",
+                        "hostName": "[parameters('primaryProxyFQDN')]",
                         "negotiateClientCertificate": false,
                         "encodedCertificate": "[parameters('customDomainCertificateData')]",
                         "certificatePassword": "[parameters('customDomainCertificatePassword')]",
@@ -137,6 +129,39 @@
                     "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2": "True"
                 },
                 "virtualNetworkType": "Internal"
+            }
+        },
+        {
+            "condition": "[equals(parameters('multiRegionDeployment'),'true')]",
+            "apiVersion": "2017-08-01",
+            "name": "update-apim-secondary-proxy-url",
+            "type": "Microsoft.Resources/deployments",
+            "resourceGroup": "[resourceGroup().name]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [{
+                        "type": "Microsoft.ApiManagement/service",
+                        "apiVersion": "2019-01-01",
+                        "name": "[parameters('apiManagementName')]",
+                        "location": "[parameters('location')]",
+                        "properties": {
+                            "hostnameConfigurations": [{
+                                "type": "Proxy",
+                                "hostName": "[parameters('secondaryProxyFQDN')]",
+                                "negotiateClientCertificate": false,
+                                "encodedCertificate": "[parameters('customDomainCertificateData')]",
+                                "certificatePassword": "[parameters('customDomainCertificatePassword')]",
+                                "defaultSslBinding": true
+                            }]
+                        }
+                    }]
+                }
             }
         }
     ]

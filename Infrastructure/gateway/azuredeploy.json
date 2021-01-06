@@ -25,11 +25,11 @@
         },
         "secondaryVnetName": {
             "type": "String",
-            "defaultValue": "undefined"
+            "defaultValue": "[parameters('primaryVnetName')]"
         },
         "secondaryVnetResourceGroup": {
             "type": "String",
-            "defaultValue": "undefined"
+            "defaultValue": "[parameters('primaryVnetResourceGroup')]"
         },
         "domainCertificateData":{
             "type": "string"

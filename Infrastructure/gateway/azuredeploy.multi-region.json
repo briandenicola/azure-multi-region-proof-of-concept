@@ -2,29 +2,23 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "apiManagementName": {
-            "value": "bjdapim001"
-        },
         "multiRegionDeployment": {
             "value": "true"
         },
         "primaryVnetName": {
-            "value": "vnetfqrmcwib001"
+            "value": "vnetvnozsbyp001"
         },
         "primaryVnetResourceGroup": {
-            "value": "fqrmcwib_eastus2_rg"
+            "value": "vnozsbyp_eastus2_rg"
         },
         "secondaryLocation": {
-            "value": "UK West"
+            "value": "ukwest"
         },
         "secondaryVnetName": {
-            "value": "vnetfqrmcwib002"
+            "value": "vnetvnozsbyp002"
         },
         "secondaryVnetResourceGroup": {
-            "value": "fqrmcwib_ukwest_rg"
-        },
-        "customDomain":{
-            "value": "bjdcsa.cloud"
+            "value": "vnozsbyp_ukwest_rg"
         }
     }
 }
