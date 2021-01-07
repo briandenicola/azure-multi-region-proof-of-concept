@@ -14,9 +14,6 @@ param (
     [securestring]    $PFXPassword,
 
     [Parameter(Mandatory = $true)]
-    [string] $DomainName,
-
-    [Parameter(Mandatory = $true)]
     [string[]] $BackendHostNames
 
 )  
@@ -36,7 +33,7 @@ $opts = @{
     appGatewayName            = $AppGatewayName
     domainCertificateData     = $pfxEncoded
     domainCertificatePassword = $PFXPassword
-    primaryBackendEndFQDN     = $BackendHostNames[0] + "." + $DomainName
+    primaryBackendEndFQDN     = $BackendHostNames[0]
 }
 
 if ($DeploymentType -eq "multi") {
@@ -44,6 +41,6 @@ if ($DeploymentType -eq "multi") {
         throw "Need to provide two Backend Host Names if using multiple regions..."
         exit -1
     }
-    $opts.Add("secondaryBackendEndFQDN", ($BackendHostNames[1] + "." + $DomainName))
+    $opts.Add("secondaryBackendEndFQDN", $BackendHostNames[1])
 }
 New-AzResourceGroupDeployment @opts -verbose

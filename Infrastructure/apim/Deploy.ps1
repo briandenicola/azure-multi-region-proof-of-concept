@@ -14,14 +14,25 @@ param (
     [securestring]      $PFXPassword,
 
     [Parameter(Mandatory = $true)]
-    [string]            $DomainName,
-
-    [Parameter(Mandatory = $true)]
-    [string[]]          $ProxyHostNames
-
+    [string[]]          $ApimProxies
 )  
 
-function Get-AzureRegion {
+function Get-UriComponents
+{
+    param(
+        [string] $Uri
+    )
+    $uriStr = [string]::Concat( [system.Uri]::UriSchemeHttp, [system.uri]::SchemeDelimiter, $uri)
+    $c = ([System.Uri]::new($uriStr)).Host.Split(".")
+
+    return (New-Object psobject -Property @{
+        DomainName = [string]::join(".",$c[-2..-1])
+        HostName = [string]::join(".", $c[0..($c.Length-3)])
+    })
+}
+
+function Get-AzureRegion 
+{
     param(
         [string] $location
     )
@@ -29,31 +40,34 @@ function Get-AzureRegion {
 }
 
 Import-Module -Name bjd.Azure.Functions
-$pfxEncoded = Convert-CertificatetoBase64 -CertPath $PFXPath
 
-$TemplateFile = "azuredeploy.{0}-region.json" -f $DeploymentType
-$MandatoryUris = @("management", "portal", "developer", "management.scm")
+$pfxEncoded = Convert-CertificatetoBase64 -CertPath $PFXPath
+$TemplateParameterFile = "azuredeploy.{0}-region.json" -f $DeploymentType
+
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $ApiMgmtName = "apim-{0}" -f $ApplicationName
+
+$ManagementUris = @("management", "portal", "developer", "management.scm")
+$ManagementDomain = (Get-UriComponents -Uri $ApimProxies[0]).DomainName
 
 $opts = @{
     Name                            = ("ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
     ResourceGroupName               = $ResourceGroupName
     TemplateFile                    = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
-    TemplateParameterFile           = (Join-Path -Path $PWD.Path -ChildPath $TemplateFile)
+    TemplateParameterFile           = (Join-Path -Path $PWD.Path -ChildPath $TemplateParameterFile)
     apiManagementName               = $ApiMgmtName
-    customDomain                    = $DomainName
+    customDomain                    = $ManagementDomain.DomainName
     customDomainCertificateData     = $pfxEncoded
     customDomainCertificatePassword = $PFXPassword
-    primaryProxyFQDN                = $ProxyHostNames[0] + "." + $DomainName
+    primaryProxyFQDN                = $ApimProxies[0]
 }
 
 if ($DeploymentType -eq "multi") {
-    if ($ProxyHostNames.Length -eq 1 ) {
+    if ($ApimProxies.Length -eq 1 ) {
         throw "Need to provide two Backend Host Names if using multiple regions..."
         exit -1
     }
-    $opts.secondaryProxyFQDN = ($ProxyHostNames[1] + "." + $DomainName)
+    $opts.secondaryProxyFQDN = $ApimProxies[1]
 }
 New-AzResourceGroupDeployment @opts -verbose
 
@@ -62,16 +76,24 @@ if ($?) {
 
     $primaryRegion = Get-AzureRegion $apim.Location
     $primaryResourceGroup = "{0}_{1}_rg" -f $ApplicationName, $primaryRegion
-    foreach ( $uri in ($MandatoryUris + $ProxyHostNames)) {
+
+    foreach ( $uri in $ApimProxies ) {
+        $h = Get-UriComponents -Uri $uri
         $ip = New-AzPrivateDnsRecordConfig -IPv4Address $apim.PrivateIPAddresses[0]
-        New-AzPrivateDnsRecordSet -Name $uri -RecordType A -ZoneName $DomainName  -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
+        New-AzPrivateDnsRecordSet -Name $h.HostName -RecordType A -ZoneName $h.DomainName  -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
+    }
+
+    foreach ( $managementUri in $ManagementUris ) {
+        $ip = New-AzPrivateDnsRecordConfig -IPv4Address $apim.PrivateIPAddresses[0]
+        New-AzPrivateDnsRecordSet -Name $managementUri -RecordType A -ZoneName $ManagementDomain -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
     }
 
     foreach ($region in $apim.AdditionalRegions) {
-        $secondaryResourceGroup = "{0}_{1}_rg" -f $ApplicationName, (Get-AzureRegion -location $region.Location)
-        foreach ( $uri in $ProxyHostNames) {
+        $secondaryResourceGroup = "{0}_{1}_rg" -f $ApplicationName, (Get-AzureRegion -location $region.Location)        
+        foreach ( $uri in $ApimProxies ) {
+            $h = Get-UriComponents -Uri $uri
             $ip = New-AzPrivateDnsRecordConfig -IPv4Address $region.PrivateIPAddresses[0]
-            New-AzPrivateDnsRecordSet -Name $uri -RecordType A -ZoneName $DomainName  -ResourceGroupName $secondaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip            
+            New-AzPrivateDnsRecordSet -Name $h.HostName -RecordType A -ZoneName $h.DomainName -ResourceGroupName $secondaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip            
         }
     }
 }

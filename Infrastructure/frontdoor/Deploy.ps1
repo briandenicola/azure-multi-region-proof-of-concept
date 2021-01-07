@@ -7,7 +7,7 @@ param (
     [string]    $DeploymentType,
 
     [Parameter(Mandatory = $true)]
-    [string]    $DomainName,
+    [string]    $FrontDoorUri,
 
     [Parameter(Mandatory = $true)]
     [string[]]  $BackendHostNames,
@@ -24,8 +24,8 @@ $opts = @{
     ResourceGroupName     = $ResourceGroupName
     TemplateFile          = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
     frontDoorName         = $FrontDoorName
-    frontDoorUrl          = ("api.{0}" -f $DomainName)
-    primaryBackendEndFQDN = ($BackendHostNames[0] + "." + $DomainName)
+    frontDoorUrl          = $FrontDoorUri
+    primaryBackendEndFQDN = $BackendHostNames[0]
 }
 
 if ($DeploymentType -eq "multi") {
@@ -33,7 +33,7 @@ if ($DeploymentType -eq "multi") {
         throw "Need to provide two Backend Host Names if using multiple regions..."
         exit -1
     }
-    $opts.Add("secondaryBackendEndFQDN", ($BackendHostNames[1] + "." + $DomainName))
+    $opts.Add("secondaryBackendEndFQDN", $BackendHostNames[1] )
 }
 
 New-AzResourceGroupDeployment @opts -verbose

@@ -64,7 +64,7 @@ In other words, the world's most expensive random number generator....
     * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
     * multiRegionDeployment: "true"
 * cd ./apim
-* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -DomainName bjd.demo -ProxyHostNames @("api.apim.us", "api.apim.uk")
+* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -ApimProxies @("api.apim.us.bjd.demo", "api.apim.uk.bjd.demo")
 * cd ../product
 * ./Deploy.ps1 -ApplicationName ${appName} -primaryBackendUrl https://api.ingress.bjd.demo -Verbose
 * MANUAL ALERT - You need to log into the Azure Portal > APIM and associate the AesKey APIs with the KeyService Products
@@ -78,11 +78,12 @@ In other words, the world's most expensive random number generator....
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
     * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
 * cd ./gateway
-* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -DomainName bjd.demo -BackendHostNames @("api.apim,us", "api.apim.uk")
+* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -BackendHostNames @("api.apim.us.bjd.demo", "api.apim.uk.bjd.demo")
+* MANUAL ALERT - You must take the output of the ARM template and update your external DNS Names as with the IP Address generated. These DNS names must match the SSL certificate provided and ised as inputs for the Front Door Deployment (BackendHostNames)
 
 ### Front Door
 * cd ../frontdoor
-* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -DomainName bjd.demo -BackendHostNames @("api.us", "api.uk")
+* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -FrontDoorUri api.bjd.demo -BackendHostNames @("api.us.bjd.demo", "api.uk.bjd.demo")
 * MANUAL ALERT - You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their reginal WAF policy
     * TODO: Automate this steps in the ARM template
 
