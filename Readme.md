@@ -33,13 +33,15 @@ In other words, the world's most expensive random number generator....
 * Required Steps:
     * curl https://get.acme.sh | sh
     * acme.sh --issue --dns dns_azure -d api.ingress.bjd.demo
+    * acme.sh --toPkcs -d api.ingress.bjd.demo --password $PASSWORD
 * Optional Steps: _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
-    * APIM Certificate: acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
-    * AppGateway Certificate: acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.us.bjd.demo -d api.uk.bjd.demo
-    * acme.sh --toPkcs -d portal.bjd.demo
-    * acme.sh --toPkcs -d api.bjd.demo
-    * pwsh > [convert]::ToBase64String( (Get-Content -AsByteStream .\portal.bjd.demo.pfx) _This will be used in the Azure ARM Templates_
-    * pwsh > [convert]::ToBase64String( (Get-Content -AsByteStream .\api.bjd.demo.pfx) _This will be used in the Azure ARM Templates_
+    * APIM Certificate: 
+        * acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
+        * acme.sh --toPkcs -d portal.bjd.demo --password $PASSWORD
+    * AppGateway Certificate: 
+        * acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.us.bjd.demo -d api.uk.bjd.demo
+        * acme.sh --toPkcs -d api.bjd.demo --password $PASSWORD
+* Renew All certificates - ./scripts/renew_certs.sh $PASSWORD
 
 ## Infrastructure Steps
 * cd ./Infrastructure
@@ -54,15 +56,15 @@ In other words, the world's most expensive random number generator....
 * ./deploy_application.sh -n ${appName} -r centralus -r ukwest --domain bjd.demo --hostname api.ingress --cert {Path to PEM Cert file} --key {Path to PEM Key file}
 
 ## Expose API Externally _optional_ 
-* The create_infrastructure and deploy_application scripts create the foundations for this demo. The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway.  
+* The create_infrastructure.sh and deploy_application.sh scripts create the foundations for this demo. 
+* The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway - for external access.
 
 ### API Management 
 * Update apim\azuredeploy.parameters.json 
-    * apiManagementName: bjdapim001
+    * multiRegionDeployment: "true"
     * secondaryLocation: ukwest
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
     * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
-    * multiRegionDeployment: "true"
 * cd ./apim
 * ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -ApimProxies @("api.apim.us.bjd.demo", "api.apim.uk.bjd.demo")
 * cd ../product
@@ -72,7 +74,6 @@ In other words, the world's most expensive random number generator....
 
 ### APP Gateway 
 * Update gateway\azuredeploy.parameters.json
-    * appGatewayName: bjdgw001
     * multiRegionDeployment: true
     * secondaryLocation: ukwest
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
@@ -83,9 +84,8 @@ In other words, the world's most expensive random number generator....
 
 ### Front Door
 * cd ../frontdoor
-* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -FrontDoorUri api.bjd.demo -BackendHostNames @("api.us.bjd.demo", "api.uk.bjd.demo")
+* ./Deploy.ps1 -ApplicationName ${appName} -FrontDoorUri api.bjd.demo -BackendHostNames @("api.us.bjd.demo", "api.uk.bjd.demo") -DeployWAFPolicies
 * MANUAL ALERT - You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their reginal WAF policy
-    * TODO: Automate this steps in the ARM template
 
 ## Test
 * Test Local Deployment directly on AKS clusters 
@@ -94,7 +94,7 @@ In other words, the world's most expensive random number generator....
         * Where ${keyId} is a GUID taken from the output of create_keys.sh
 * Test Application Gateways Individually
     * Obtain your APIM
-    * h = New-APIMHeader -key $apiSubscriptionKey 
+    * $h = New-APIMHeader -key $apiSubscriptionKey 
         * New-APIMHeader is a method in bjd.Azure.Functions
     * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
     * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
@@ -136,7 +136,8 @@ In other words, the world's most expensive random number generator....
 - [x] Update documention
 - [x] Update for Terraforms to create main infrastructure components
 - [x] GitHub Actions pipeline 
-- [ ] Distributed Tracing support
+- [x] Simplify deployment
+- [ ] Dapr/Distributed Tracing support
 
 # Issues
 - [x] Docker build on Azure Functions has warnings. func kubernetes deploy does not
