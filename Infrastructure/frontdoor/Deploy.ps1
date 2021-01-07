@@ -3,10 +3,6 @@ param (
     [string]    $ApplicationName,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet("single", "multi")]
-    [string]    $DeploymentType,
-
-    [Parameter(Mandatory = $true)]
     [string]    $FrontDoorUri,
 
     [Parameter(Mandatory = $true)]
@@ -28,13 +24,11 @@ $opts = @{
     primaryBackendEndFQDN = $BackendHostNames[0]
 }
 
-if ($DeploymentType -eq "multi") {
-    if ($BackendHostNames.Length -eq 1 ) {
-        throw "Need to provide two Backend Host Names if using multiple regions..."
-        exit -1
-    }
-    $opts.Add("secondaryBackendEndFQDN", $BackendHostNames[1] )
+if ($BackendHostNames.Length -eq 1 ) {
+    throw "Need to provide two Backend Host Names if using multiple regions..."
+    exit -1
 }
+$opts.Add("secondaryBackendEndFQDN", $BackendHostNames[1] )
 
 New-AzResourceGroupDeployment @opts -verbose
 
