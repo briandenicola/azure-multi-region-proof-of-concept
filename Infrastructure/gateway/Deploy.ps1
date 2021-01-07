@@ -1,22 +1,22 @@
 param (
-	[Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]           $ApplicationName,
 
-    [Parameter(Mandatory=$true)]
-    [ValidateSet("single","multi")]
+    [Parameter(Mandatory = $true)]
+    [ValidateSet("single", "multi")]
     [string]          $DeploymentType,
 
-    [Parameter(Mandatory=$true)]
-    [ValidateScript({ Test-Path $_})]
+    [Parameter(Mandatory = $true)]
+    [ValidateScript( { Test-Path $_ })]
     [string]          $PFXPath,
     
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [securestring]    $PFXPassword,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string] $DomainName,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string[]] $BackendHostNames
 
 )  
@@ -29,18 +29,18 @@ $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $AppGatewayName = "appgw-{0}" -f $ApplicationName
 
 $opts = @{
-    Name                            = ("AppGateway-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
-    ResourceGroupName               = $ResourceGroupName
-    TemplateFile                    = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
-    TemplateParameterFile           = (Join-Path -Path $PWD.Path -ChildPath $TemplateFile)
-    appGatewayName                  = $AppGatewayName
-    domainCertificateData           = $pfxEncoded
-    domainCertificatePassword       = $PFXPassword
-    primaryBackendEndFQDN           = $BackendHostNames[0] + "." + $DomainName
+    Name                      = ("AppGateway-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
+    ResourceGroupName         = $ResourceGroupName
+    TemplateFile              = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
+    TemplateParameterFile     = (Join-Path -Path $PWD.Path -ChildPath $TemplateFile)
+    appGatewayName            = $AppGatewayName
+    domainCertificateData     = $pfxEncoded
+    domainCertificatePassword = $PFXPassword
+    primaryBackendEndFQDN     = $BackendHostNames[0] + "." + $DomainName
 }
 
-if($DeploymentType -eq "multi") {
-    if($BackendHostNames.Length -eq 1 ) {
+if ($DeploymentType -eq "multi") {
+    if ($BackendHostNames.Length -eq 1 ) {
         throw "Need to provide two Backend Host Names if using multiple regions..."
         exit -1
     }

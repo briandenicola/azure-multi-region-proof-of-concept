@@ -1,9 +1,9 @@
 param (
-	[Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]           $ApplicationName,
 
-    [Parameter(Mandatory=$true)]
-    [ValidateScript({[system.uri]::IsWellFormedUriString($_,[System.UriKind]::Absolute)})]
+    [Parameter(Mandatory = $true)]
+    [ValidateScript( { [system.uri]::IsWellFormedUriString($_, [System.UriKind]::Absolute) })]
     [string]    $primaryBackendUrl
     
 )  
@@ -17,17 +17,17 @@ $MockPolicy = Get-Content -Raw -Path ".\policies\MockPolicy.xml"
 
 $CreateKeyPolicy = Get-Content -Raw -Path ".\policies\CreateKeyPolicy.xml"
 $CreateKeyPolicy = $CreateKeyPolicy.
-    Replace('{{primaryBackendUrl}}', $primaryBackendUrl)
+Replace('{{primaryBackendUrl}}', $primaryBackendUrl)
     
 $opts = @{
-    Name                = ("Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
-    ResourceGroupName   = $ResourceGroupName
-    TemplateFile        = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
-    apiManagementName   = $ApiMgmtName
-    primaryBackendUrl   = $PrimaryBackendUrl
-    globalKeyPolicy     = $GlobalKeyPolicy
-    createKeyPolicy     = $CreateKeyPolicy
-    rateLimitPolicy     = $RateLimitPolicy
-    mockPolicy          = $MockPolicy
+    Name              = ("Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
+    ResourceGroupName = $ResourceGroupName
+    TemplateFile      = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
+    apiManagementName = $ApiMgmtName
+    primaryBackendUrl = $PrimaryBackendUrl
+    globalKeyPolicy   = $GlobalKeyPolicy
+    createKeyPolicy   = $CreateKeyPolicy
+    rateLimitPolicy   = $RateLimitPolicy
+    mockPolicy        = $MockPolicy
 }
 New-AzResourceGroupDeployment @opts -verbose   

@@ -1,31 +1,31 @@
 param (
-	[Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]            $ApplicationName,
 
-    [Parameter(Mandatory=$true)]
-    [ValidateSet("single","multi")]
+    [Parameter(Mandatory = $true)]
+    [ValidateSet("single", "multi")]
     [string]            $DeploymentType,
 
-    [Parameter(Mandatory=$true)]
-    [ValidateScript({ Test-Path $_})]
+    [Parameter(Mandatory = $true)]
+    [ValidateScript( { Test-Path $_ })]
     [string]            $PFXPath,
     
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [securestring]      $PFXPassword,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]            $DomainName,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string[]]          $ProxyHostNames
 
 )  
 
-function Get-AzureRegion{
+function Get-AzureRegion {
     param(
         [string] $location
     )
-    return ($location -replace " ","").ToLower()
+    return ($location -replace " ", "").ToLower()
 }
 
 Import-Module -Name bjd.Azure.Functions
@@ -48,8 +48,8 @@ $opts = @{
     primaryProxyFQDN                = $ProxyHostNames[0] + "." + $DomainName
 }
 
-if($DeploymentType -eq "multi") {
-    if($ProxyHostNames.Length -eq 1 ) {
+if ($DeploymentType -eq "multi") {
+    if ($ProxyHostNames.Length -eq 1 ) {
         throw "Need to provide two Backend Host Names if using multiple regions..."
         exit -1
     }
@@ -57,19 +57,19 @@ if($DeploymentType -eq "multi") {
 }
 New-AzResourceGroupDeployment @opts -verbose
 
-if($?) {
+if ($?) {
     $apim = Get-AzApiManagement -ResourceGroupName $ResourceGroupName -n $ApiMgmtName
 
     $primaryRegion = Get-AzureRegion $apim.Location
     $primaryResourceGroup = "{0}_{1}_rg" -f $ApplicationName, $primaryRegion
-    foreach( $uri in ($MandatoryUris + $ProxyHostNames)) {
+    foreach ( $uri in ($MandatoryUris + $ProxyHostNames)) {
         $ip = New-AzPrivateDnsRecordConfig -IPv4Address $apim.PrivateIPAddresses[0]
         New-AzPrivateDnsRecordSet -Name $uri -RecordType A -ZoneName $DomainName  -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
     }
 
-    foreach($region in $apim.AdditionalRegions) {
+    foreach ($region in $apim.AdditionalRegions) {
         $secondaryResourceGroup = "{0}_{1}_rg" -f $ApplicationName, (Get-AzureRegion -location $region.Location)
-        foreach( $uri in $ProxyHostNames) {
+        foreach ( $uri in $ProxyHostNames) {
             $ip = New-AzPrivateDnsRecordConfig -IPv4Address $region.PrivateIPAddresses[0]
             New-AzPrivateDnsRecordSet -Name $uri -RecordType A -ZoneName $DomainName  -ResourceGroupName $secondaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip            
         }
