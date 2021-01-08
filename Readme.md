@@ -45,18 +45,18 @@ In other words, the world's most expensive random number generator....
 
 ## Infrastructure Steps
 * cd ./Infrastructure
-* ./create_infrastructure.sh -r centralus -r ukwest --domain bjd.demo
+* ./create_infrastructure.sh -r eastus2 -r ukwest --domain bjd.demo
     * Generates a Terraform variable file with a random Application Name. 
     * Then calls Terraforms to plan then apply configuration
-* ./setup_diagnostics.sh -n ${appName} -r centralus -r ukwest _optional_
+* ./setup_diagnostics.sh -n ${appName} -r eastus2 -r ukwest _optional_
     * appName will be display at the end of the create_infrastructure.sh script 
 
 ## Application Deployment 
 * cd ./Infrastructure
-* ./deploy_application.sh -n ${appName} -r centralus -r ukwest --domain bjd.demo --hostname api.ingress --cert {Path to PEM Cert file} --key {Path to PEM Key file}
+* ./deploy_application.sh -n ${appName} -r eastus2 -r ukwest --domain bjd.demo --hostname api.ingress --cert {Path to Certificate .cer file} --key {Path to Certificate .key file}
 
 ## Expose API Externally _optional_ 
-* The create_infrastructure.sh and deploy_application.sh scripts create the foundations for this demo. 
+* The create_infrastructure.sh and deploy_application.sh scripts create the foundations for this demo application. 
 * The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway - for external access.
 
 ### API Management 
@@ -64,7 +64,7 @@ In other words, the world's most expensive random number generator....
     * multiRegionDeployment: "true"
     * secondaryLocation: ukwest
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
-    * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
+    * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_eastus2_rg or ${appName}_ukwest_rg
 * cd ./apim
 * ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -ApimProxies @("api.apim.us.bjd.demo", "api.apim.uk.bjd.demo")
 * cd ../product
@@ -77,7 +77,7 @@ In other words, the world's most expensive random number generator....
     * multiRegionDeployment: true
     * secondaryLocation: ukwest
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
-    * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_useast2_rg or ${appName}_ukwest_rg
+    * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_eastus2_rg or ${appName}_ukwest_rg
 * cd ./gateway
 * ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -BackendHostNames @("api.apim.us.bjd.demo", "api.apim.uk.bjd.demo")
 * MANUAL ALERT - You must take the output of the ARM template and update your external DNS Names as with the IP Address generated. These DNS names must match the SSL certificate provided and ised as inputs for the Front Door Deployment (BackendHostNames)
@@ -85,7 +85,9 @@ In other words, the world's most expensive random number generator....
 ### Front Door
 * cd ../frontdoor
 * ./Deploy.ps1 -ApplicationName ${appName} -FrontDoorUri api.bjd.demo -BackendHostNames @("api.us.bjd.demo", "api.uk.bjd.demo") -DeployWAFPolicies
-* MANUAL ALERT - You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their reginal WAF policy
+* MANUAL ALERT
+   * You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their reginal WAF policy
+   * Enable TLS on the custom Front Door Uri using a Front Door provided certificate 
 
 ## Test
 * Test Local Deployment directly on AKS clusters 
@@ -93,18 +95,18 @@ In other words, the world's most expensive random number generator....
     * ./Scripts/get_keys.sh ${keyId}
         * Where ${keyId} is a GUID taken from the output of create_keys.sh
 * Test Application Gateways Individually
-    * Obtain your APIM
+    * Obtain your APIM subscription key
     * $h = New-APIMHeader -key $apiSubscriptionKey 
         * New-APIMHeader is a method in bjd.Azure.Functions
-    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.us.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
     * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
     * $keyId = copy a reply from the commands above
-    * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
+    * Invoke-RestMethod -UseBasicParsing -Uri https://api.us.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
     * Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
 * Test Azure Front Door globally with Azure ACI
     * cd .\Infrastructure\ACI
-    * New-AzResourceGroup -Name ${appName}_tests_rg -l useast2
-    * New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_tests_rgg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjd.demo -keyGuid ${keyId}
+    * New-AzResourceGroup -Name ${appName}_tests_rg -l eastus2
+    * New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_testing_rg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjd.demo -keyGuid ${keyId}
     * az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-get
     * az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-post
     * az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-get
