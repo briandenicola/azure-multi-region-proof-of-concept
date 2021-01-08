@@ -47,8 +47,7 @@ In other words, the world's most expensive random number generator....
 ## Infrastructure Steps
 * cd ./Infrastructure
 * ./create_infrastructure.sh -r eastus2 -r ukwest --domain bjd.demo
-    * Generates a Terraform variable file with a random Application Name. 
-    * Then calls Terraforms to plan then apply configuration
+    * Generates a Terraform variable file with randomize variables then applies configuration 
 * ./setup_diagnostics.sh -n ${appName} -r eastus2 -r ukwest _optional_
     * appName will be display at the end of the create_infrastructure.sh script 
 
