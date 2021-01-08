@@ -12,36 +12,37 @@ In other words, the world's most expensive random number generator....
 ## Prerequisite
 * Azure PowerShell, Azure Cli, Terraform, Helm and Kubectl
 * A public domain that you can create DNS records
-    * Will use bjd.demo throughout the documentation 
-    * The Public domain is used by Let's Encrypt to valiate domain ownership before granting tls certificates 
-* Private Zone DNS Records: _Will be setup automatically_
-    * api.ingress.bjd.demo - Private IP Address of ingress controll in all Region. 
-* Private Zone DNS Records: _Need to be setup with Update-Dns.ps1 script_
-    * api.apim.us.bjd.demo - Private IP Address of Azure APIM in the primary Region.
-    * api.apim.uk.bjd.demo - Private IP Address of Azure APIM in the secondary Region. 
-    * developer.bjd.demo - The APIM Developer portal. It resolves to the Private IP Address of Azure APIM in the primary Region.
-    * management.bjd.demo - The APIM API endpoint. It resolves to the Private IP Address of Azure APIM in the primary Region.
-* Public DNS Records: _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
-    * api.bjd.demo - CNAME to the Azure Front Door Name 
-    * api.us.bjd.demo - Public IP Address of Azure Gateway US Region.
-        * This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
-    * api.uk.bjd.demo - Public IP Address of Azure Gateway UK Region
-        * This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
-
-## SSL Cert Requirements 
-* I used Let's Encrypt and Azure DNS (which host my domain name) for domain validation
-* Required Steps:
-    * curl https://get.acme.sh | sh
-    * acme.sh --issue --dns dns_azure -d api.ingress.bjd.demo
-    * acme.sh --toPkcs -d api.ingress.bjd.demo --password $PASSWORD
-* Optional Steps: _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
-    * APIM Certificate: 
-        * acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
-        * acme.sh --toPkcs -d portal.bjd.demo --password $PASSWORD
-    * AppGateway Certificate: 
-        * acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.us.bjd.demo -d api.uk.bjd.demo
-        * acme.sh --toPkcs -d api.bjd.demo --password $PASSWORD
-* Renew All certificates - ./scripts/renew_certs.sh $PASSWORD
+   * Will use bjd.demo for this documentation 
+   * The Public domain is used by Let's Encrypt to valiate domain ownership before granting tls certificates 
+      * [Configure DNS Zone with Let's Encrypt's acme.sh](https://github.com/acmesh-official/acme.sh/wiki/How-to-use-Azure-DNS)
+* Private Zone DNS Records: 
+   * _Will be setup automatically_
+   * api.ingress.bjd.demo - Private IP Address of ingress controll in all Region. 
+   * api.apim.us.bjd.demo - Private IP Address of Azure APIM in the primary Region.
+   * api.apim.uk.bjd.demo - Private IP Address of Azure APIM in the secondary Region. 
+   * developer.bjd.demo - The APIM Developer portal. It resolves to the Private IP Address of Azure APIM in the primary Region.
+   * management.bjd.demo - The APIM API endpoint. It resolves to the Private IP Address of Azure APIM in the primary Region.
+* Public DNS Records: 
+   * _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
+   * api.bjd.demo - CNAME to the Azure Front Door Name 
+   * api.us.bjd.demo - Public IP Address of Azure Gateway US Region.
+       * This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
+   * api.uk.bjd.demo - Public IP Address of Azure Gateway UK Region
+       * This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
+* Let's Encrypt TLS Certificates
+   * Required Certificates 
+      * curl https://get.acme.sh | sh
+      * acme.sh --issue --dns dns_azure -d api.ingress.bjd.demo
+      * acme.sh --toPkcs -d api.ingress.bjd.demo --password $PASSWORD
+   * Optional Certificates 
+      * _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
+      * APIM Certificate: 
+         * acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
+         * acme.sh --toPkcs -d portal.bjd.demo --password $PASSWORD
+      * AppGateway Certificate: 
+         * acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.us.bjd.demo -d api.uk.bjd.demo
+         * acme.sh --toPkcs -d api.bjd.demo --password $PASSWORD
+      * Renew All certificates - ./scripts/renew_certs.sh $PASSWORD
 
 ## Infrastructure Steps
 * cd ./Infrastructure
@@ -55,7 +56,7 @@ In other words, the world's most expensive random number generator....
 * cd ./Infrastructure
 * ./deploy_application.sh -n ${appName} -r eastus2 -r ukwest --domain bjd.demo --hostname api.ingress --cert {Path to Certificate .cer file} --key {Path to Certificate .key file}
 
-## Expose API Externally _optional_ 
+## Expose API Externally 
 * The create_infrastructure.sh and deploy_application.sh scripts create the foundations for this demo application. 
 * The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway - for external access.
 
@@ -89,7 +90,7 @@ In other words, the world's most expensive random number generator....
    * You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their reginal WAF policy
    * Enable TLS on the custom Front Door Uri using a Front Door provided certificate 
 
-## Test
+## Testing
 * Test Local Deployment directly on AKS clusters 
     * ./Scripts/create_keys.sh 100 
     * ./Scripts/get_keys.sh ${keyId}
