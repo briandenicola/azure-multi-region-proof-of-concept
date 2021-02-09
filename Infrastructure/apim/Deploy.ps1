@@ -41,20 +41,17 @@ function Get-AzureRegion
 
 Import-Module -Name bjd.Azure.Functions
 
-$pfxEncoded = Convert-CertificatetoBase64 -CertPath $PFXPath
-$TemplateParameterFile = "azuredeploy.{0}-region.json" -f $DeploymentType
-
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
-$ApiMgmtName = "apim-{0}" -f $ApplicationName
-
-$ManagementUris = @("management", "portal", "developer", "management.scm")
-$ManagementDomain = (Get-UriComponents -Uri $ApimProxies[0])
+$ApiMgmtName       = "apim-{0}" -f $ApplicationName
+$ManagementUris    = @("management", "portal", "developer", "management.scm")
+$ManagementDomain  = (Get-UriComponents -Uri $ApimProxies[0])
+$pfxEncoded        = Convert-CertificatetoBase64 -CertPath $PFXPath
 
 $opts = @{
     Name                            = ("ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
     ResourceGroupName               = $ResourceGroupName
-    TemplateFile                    = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
-    TemplateParameterFile           = (Join-Path -Path $PWD.Path -ChildPath $TemplateParameterFile)
+    TemplateFile                    = (Join-Path -Path $PWD.Path -ChildPath ("azuredeploy.{0}-region.json" -f $DeploymentType))
+    TemplateParameterFile           = (Join-Path -Path $PWD.Path -ChildPath ("azuredeploy.{0}-region.parameters.json" -f $DeploymentType))
     apiManagementName               = $ApiMgmtName
     customDomain                    = $ManagementDomain.DomainName
     customDomainCertificateData     = $pfxEncoded
