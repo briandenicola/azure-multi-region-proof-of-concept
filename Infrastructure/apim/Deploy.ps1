@@ -48,7 +48,7 @@ $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $ApiMgmtName = "apim-{0}" -f $ApplicationName
 
 $ManagementUris = @("management", "portal", "developer", "management.scm")
-$ManagementDomain = (Get-UriComponents -Uri $ApimProxies[0]).DomainName
+$ManagementDomain = (Get-UriComponents -Uri $ApimProxies[0])
 
 $opts = @{
     Name                            = ("ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
