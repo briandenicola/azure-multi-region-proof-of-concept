@@ -82,7 +82,7 @@ if ($?) {
 
     foreach ( $managementUri in $ManagementUris ) {
         $ip = New-AzPrivateDnsRecordConfig -IPv4Address $apim.PrivateIPAddresses[0]
-        New-AzPrivateDnsRecordSet -Name $managementUri -RecordType A -ZoneName $ManagementDomain -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
+        New-AzPrivateDnsRecordSet -Name $managementUri -RecordType A -ZoneName $ManagementDomain.DomainName -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
     }
 
     foreach ($region in $apim.AdditionalRegions) {
