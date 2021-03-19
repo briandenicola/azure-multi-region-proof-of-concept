@@ -35,24 +35,19 @@ spec:
             cpu: "0.5"
             memory: 128Mi
 ---
-apiVersion: keda.k8s.io/v1alpha1
+apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: eventprocessor
-  labels:
-    deploymentName: eventprocessor
 spec:
   scaleTargetRef:
-    deploymentName: eventprocessor
+    name: eventprocessor
   minReplicaCount: 3
   maxReplicaCount: 15
   pollingInterval: 15
   triggers:
   - type: azure-eventhub
     metadata:
-      type: eventHubTrigger
-      connection: EVENTHUB_CONNECTIONSTRING
-      eventHubName: events
-      name: events
+      connectionFromEnv: EVENTHUB_CONNECTIONSTRING
+      storageConnectionFromEnv: AzureWebJobsStorage
 ---
-
