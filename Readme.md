@@ -53,7 +53,7 @@ In other words, the world's most expensive random number generator....
 
 ## Application Deployment 
 * cd ./Infrastructure
-* ./deploy_application.sh -n ${appName} -r eastus2 -r ukwest --domain bjd.demo --hostname api.ingress --cert {Path to Certificate .cer file} --key {Path to Certificate .key file}
+* ./deploy_application.sh -n ${appName} -r eastus2 -r ukwest --domain bjd.demo --hostname api.ingress --cert {path_to_ingress_cer_file} --key {path_to_ingress_key_file}
 
 ## Expose API Externally 
 * The create_infrastructure.sh and deploy_application.sh scripts create the foundations for this demo application. 
@@ -66,7 +66,7 @@ In other words, the world's most expensive random number generator....
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
     * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_eastus2_rg or ${appName}_ukwest_rg
 * cd ./apim
-* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -ApimProxies @("api.apim.us.bjd.demo", "api.apim.uk.bjd.demo")
+* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_portal_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -ApimProxies @("api.apim.us.bjd.demo", "api.apim.uk.bjd.demo")
 * cd ../product
 * ./Deploy.ps1 -ApplicationName ${appName} -primaryBackendUrl https://api.ingress.bjd.demo -Verbose
 * MANUAL ALERT - You need to log into the Azure Portal > APIM and associate the AesKey APIs with the KeyService Products
@@ -79,7 +79,7 @@ In other words, the world's most expensive random number generator....
     * primaryVnetName/secondaryVnetName: vnet${appName}001 or vnet${appName}002 
     * primaryVnetResourceGroup/secondaryVnetResourceGroup: ${appName}_eastus2_rg or ${appName}_ukwest_rg
 * cd ./gateway
-* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -BackendHostNames @("api.apim.us.bjd.demo", "api.apim.uk.bjd.demo")
+* ./Deploy.ps1 -ApplicationName ${appName} -DeploymentType ${multi|single} -PFXPath ${path_to_appgw_pfx} -PFXPassword (ConvertTo-SecureString ${pfx_password} -AsPlainText -Force) -BackendHostNames @("api.apim.us.bjd.demo", "api.apim.uk.bjd.demo")
 * MANUAL ALERT - You must take the output of the ARM template and update your external DNS Names as with the IP Address generated. These DNS names must match the SSL certificate provided and ised as inputs for the Front Door Deployment (BackendHostNames)
 
 ### Front Door
@@ -139,7 +139,7 @@ In other words, the world's most expensive random number generator....
 - [x] Update for Terraforms to create main infrastructure components
 - [x] GitHub Actions pipeline 
 - [x] Simplify deployment
-- [ ] Dapr/Distributed Tracing support
+- [ ] ~~Dapr/Distributed Tracing support~~
 
 # Issues
 - [x] Docker build on Azure Functions has warnings. func kubernetes deploy does not
