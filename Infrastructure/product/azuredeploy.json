@@ -108,7 +108,7 @@
             "apiVersion": "2019-12-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api/create-keys')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]",
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
             ],
             "properties": {
                 "displayName": "Create Keys",
@@ -187,7 +187,7 @@
             "apiVersion": "2019-12-01",
             "name": "[concat(parameters('apiManagementName'), '/key-service-1rps/policy')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service/products', parameters('apiManagementName'), 'key-service-1rps')]",
+                "[resourceId('Microsoft.ApiManagement/service/products', parameters('apiManagementName'), 'key-service-1rps')]"
             ],
             "properties": {
                 "value": "[parameters('rateLimitPolicy')]",
@@ -199,7 +199,7 @@
             "apiVersion": "2019-12-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api/policy')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]",
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
             ],
             "properties": {
                 "value": "[parameters('mockPolicy')]",
@@ -229,6 +229,19 @@
             "properties": {
                 "value": "[parameters('createKeyPolicy')]",
                 "format": "rawxml"
+            }
+        },
+        {
+            "type": "Microsoft.ApiManagement/service/namedValues",
+            "apiVersion": "2019-12-01",
+            "name": "[concat(parameters('apiManagementName'), '/primaryBackendUrl')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementName'))]"
+            ],
+            "properties": {
+                "displayName": "primaryBackendUrl",
+                "value": "[parameters('primaryBackendUrl')]",
+                "secret": false
             }
         }
     ]
