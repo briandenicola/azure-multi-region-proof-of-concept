@@ -235,9 +235,6 @@
             "type": "Microsoft.ApiManagement/service/namedValues",
             "apiVersion": "2019-12-01",
             "name": "[concat(parameters('apiManagementName'), '/primaryBackendUrl')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service', parameters('apiManagementName'))]"
-            ],
             "properties": {
                 "displayName": "primaryBackendUrl",
                 "value": "[parameters('primaryBackendUrl')]",
