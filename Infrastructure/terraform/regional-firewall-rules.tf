@@ -42,11 +42,11 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
-            "*.hcp.eastus2.azmk8s.io"
+            "*.hcp.${azurerm_resource_group.cqrs_region[count.index].location}.azmk8s.io"
         ]
     }
 
@@ -56,7 +56,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -70,7 +70,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -84,7 +84,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -98,11 +98,11 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
-            "login.microsoft.com"
+            "login.microsoftonline.com"
         ]
     } 
 
@@ -112,7 +112,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -126,7 +126,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -140,7 +140,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -154,7 +154,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -168,7 +168,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -182,7 +182,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -196,7 +196,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -210,7 +210,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -224,7 +224,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -238,7 +238,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -252,7 +252,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       
         protocols {
             port            = "443"
-            type            = "Https"
+            type            = "HTTPS"
         }
 
         destination_fqdns = [
@@ -266,12 +266,12 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
 
       protocols {
         port                = "443"
-        type                = "Https"
+        type                = "HTTPS"
       }
 
       protocols {
         port                = "80"
-        type                = "Http"
+        type                = "HTTP"
       }
 
       destination_fqdn_tags = [
@@ -285,12 +285,12 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
 
       protocols {
         port                = "80"
-        type                = "Http"
+        type                = "HTTP"
       }
 
       protocols {
         port                = "443"
-        type                = "Https"
+        type                = "HTTPS"
       }
 
       destination_fqdns     = [
@@ -304,12 +304,12 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
 
       protocols {
         port                = "80"
-        type                = "Http"
+        type                = "HTTP"
       }
 
       protocols {
         port                = "443"
-        type                = "Https"
+        type                = "HTTPS"
       }
 
       destination_fqdns     = [
@@ -323,12 +323,12 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
 
       protocols {
         port                = "80"
-        type                = "Http"
+        type                = "HTTP"
       }
 
       protocols {
         port                = "443"
-        type                = "Https"
+        type                = "HTTPS"
       }
 
       destination_fqdns     = [
