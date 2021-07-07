@@ -91,3 +91,8 @@ variable "custom_domain" {
   description = "Domain Name for application"
   type        = string
 }
+
+variable "firewall_name" {
+  description  = "Name of the Azure Firewall"
+  type         = string 
+}

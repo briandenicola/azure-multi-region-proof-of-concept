@@ -77,6 +77,9 @@ resource "azurerm_container_registry" "cqrs_acr" {
     }
   }
   
+  provisioner "local-exec" {
+    command = "az acr update -n ${var.acr_account_name} --data-endpoint-enabled true"
+  }
 }
 
 resource "azurerm_log_analytics_workspace" "cqrs_logs" {
