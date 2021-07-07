@@ -1,18 +1,21 @@
 terraform {
   required_providers {
-    azurerm = "~> 2.21"
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "= 2.46.0"
+    }
   }
 }
 
 provider "azurerm" {
-  features  {}
+  features {}
 }
 
 resource "azurerm_resource_group" "cqrs_global" {
-  name                  = "${var.application_name}_global_rg"
-  location              = var.locations[0]
-  tags                  = {
-    Application         = var.application_name
+  name     = "${var.application_name}_global_rg"
+  location = var.locations[0]
+  tags = {
+    Application = var.application_name
   }
 }
 
@@ -26,25 +29,25 @@ resource "azurerm_cosmosdb_account" "cqrs_db" {
   enable_automatic_failover       = true
 
   consistency_policy {
-    consistency_level             = "Session"
+    consistency_level = "Session"
   }
 
   geo_location {
-    location                      = var.locations[0]
-    failover_priority             = 0
+    location          = var.locations[0]
+    failover_priority = 0
   }
 
   dynamic "geo_location" {
     for_each = slice(var.locations, 1, length(var.locations))
     content {
-      location                    = geo_location.value
-      failover_priority           = 1
+      location          = geo_location.value
+      failover_priority = 1
     }
   }
 }
 
 resource "azurerm_cosmosdb_sql_database" "cqrs_db" {
-  depends_on          = [ azurerm_cosmosdb_account.cqrs_db ]
+  depends_on          = [azurerm_cosmosdb_account.cqrs_db]
   name                = var.cosmosdb_database_name
   resource_group_name = azurerm_cosmosdb_account.cqrs_db.resource_group_name
   account_name        = azurerm_cosmosdb_account.cqrs_db.name
@@ -52,7 +55,7 @@ resource "azurerm_cosmosdb_sql_database" "cqrs_db" {
 }
 
 resource "azurerm_cosmosdb_sql_container" "cqrs_db" {
-  depends_on          = [ azurerm_cosmosdb_sql_database.cqrs_db ]
+  depends_on          = [azurerm_cosmosdb_sql_database.cqrs_db]
   name                = var.cosmosdb_collections_name
   resource_group_name = azurerm_cosmosdb_account.cqrs_db.resource_group_name
   account_name        = azurerm_cosmosdb_account.cqrs_db.name
@@ -72,26 +75,26 @@ resource "azurerm_container_registry" "cqrs_acr" {
   network_rule_set {
     default_action = "Deny"
     ip_rule {
-      action              = "Allow"
-      ip_range            =  var.api_server_authorized_ip_ranges
+      action   = "Allow"
+      ip_range = var.api_server_authorized_ip_ranges
     }
   }
-  
+
   provisioner "local-exec" {
     command = "az acr update -n ${var.acr_account_name} --data-endpoint-enabled true"
   }
 }
 
 resource "azurerm_log_analytics_workspace" "cqrs_logs" {
-  name                     = var.loganalytics_account_name
-  resource_group_name      = azurerm_resource_group.cqrs_global.name
-  location                 = azurerm_resource_group.cqrs_global.location
-  sku                      = "pergb2018"
+  name                = var.loganalytics_account_name
+  resource_group_name = azurerm_resource_group.cqrs_global.name
+  location            = azurerm_resource_group.cqrs_global.location
+  sku                 = "pergb2018"
 }
 
 resource "azurerm_application_insights" "cqrs_ai" {
-  name                     = var.ai_account_name
-  resource_group_name      = azurerm_resource_group.cqrs_global.name
-  location                 = azurerm_resource_group.cqrs_global.location
-  application_type         = "web"
+  name                = var.ai_account_name
+  resource_group_name = azurerm_resource_group.cqrs_global.name
+  location            = azurerm_resource_group.cqrs_global.location
+  application_type    = "web"
 }
