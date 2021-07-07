@@ -338,15 +338,15 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
   }
 
   network_rule_collection {
-    name                  = "network_rule_collection"
-    priority              = 400
-    action                = "Allow"
+    name                    = "network_rule_collection"
+    priority                = 400
+    action                  = "Allow"
 
     rule {
-      name              = "apiudp"
-      source_addresses  = ["*"]
-      destination_ports = ["1194"]
-      protocols         = ["UDP"]
+      name                  = "apiudp"
+      source_addresses      = ["*"]
+      destination_ports     = ["1194"]
+      protocols             = ["UDP"]
       destination_addresses = [
         #title("AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}")
         "AzureCloud"
@@ -354,10 +354,10 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
     }
 
     rule {
-      name              = "apitcp"
-      source_addresses  = ["*"]
-      destination_ports = ["9000"]
-      protocols         = ["TCP"]
+      name                  = "apitcp"
+      source_addresses      = ["*"]
+      destination_ports     = ["9000"]
+      protocols             = ["TCP"]
       destination_addresses = [
         #title("AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}")
         "AzureCloud"
@@ -365,21 +365,21 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
     }
 
     rule {
-      name              = "monitor"
-      source_addresses  = ["*"]
-      destination_ports = ["443"]
-      protocols         = ["TCP"]
+      name                  = "monitor"
+      source_addresses      = ["*"]
+      destination_ports     = ["443"]
+      protocols             = ["TCP"]
       destination_addresses = [
         "AzureMonitor"
       ]
     }
 
     rule {
-      name              = "time"
-      source_addresses  = ["*"]
-      destination_ports = ["123"]
-      protocols         = ["UDP"]
-      destination_fqdns = [
+      name                  = "time"
+      source_addresses      = ["*"]
+      destination_ports     = ["123"]
+      protocols             = ["UDP"]
+      destination_fqdns     = [
         "ntp.ubuntu.com"
       ]
     }
