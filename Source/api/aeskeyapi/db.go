@@ -7,7 +7,7 @@ import (
 	"os"
 	"encoding/json"
 	"github.com/Azure/azure-event-hubs-go/v3"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 	"github.com/a8m/documentdb"
 )
 
@@ -97,7 +97,10 @@ func (k *AESKeyDB) Get(id string)(*AesKey,error) {
 	var key  *AesKey
 	var err  error 
 
-	result, err := k.redisClient.Get(id).Result()
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	result, err := k.redisClient.Get(ctx, id).Result()
 	
 	if err == nil {
 		_ = json.Unmarshal([]byte(result), &key)
