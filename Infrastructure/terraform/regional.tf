@@ -202,9 +202,6 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
     }
   }
 
-  provisioner "local-exec" {
-    command = "az network firewall policy rule-collection-group collection rule add --collection-name app_rule_collection --name aksapi-server --policy-name ${var.firewall_name}${count.index + 1}-policies --rcg-name ${var.firewall_name}${count.index + 1}_rules_collection --resource-group ${azurerm_resource_group.cqrs_region[count.index].name} --rule-type ApplicationRule --ip-protocols TCP --protocols Https=443 --source-addresses "*" --target-fqdns ${azurerm_kubernetes_cluster.cqrs_region[0].fqdn}"
-  }
 }
 
 resource "azurerm_role_assignment" "acr_pullrole_node" {
