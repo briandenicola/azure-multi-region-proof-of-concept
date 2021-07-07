@@ -77,6 +77,12 @@ resource "azurerm_subnet" "kubernetes" {
   address_prefixes      = [cidrsubnet(local.subnets[count.index], 6, 3)]
 }
 
+resource "azurerm_subnet_route_table_association" "example" {
+  count                 = length(var.locations)  
+  subnet_id             = azurerm_subnet.kubernetes[count.index].id
+  route_table_id        = azurerm_route_table.cqrs_region[count.index].id
+}
+
 resource "azurerm_eventhub_namespace" "cqrs_region" {
   count                     = length(var.locations)  
   name                      = "${var.eventhub_namespace_name}${count.index+1}"
