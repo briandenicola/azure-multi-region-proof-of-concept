@@ -152,111 +152,126 @@ resource "azurerm_firewall_policy" "cqrs_region" {
   }
 }
 
-resource "azurerm_firewall_application_rule_collection" "cqrs_region" {
-  count               = length(var.locations)
-  name                = "${var.firewall_name}${count.index + 1}_app_collection"
-  azure_firewall_name = azurerm_firewall.cqrs_region[count.index].name
-  resource_group_name = azurerm_resource_group.cqrs_region[count.index].name
-  priority            = 200
-  action              = "Allow"
-
-  rule {
-    name             = "aksfwar"
-    source_addresses = ["*"]
-    protocol {
-      port = "443"
-      type = "Https"
-    }
-
-    target_fqdns = [
-      "*.hcp.eastus2.azmk8s.io",
-      "mcr.microsoft.com",
-      "*.data.mcr.microsoft.com",
-      "management.microsoft.com",
-      "login.microsoft.com",
-      "packages.microsoft.com",
-      "acs-mirror.azureedge.net",
-      "*.docker.io",
-      "dc.services.visualstudio.com",
-      "*.ods.opinsights.azure.com",
-      "*.oms.opinsights.azure.com",
-      "*.monitoring.azure.com",
-      "data.policy.core.windows.net",
-      "store.policy.core.windows.net",
-      "azurerm_container_registry.cqrs_acr.login_server",
-      "${var.acr_account_name}.${azurerm_resource_group.cqrs_region[count.index].location}.data.azurecr.io",
-      "azurerm_kubernetes_cluster.cqrs_region[0].fqdn"
-    ]
-  }
-
-  rule {
-    name             = "aks"
-    source_addresses = ["*"]
-    fqdn_tags        = ["AzureKubernetesService"]
-  }
-
-  rule {
-    name             = "aksfwar-80"
-    source_addresses = ["*"]
-    protocol {
-      port = "80"
-      type = "Http"
-    }
-
-    target_fqdns = [
-      "security.ubuntu.com",
-      "azure.archive.ubuntu.com",
-      "changelogs.ubuntu.com"
-    ]
-  }
-}
-
-resource "azurerm_firewall_network_rule_collection" "cqrs_region" {
+resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
   count                 = length(var.locations)
-  name                = "${var.firewall_name}${count.index + 1}_net_collection"
-  azure_firewall_name   = azurerm_firewall.cqrs_region[count.index].name
-  resource_group_name   = azurerm_resource_group.cqrs_region[count.index].name
-  priority              = 100
-  action                = "Allow"
+  name                  = "${var.firewall_name}${count.index + 1}_app_collection"
+  firewall_policy_id    = azurerm_firewall_policy.cqrs_region[count.index].id
 
-  rule {
-    name              = "apiudp"
-    source_addresses  = ["*"]
-    destination_ports = ["1194"]
-    protocols         = ["UDP"]
-    destination_addresses = [
-      "AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}"
-    ]
+  priority              = 200
+
+  application_rule_collection {
+    name                = "app_rule_collection"
+    priority            = 500
+    action              = "Allow"
+
+    rule {
+      name              = "aksfwar"
+      source_addresses  = ["*"]
+      
+      protocols {
+        port            = "443"
+        type            = "Https"
+      }
+
+      destination_fqdns = [
+        "*.hcp.eastus2.azmk8s.io",
+        "mcr.microsoft.com",
+        "*.data.mcr.microsoft.com",
+        "management.microsoft.com",
+        "login.microsoft.com",
+        "packages.microsoft.com",
+        "acs-mirror.azureedge.net",
+        "*.docker.io",
+        "dc.services.visualstudio.com",
+        "*.ods.opinsights.azure.com",
+        "*.oms.opinsights.azure.com",
+        "*.monitoring.azure.com",
+        "data.policy.core.windows.net",
+        "store.policy.core.windows.net",
+        azurerm_container_registry.cqrs_acr.login_server,
+        "${var.acr_account_name}.${azurerm_resource_group.cqrs_region[count.index].location}.data.azurecr.io",
+        azurerm_kubernetes_cluster.cqrs_region[0].fqdn
+      ]
+    }
+
+    rule {
+      name                  = "aks"
+      source_addresses      = ["*"]
+
+      protocols {
+        port                = "443"
+        type                = "Https"
+      }
+
+      protocols {
+        port                = "80"
+        type                = "Http"
+      }
+
+      destination_fqdn_tags = ["AzureKubernetesService"]
+    }
+
+    rule {
+      name                  = "aksfwar-80"
+      source_addresses      = ["*"]
+
+      protocols {
+        port                = "80"
+        type                = "Http"
+      }
+
+      destination_fqdns     = [
+        "security.ubuntu.com",
+        "azure.archive.ubuntu.com",
+        "changelogs.ubuntu.com"
+      ]
+    }
   }
 
-  rule {
-    name              = "apitcp"
-    source_addresses  = ["*"]
-    destination_ports = ["9000"]
-    protocols         = ["TCP"]
-    destination_addresses = [
-      "AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}"
-    ]
-  }
+  network_rule_collection {
+    name                  = "network_rule_collection"
+    priority              = 400
+    action                = "Allow"
 
-  rule {
-    name              = "monitor"
-    source_addresses  = ["*"]
-    destination_ports = ["443"]
-    protocols         = ["TCP"]
-    destination_addresses = [
-      "AzureMonitor"
-    ]
-  }
+    rule {
+      name              = "apiudp"
+      source_addresses  = ["*"]
+      destination_ports = ["1194"]
+      protocols         = ["UDP"]
+      destination_addresses = [
+        "AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}"
+      ]
+    }
 
-  rule {
-    name              = "time"
-    source_addresses  = ["*"]
-    destination_ports = ["123"]
-    protocols         = ["UDP"]
-    destination_fqdns = [
-      "ntp.ubuntu.com"
-    ]
+    rule {
+      name              = "apitcp"
+      source_addresses  = ["*"]
+      destination_ports = ["9000"]
+      protocols         = ["TCP"]
+      destination_addresses = [
+        "AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}"
+      ]
+    }
+
+    rule {
+      name              = "monitor"
+      source_addresses  = ["*"]
+      destination_ports = ["443"]
+      protocols         = ["TCP"]
+      destination_addresses = [
+        "AzureMonitor"
+      ]
+    }
+
+    rule {
+      name              = "time"
+      source_addresses  = ["*"]
+      destination_ports = ["123"]
+      protocols         = ["UDP"]
+      destination_fqdns = [
+        "ntp.ubuntu.com"
+      ]
+    }
   }
 }
 
@@ -283,6 +298,7 @@ resource "azurerm_route_table" "cqrs_region" {
 
 resource "azurerm_kubernetes_cluster" "cqrs_region" {
   count                           = length(var.locations)
+  depends_on                      = [ azurerm_route_table.cqrs_region[count.index] ]
   name                            = "${var.aks_name}${count.index + 1}"
   resource_group_name             = azurerm_resource_group.cqrs_region[count.index].name
   location                        = azurerm_resource_group.cqrs_region[count.index].location
@@ -531,3 +547,4 @@ resource "azurerm_private_endpoint" "acr_account" {
     private_dns_zone_ids = [azurerm_private_dns_zone.privatelink_azurecr_io[count.index].id]
   }
 }
+
