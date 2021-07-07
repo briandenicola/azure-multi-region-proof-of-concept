@@ -349,7 +349,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       protocols         = ["UDP"]
       destination_addresses = [
         #title("AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}")
-        "AzureCloud.CentralUS"
+        "AzureCloud"
       ]
     }
 
@@ -360,7 +360,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       protocols         = ["TCP"]
       destination_addresses = [
         #title("AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}")
-        "AzureCloud.CentralUS"
+        "AzureCloud"
       ]
     }
 
