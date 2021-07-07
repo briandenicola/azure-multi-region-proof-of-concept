@@ -77,7 +77,7 @@ resource "azurerm_subnet" "kubernetes" {
   address_prefixes      = [cidrsubnet(local.subnets[count.index], 6, 3)]
 }
 
-resource "azurerm_subnet_route_table_association" "example" {
+resource "azurerm_subnet_route_table_association" "cqrs_region" {
   count                 = length(var.locations)  
   subnet_id             = azurerm_subnet.kubernetes[count.index].id
   route_table_id        = azurerm_route_table.cqrs_region[count.index].id
@@ -127,7 +127,7 @@ resource "azurerm_storage_account" "cqrs_region" {
   account_kind             = "StorageV2"
 }
 
-resourse "azurerm_public_ip" "cqrs_region" {
+resource "azurerm_public_ip" "cqrs_region" {
   count                     = length(var.locations)
   name                      = "${var.firewall_name}${count.index+1}-ip"
   resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
@@ -161,9 +161,9 @@ resource "azurerm_firewall_policy" "cqrs_region" {
   }
 }   
 
-resource "azure_firewall_application_rule_collection "cqrs_region" {
+resource "azure_firewall_application_rule_collection" "cqrs_region" {
   count                     = length(var.locations)
-  azurerm_firewall_name     = azurerm_firewall.cqrs_region[count.index].name
+  azure_firewall_name       = azurerm_firewall.cqrs_region[count.index].name
   resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
   priority                  = 200
   action                    = "Allow"
@@ -191,16 +191,16 @@ resource "azure_firewall_application_rule_collection "cqrs_region" {
       "*.monitoring.azure.com",
       "data.policy.core.windows.net",
       "store.policy.core.windows.net",
-      "${azurerm_container_registry.cqrs_acr.login_server"
+      "azurerm_container_registry.cqrs_acr.login_server"
       "${var.acr_account_name}.${azurerm_resource_group.cqrs_region[count.index].location}.data.azurecr.io"
-      "${azurerm_kubernetes_cluster.cqrs_region[0].fqdn}
+      "azurerm_kubernetes_cluster.cqrs_region[0].fqdn
     ]
   }
 
   rule {
     name                    = "aks"
     source_addresses        = [ "*" ]
-    fqdn_tags               = [ AzureKubernetesService ]
+    fqdn_tags               = [ "AzureKubernetesService" ]
     protocol  {
       port                  = "443"
       type                  = "Https"
@@ -229,7 +229,7 @@ resource "azure_firewall_application_rule_collection "cqrs_region" {
 }
 
 
-resource "azure_firewall_network_rule_collection "cqrs_region" {
+resource "azure_firewall_network_rule_collection" "cqrs_region" {
   count                     = length(var.locations)
   azurerm_firewall_name     = azurerm_firewall.cqrs_region[count.index].name
   resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
@@ -241,7 +241,7 @@ resource "azure_firewall_network_rule_collection "cqrs_region" {
     source_addresses        = [ "*" ]
     destination_ports       = [ "1194" ]
     protocols               = [ "UDP" ]
-    desttination_addresses  = [
+    destination_addresses  = [
       "AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}"
     ]
   }
@@ -257,7 +257,7 @@ resource "azure_firewall_network_rule_collection "cqrs_region" {
   }
 
   rule {
-    name                    = "apitcp"
+    name                    = "monitor"
     source_addresses        = [ "*" ]
     destination_ports       = [ "443" ]
     protocols               = [ "TCP" ]
@@ -271,13 +271,13 @@ resource "azure_firewall_network_rule_collection "cqrs_region" {
     source_addresses        = [ "*" ]
     destination_ports       = [ "123" ]
     protocols               = [ "UDP" ]
-    desttination_fqdns  = [
+    destination_fqdns       = [
       "ntp.ubuntu.com"
     ]
   }
 }
 
-resouece "azurerm_route_table" "cqrs_region" {
+resource "azurerm_route_table" "cqrs_region" {
   count                         = length(var.locations)
   name                          = "${var.firewall_name}${count.index+1}-routetable"
   resource_group_name           = azurerm_resource_group.cqrs_region[count.index].name
@@ -287,14 +287,14 @@ resouece "azurerm_route_table" "cqrs_region" {
   routes {
     name                        = "DefaultRoute",
     address_prefix              = "0.0.0.0/0"
-    next_hop_type               = VirtualAppliance
+    next_hop_type               = "VirtualAppliance"
     next_hop_in_ip_address      = azurerm_firewall.cqrs_region[0].ip_configuration.private_ip_address
   }
 
   route { 
     name                        = "FirewallIP"
-    address_prefix              = azurerm_public_ip.cqrs_region[0].ip_address
-    next_hop_type               = Internet 
+    address_prefix              = "${azurerm_public_ip.cqrs_region[0].ip_address}/32"
+    next_hop_type               = "Internet"
   }
 }
 
@@ -342,7 +342,7 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
     docker_bridge_cidr      = "172.17.0.1/16"
     network_plugin          = "azure"
     load_balancer_sku       = "standard"
-    outbound_type           = "UserDefinedRouting"
+    outbound_type           = "userDefinedRouting"
   }
 
   addon_profile {
