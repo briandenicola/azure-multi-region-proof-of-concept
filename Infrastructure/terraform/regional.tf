@@ -117,6 +117,16 @@ resource "azurerm_redis_cache" "cqrs_region" {
   }
 }
 
+resource "azurerm_storage_account" "cqrs_region" {
+  count                    = length(var.locations)
+  name                     = "${var.storage_name}${count.index+1}"
+  resource_group_name      = azurerm_resource_group.cqrs_region[count.index].name
+  location                 = azurerm_resource_group.cqrs_region[count.index].location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+}
+
 resource "azurerm_public_ip" "cqrs_region" {
   count               = length(var.locations)
   name                = "${var.firewall_name}${count.index + 1}-ip"
@@ -319,6 +329,26 @@ resource "azurerm_private_dns_zone_virtual_network_link" "custom_domain" {
   private_dns_zone_name = azurerm_private_dns_zone.custom_domain[count.index].name
   resource_group_name   = azurerm_resource_group.cqrs_region[count.index].name
   virtual_network_id    = azurerm_virtual_network.cqrs_region[count.index].id
+}
+
+resource "azurerm_private_endpoint" "storage_account" {
+  count                     = length(var.locations)
+  name                      = "${var.storage_name}-${var.locations[count.index]}-ep"
+  resource_group_name       = azurerm_resource_group.cqrs_region[count.index].name
+  location                  = azurerm_resource_group.cqrs_region[count.index].location
+  subnet_id                 = azurerm_subnet.private-endpoints[count.index].id
+
+  private_service_connection {
+    name                           = "${var.storage_name}-${var.locations[count.index]}-ep"
+    private_connection_resource_id = azurerm_storage_account.cqrs_region[count.index].id
+    subresource_names              = [ "blob" ]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                          = azurerm_private_dns_zone.privatelink_blob_core_windows_net[count.index].name
+    private_dns_zone_ids          = [ azurerm_private_dns_zone.privatelink_blob_core_windows_net[count.index].id ]
+  }
 }
 
 resource "azurerm_private_endpoint" "cosmos_db" {
