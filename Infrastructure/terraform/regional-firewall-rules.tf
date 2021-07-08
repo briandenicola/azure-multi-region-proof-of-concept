@@ -8,7 +8,7 @@ resource "azurerm_firewall" "cqrs_region" {
   ip_configuration {
     name                 = "confiugration"
     subnet_id            = azurerm_subnet.AzureFirewall[count.index].id
-    public_ip_address_id = azurerm_public_ip.cqrs_region[count.index].id
+    public_ip_address_id = azurerm_public_ip.firewall[count.index].id
   }
 }
 
@@ -385,5 +385,31 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       ]
     }
 
+  }
+}
+
+
+resource "azurerm_firewall_policy_rule_collection_group" "keda_requirements" {
+  count                 = length(var.locations)
+  name                  = "${var.firewall_name}${count.index + 1}_keda_collection"
+  firewall_policy_id    = azurerm_firewall_policy.cqrs_region[count.index].id
+
+  priority              = 300
+
+
+  network_rule_collection {
+    name                    = "network_rule_collection"
+    priority                = 600
+    action                  = "Allow"
+
+    rule {
+      name                  = "aksapi-ip"
+      source_addresses      = ["*"]
+      destination_ports     = ["443"]
+      protocols             = ["TCP"]
+      destination_fqdns     = [
+        azurerm_kubernetes_cluster.cqrs_region[0].fqdn
+      ]
+    }
   }
 }
