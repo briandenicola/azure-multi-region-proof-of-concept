@@ -1,12 +1,12 @@
 variable "application_name" {
   description = "Unique Name for this deployment"
-  type        = string 
+  type        = string
   default     = "gawwaslc"
 }
 
-variable "locations" {  
+variable "locations" {
   description = "Azure regions to deploy this application"
-  type        = list(string)  
+  type        = list(string)
   default     = ["eastus2", "ukwest"]
 }
 
@@ -89,5 +89,10 @@ variable "api_server_authorized_ip_ranges" {
 
 variable "custom_domain" {
   description = "Domain Name for application"
+  type        = string
+}
+
+variable "firewall_name" {
+  description = "Name of the Azure Firewall"
   type        = string
 }

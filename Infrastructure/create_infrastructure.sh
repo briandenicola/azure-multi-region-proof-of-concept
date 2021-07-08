@@ -66,6 +66,7 @@ eventHubNameSpace=hub${appName}00
 redisName=cache${appName}00
 aks=k8s${appName}00
 storageAccountName=sa${appName}00
+firewallName=fw${appName}00
 
 public_ip=`curl -s http://checkip.amazonaws.com/`
 ssh_pub_key=`cat ~/.ssh/id_rsa.pub`
@@ -85,6 +86,7 @@ storage_name = "${storageAccountName}"
 ssh_public_key = "${ssh_pub_key}"
 api_server_authorized_ip_ranges = "${public_ip}/32"
 custom_domain = "${domainName}"
+firewall_name = "${firewallName}"
 EOF
 
 cd ./terraform
