@@ -144,7 +144,8 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
         }
 
         destination_fqdns = [
-            "*.docker.io"
+            "*.docker.io",
+            "production.cloudflare.docker.com"
         ]
     } 
 
