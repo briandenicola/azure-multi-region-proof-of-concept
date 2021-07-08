@@ -127,7 +127,7 @@ resource "azurerm_storage_account" "cqrs_region" {
   account_kind             = "StorageV2"
 }
 
-resource "azurerm_public_ip" "cqrs_region" {
+resource "azurerm_public_ip" "firewall" {
   count               = length(var.locations)
   name                = "${var.firewall_name}${count.index + 1}-ip"
   resource_group_name = azurerm_resource_group.cqrs_region[count.index].name
@@ -152,7 +152,7 @@ resource "azurerm_route_table" "cqrs_region" {
 
   route {
     name                          = "FirewallIP"
-    address_prefix                = "${azurerm_public_ip.cqrs_region[0].ip_address}/32"
+    address_prefix                = "${azurerm_public_ip.firewall[count.index].ip_address}/32"
     next_hop_type                 = "Internet"
   }
 }
@@ -166,7 +166,7 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
   node_resource_group             = "${azurerm_resource_group.cqrs_region[count.index].name}_k8s_nodes"
   dns_prefix                      = "${var.aks_name}${count.index + 1}"
   sku_tier                        = "Paid"
-  api_server_authorized_ip_ranges = [var.api_server_authorized_ip_ranges, "${azurerm_public_ip.cqrs_region[0].ip_address}/32"]
+  api_server_authorized_ip_ranges = [var.api_server_authorized_ip_ranges, "${azurerm_public_ip.firewall[count.index].ip_address}/32"]
   linux_profile {
     admin_username = "manager"
 
