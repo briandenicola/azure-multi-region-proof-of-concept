@@ -147,7 +147,7 @@ resource "azurerm_route_table" "cqrs_region" {
     name                          = "DefaultRoute"
     address_prefix                = "0.0.0.0/0"
     next_hop_type                 = "VirtualAppliance"
-    next_hop_in_ip_address        = azurerm_firewall.cqrs_region[0].ip_configuration[0].private_ip_address
+    next_hop_in_ip_address        = azurerm_firewall.cqrs_region[count.index].ip_configuration[0].private_ip_address
   }
 
   route {

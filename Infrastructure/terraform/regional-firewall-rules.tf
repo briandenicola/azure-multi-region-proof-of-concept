@@ -388,7 +388,6 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
   }
 }
 
-
 resource "azurerm_firewall_policy_rule_collection_group" "keda_requirements" {
   count                 = length(var.locations)
   name                  = "${var.firewall_name}${count.index + 1}_keda_collection"
@@ -402,14 +401,17 @@ resource "azurerm_firewall_policy_rule_collection_group" "keda_requirements" {
     priority                = 600
     action                  = "Allow"
 
-    rule {
-      name                  = "aksapi-ip"
-      source_addresses      = ["*"]
-      destination_ports     = ["443"]
-      protocols             = ["TCP"]
-      destination_fqdns     = [
-        azurerm_kubernetes_cluster.cqrs_region[0].fqdn
-      ]
+    dynamic "rule" {
+      for_each = range(0, length(var.locations))
+      content {
+        name                  = "aksapi-ip-${rule.value}"
+        source_addresses      = ["*"]
+        destination_ports     = ["443"]
+        protocols             = ["TCP"]
+        destination_fqdns     = [
+          azurerm_kubernetes_cluster.cqrs_region[rule.value].fqdn
+        ]
+      }
     }
   }
 }
