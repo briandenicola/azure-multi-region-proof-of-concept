@@ -1,0 +1,80 @@
+﻿@inherits IndexComponent
+@page "/"
+@using cqrs_ui.pages
+@using cqrs_ui.models
+
+<h1>Random Number Generator</h1>
+
+<hr/>
+
+    <EditForm Model="@req" OnValidSubmit="@HandleSaveConfig">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>
+                Api Uri:
+                <InputText @bind-Value="req.uri" class="form-control col-xs-4" />
+            </label>
+            <label>
+                Api Uri Path:
+                <InputText @bind-Value="req.uriPath" class="form-control" />
+            </label>
+            <label>
+                APIM Subscription Key:
+                <InputText @bind-Value="req.subscriptionKey" class="form-control" />
+            </label>
+
+            <button class="submit">Save Config</button> 
+        </div>
+    </EditForm>    
+<hr/>
+
+    <EditForm Model="@numKeys" OnValidSubmit="@HandleHttpRequest">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <label>
+                Total Requested:
+                <InputNumber @bind-Value="numKeys" class="form-control"/>
+            </label>
+        </div>
+        <button class="button" @onclick="() => keys = null">Clear Screen</button> |
+        <button class="submit">Submit Request</button> 
+    </EditForm>  
+
+<hr/>
+
+@if (keys != null)
+{
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Key</th>
+                    <th>Write Region</th>
+                    <th>Write Host</th>
+                    <th>Time Stamp</th>
+                    <th>Details</th>
+                </tr>
+
+            </thead>
+            <tbody>
+                @foreach (var key in keys)
+                {
+                    <tr>
+                        <td>@key.key</td>
+                        <td>@key.writeRegion</td>
+                        <td>@key.writeHost</td>
+                        <td>@key.timeStamp</td>
+                        <td>
+                            <NavLink class="nav-link" href=@($"Details/{key.keyId}")>
+                                <img src="/assets/file-richtext.svg" alt="" width="32" height="32" title="Bootstrap">
+                            </NavLink>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

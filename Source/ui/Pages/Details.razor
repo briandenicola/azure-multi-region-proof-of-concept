@@ -1,0 +1,39 @@
+@inherits DetailsComponent
+@page "/Details/{id}"
+@using cqrs_ui.pages
+
+<h2>Details for Key - @id</h2>
+<hr/>
+    <EditForm Model="@region"  OnValidSubmit="@HandleHttpRequest">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <label>
+               Forced Region:
+                <InputSelect @bind-Value="region">
+                    <option value="">Select region ...</option>
+                    <option value="eastus2">US East 2</option>
+                    <option value="ukwest">UK West</option>
+                </InputSelect>         
+            </label> |
+            <button class="submit">Submit Request</button> 
+        </div>
+        
+    </EditForm>    
+<hr/>
+
+@if (key != null)
+{
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <tbody>
+            	<tr><td>Key:</td><td><span class="pull-right">@key.key</span></td></tr>
+			    <tr><td>Read Region:</td><td><span class="pull-right">@key.readRegion</span></td></tr>
+			    <tr><td>Write Region:</td><td><span class="pull-right">@key.writeRegion</span></td></tr>
+	    		<tr><td>Read Host:</td><td><span class="pull-right">@key.readHost</span></td></tr>
+		    	<tr><td>Write Host:</td><td><span class="pull-right">@key.writeHost</span></td></tr> 
+                <tr><td>Time Stamp:</td><td><span class="pull-right">@key.timeStamp</span></td></tr> 
+             </tbody>
+        </table>
+    </div>
+}
