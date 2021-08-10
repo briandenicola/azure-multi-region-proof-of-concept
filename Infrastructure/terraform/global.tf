@@ -14,8 +14,11 @@ provider "azurerm" {
 resource "azurerm_resource_group" "cqrs_global" {
   name     = "${var.application_name}_global_rg"
   location = var.locations[0]
-  tags = {
-    Application = var.application_name
+  tags     = {
+    Application = "cqrs"
+    Version     = var.application_name
+    Components  = "global"
+    DeployedOn  = timestamp()
   }
 }
 

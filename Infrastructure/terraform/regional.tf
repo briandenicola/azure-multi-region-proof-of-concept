@@ -6,8 +6,11 @@ resource "azurerm_resource_group" "cqrs_region" {
   count    = length(var.locations)
   name     = "${var.application_name}_${var.locations[count.index]}_rg"
   location = var.locations[count.index]
-  tags = {
-    Application = var.application_name
+  tags     = {
+    Application = "cqrs"
+    Version     = var.application_name
+    Components  = "regional"
+    DeployedOn  = timestamp()
   }
 }
 
