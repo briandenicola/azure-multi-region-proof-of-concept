@@ -1,22 +1,22 @@
 resource "azurerm_firewall" "cqrs_region" {
-  count               = length(var.locations)
-  name                = "${var.firewall_name}${count.index + 1}"
-  resource_group_name = azurerm_resource_group.cqrs_region[count.index].name
-  location            = azurerm_resource_group.cqrs_region[count.index].location
-  firewall_policy_id  = azurerm_firewall_policy.cqrs_region[count.index].id
+  for_each            = local.locations_set
+  name                = "${var.firewall_name}${index(var.locations,each.key)+1}"
+  resource_group_name = azurerm_resource_group.cqrs_region[each.key].name
+  location            = azurerm_resource_group.cqrs_region[each.key].location
+  firewall_policy_id  = azurerm_firewall_policy.cqrs_region[each.key].id
 
   ip_configuration {
     name                 = "confiugration"
-    subnet_id            = azurerm_subnet.AzureFirewall[count.index].id
-    public_ip_address_id = azurerm_public_ip.firewall[count.index].id
+    subnet_id            = azurerm_subnet.AzureFirewall[each.key].id
+    public_ip_address_id = azurerm_public_ip.firewall[each.key].id
   }
 }
 
 resource "azurerm_firewall_policy" "cqrs_region" {
-  count               = length(var.locations)
-  name                = "${var.firewall_name}${count.index + 1}-policies"
-  resource_group_name = azurerm_resource_group.cqrs_region[count.index].name
-  location            = azurerm_resource_group.cqrs_region[count.index].location
+  for_each            = local.locations_set
+  name                = "${var.firewall_name}${index(var.locations,each.key)+1}-policies"
+  resource_group_name = azurerm_resource_group.cqrs_region[each.key].name
+  location            = azurerm_resource_group.cqrs_region[each.key].location
   sku                 = "Standard"
 
   dns {
@@ -25,9 +25,9 @@ resource "azurerm_firewall_policy" "cqrs_region" {
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
-  count                 = length(var.locations)
-  name                  = "${var.firewall_name}${count.index + 1}_rules_collection"
-  firewall_policy_id    = azurerm_firewall_policy.cqrs_region[count.index].id
+  for_each              = local.locations_set
+  name                  = "${var.firewall_name}${index(var.locations,each.key)+1}_rules_collection"
+  firewall_policy_id    = azurerm_firewall_policy.cqrs_region[each.key].id
 
   priority              = 200
 
@@ -46,7 +46,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
         }
 
         destination_fqdns = [
-            "*.hcp.${azurerm_resource_group.cqrs_region[count.index].location}.azmk8s.io"
+            "*.hcp.${azurerm_resource_group.cqrs_region[each.key].location}.azmk8s.io"
         ]
     }
 
@@ -257,7 +257,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
         }
 
         destination_fqdns = [
-            "${var.acr_account_name}.${azurerm_resource_group.cqrs_region[count.index].location}.data.azurecr.io"
+            "${var.acr_account_name}.${azurerm_resource_group.cqrs_region[each.key].location}.data.azurecr.io"
         ]
     }
 
@@ -349,7 +349,6 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       destination_ports     = ["1194"]
       protocols             = ["UDP"]
       destination_addresses = [
-        #title("AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}")
         "AzureCloud"
       ]
     }
@@ -360,7 +359,6 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       destination_ports     = ["9000"]
       protocols             = ["TCP"]
       destination_addresses = [
-        #title("AzureCloud.${azurerm_resource_group.cqrs_region[count.index].location}")
         "AzureCloud"
       ]
     }
@@ -389,9 +387,9 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "keda_requirements" {
-  count                 = length(var.locations)
-  name                  = "${var.firewall_name}${count.index + 1}_keda_collection"
-  firewall_policy_id    = azurerm_firewall_policy.cqrs_region[count.index].id
+  for_each              = local.locations_set
+  name                  = "${var.firewall_name}${index(var.locations,each.key)+1}_keda_collection"
+  firewall_policy_id    = azurerm_firewall_policy.cqrs_region[each.key].id
 
   priority              = 300
 
@@ -402,14 +400,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "keda_requirements" {
     action                  = "Allow"
 
     dynamic "rule" {
-      for_each = range(0, length(var.locations))
+      for_each                = local.locations_set
       content {
-        name                  = "aksapi-ip-${rule.value}"
+        name                  = "aksapi-ip-${each.key}"
         source_addresses      = ["*"]
         destination_ports     = ["443"]
         protocols             = ["TCP"]
         destination_fqdns     = [
-          azurerm_kubernetes_cluster.cqrs_region[rule.value].fqdn
+          azurerm_kubernetes_cluster.cqrs_region[each.key].fqdn
         ]
       }
     }
