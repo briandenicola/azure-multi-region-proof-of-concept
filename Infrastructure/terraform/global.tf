@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "= 2.46.0"
+      version = "= 2.62.0"
     }
   }
 }
@@ -73,7 +73,16 @@ resource "azurerm_container_registry" "cqrs_acr" {
   location                 = azurerm_resource_group.cqrs_global.location
   sku                      = "Premium"
   admin_enabled            = false
-  georeplication_locations = length(var.locations) - 1 >= 1 ? slice(var.locations, 1, length(var.locations)) : null
+  #georeplication_locations = length(var.locations) - 1 >= 1 ? slice(var.locations, 1, length(var.locations)) : null
+
+  dynamic "georeplications" {
+    for_each = length(var.locations) - 1 >= 1 ? slice(var.locations, 1, length(var.locations)) : []
+    iterator = each
+    content {
+      location                = each.value
+      #zone_redundancy_enabled = true
+    }
+  } 
 
   network_rule_set {
     default_action = "Deny"
