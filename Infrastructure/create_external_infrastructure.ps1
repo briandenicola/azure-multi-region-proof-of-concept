@@ -119,7 +119,7 @@ function Deploy-toAzStaticWebApp
         mcr.microsoft.com/appsvc/staticappsclient:stable `
         upload `
         --skipAppBuild true `
-        --app /root/build `
+        --app /root/build/wwwroot `
         --apiToken $token
 }
 
@@ -153,7 +153,8 @@ Set-Location -Path $frontdoor_directory
 ./Deploy.ps1 -ApplicationName $AppName -FrontDoorUri $FrontDoorUrl -BackendHostNames $AppGatewayUrls -DeployWAFPolicies
 
 Set-Location -Path $ui_directory
-New-AzStaticWebApp -Name $APP_UI_NAME -ResourceGroupName $APP_UI_RG -Location $Regions[0] -AppLocation "/src/ui" -AppArtifactLocation "wwwroot"
-#Deploy-toAzStaticWebApp -Name $APP_UI_NAME -ResourceGroup $APP_UI_RG -LocalPath (Join-Path -Path $PWD.Path -ChildPath "build")
+Start-UiBuild
+New-AzStaticWebApp -Name $APP_UI_NAME -ResourceGroupName $APP_UI_RG -Location $Regions[0] -SkuName Free -AppLocation "/Source/ui" -AppArtifactLocation "wwwroot" 
+Deploy-toAzStaticWebApp -Name $APP_UI_NAME -ResourceGroup $APP_UI_RG -LocalPath (Join-Path -Path $PWD.Path -ChildPath "build")
 
 Set-Location -Path $cwd
