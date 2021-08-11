@@ -15,6 +15,8 @@ param (
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $FrontDoorName = "fd-{0}" -f $ApplicationName 
 
+Read-Host -Prompt ("Ensure that a CNAME DNS record exists that maps {0} to {1}.azurefd.net..." -f $FrontDoorUri, $FrontDoorName)
+
 $opts = @{
     Name                  = ("FrontDoor-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
     ResourceGroupName     = $ResourceGroupName
@@ -30,10 +32,11 @@ if ($BackendHostNames.Length -eq 1 ) {
 }
 $opts.secondaryBackendEndFQDN = $BackendHostNames[1]
 
-New-AzResourceGroupDeployment @opts -verbose
+$result = New-AzResourceGroupDeployment @opts -verbose
 
 if ($DeployWAFPolicies) {
-    $frontDoorId = Read-Host -Prompt "Enter the Front Door ID that was output above"
+    #$frontDoorId = Read-Host -Prompt "Enter the Front Door ID that was output above"
+    $frontdoorId = $result.Outputs["front Door ID"].Value
 
     $opts = @{
         Name              = ("WAF-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
