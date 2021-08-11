@@ -28,7 +28,7 @@ if ($BackendHostNames.Length -eq 1 ) {
     throw "Need to provide two Backend Host Names if using multiple regions..."
     exit -1
 }
-$opts.Add("secondaryBackendEndFQDN", $BackendHostNames[1] )
+$opts.secondaryBackendEndFQDN = $BackendHostNames[1]
 
 New-AzResourceGroupDeployment @opts -verbose
 

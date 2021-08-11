@@ -3,6 +3,9 @@ param (
     [string]            $ApplicationName,
 
     [Parameter(Mandatory = $true)]
+    [string[]]          $Regions,
+
+    [Parameter(Mandatory = $true)]
     [ValidateSet("single", "multi")]
     [string]            $DeploymentType,
 
@@ -51,12 +54,14 @@ $opts = @{
     Name                            = ("ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
     ResourceGroupName               = $ResourceGroupName
     TemplateFile                    = (Join-Path -Path $PWD.Path -ChildPath ("azuredeploy.{0}-region.json" -f $DeploymentType))
-    TemplateParameterFile           = (Join-Path -Path $PWD.Path -ChildPath ("azuredeploy.{0}-region.parameters.json" -f $DeploymentType))
     apiManagementName               = $ApiMgmtName
     customDomain                    = $ManagementDomain.DomainName
     customDomainCertificateData     = $pfxEncoded
     customDomainCertificatePassword = $PFXPassword
     primaryProxyFQDN                = $ApimProxies[0]
+    multiRegionDeployment           = $false
+    primaryVnetName                 = ("vnet{0}001" -f $ApplicationName)
+    primaryVnetResourceGroup        = ("{0}_{1}_rg" -f $ApplicationName, $Regions[0])
 }
 
 if ($DeploymentType -eq "multi") {
@@ -64,7 +69,11 @@ if ($DeploymentType -eq "multi") {
         throw "Need to provide two Backend Host Names if using multiple regions..."
         exit -1
     }
+    $opts.secondaryLocation  = $Regions[1]
     $opts.secondaryProxyFQDN = $ApimProxies[1]
+    $opts.secondaryVnetName  = ("vnet{0}002" -f $ApplicationName)
+    $opts.secondaryVnetResourceGroup = ("{0}_{1}_rg" -f $ApplicationName, $Regions[1])
+    $opts.multiRegionDeployment = $true
 }
 New-AzResourceGroupDeployment @opts -verbose
 
