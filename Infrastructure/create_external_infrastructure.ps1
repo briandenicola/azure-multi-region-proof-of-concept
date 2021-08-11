@@ -81,7 +81,7 @@ param (
     [string[]]        $AppGatewayUrls,
 
     [Parameter(Mandatory = $true)]
-    [string[]]        $FrontDoorUrl
+    [string]        $FrontDoorUrl
 )  
 
 function Start-UiBuild

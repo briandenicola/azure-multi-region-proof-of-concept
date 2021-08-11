@@ -161,7 +161,7 @@
             }
         },
         {
-            "condition": "[equals(parameters('multiRegionDeployment'),'true')]",
+            "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[variables('appGatewaySecondaryNSG')]",
@@ -237,7 +237,7 @@
             }
         },
         {
-            "condition": "[equals(parameters('multiRegionDeployment'),'true')]",
+            "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
             "apiVersion": "2017-08-01",
             "name": "apply-nsg-to-subnet-secondary",
             "type": "Microsoft.Resources/deployments",
@@ -279,7 +279,7 @@
             }
         },
         {
-            "condition": "[equals(parameters('multiRegionDeployment'),'true')]",
+            "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2019-09-01",
             "name": "[variables('appGatewaySecondaryPip')]",
@@ -481,7 +481,7 @@
             }
         },
         {
-            "condition": "[equals(parameters('multiRegionDeployment'),'true')]",
+            "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
             "type": "Microsoft.Network/applicationGateways",
             "apiVersion": "2019-09-01",
             "name": "[variables('appGatewaySecondaryName')]",
@@ -677,7 +677,7 @@
         },
         "Secondary IP Address" : {
             "type" : "string",
-            "value" : "[if(equals(parameters('multiRegionDeployment'),'true'), reference(variables('appGatewaySecondaryPip')).ipAddress,'')]"
+            "value" : "[if(equals(parameters('multiRegionDeployment'),'True'), reference(variables('appGatewaySecondaryPip')).ipAddress,'')]"
         }
     }
 }
