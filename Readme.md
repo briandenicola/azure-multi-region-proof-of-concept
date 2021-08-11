@@ -55,8 +55,7 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
 ## Automated Steps
 * pwsh
 * cd ./Infrastructure
-* .\create_external_infrastructure.ps1 -AppName ${appName} -Regions @("eastus2","ukwest") -SubscriptionId xxxxxxxx-
-    xxxx-xxxx-xxxx-xxxxxxxxxxxx -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
+./create_external_infrastructure.ps1 -AppName ${appName} -Regions @("eastus2","ukwest") -SubscriptionName BJD_APP01_SUB -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
 
 ## Manual Steps:
 * You must take the output of the App Gateway ARM template then update your external DNS Names as with those IP Address.
