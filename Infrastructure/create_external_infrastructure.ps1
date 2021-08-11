@@ -72,7 +72,6 @@ param (
     [securestring]    $PFXPassword,
 
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Test-Path $_ })]
     [string]          $AksIngressUrl,
 
     [Parameter(Mandatory = $true)]
@@ -129,11 +128,11 @@ Set-Variable -Name APP_UI_RG                -Value ("{0}_global_rg" -f $AppName)
 
 Set-Variable -Name cwd                      -Value $PWD.Path
 Set-Variable -Name root                     -Value (Get-Item $PWD.Path).Parent.FullName
-Set-Variable -Name apim_directory           -Value (Join-Path -Path $root -ChildPath "apim")
-Set-Variable -Name apim_product_directory   -Value (Join-Path -Path $root -ChildPath "product")
-Set-Variable -Name appgw_directory          -Value (Join-Path -Path $root -ChildPath "gateway")
-Set-Variable -Name frontdoor_directory      -Value (Join-Path -Path $root -ChildPath "frontdoor")
-Set-Variable -Name ui_directory             -Value (Join-Path -Path $root -ChildPath "../Source/ui")
+Set-Variable -Name apim_directory           -Value (Join-Path -Path $root -ChildPath "Infrastructure/apim")
+Set-Variable -Name apim_product_directory   -Value (Join-Path -Path $root -ChildPath "Infrastructure/product")
+Set-Variable -Name appgw_directory          -Value (Join-Path -Path $root -ChildPath "Infrastructure/gateway")
+Set-Variable -Name frontdoor_directory      -Value (Join-Path -Path $root -ChildPath "Infrastructure/frontdoor")
+Set-Variable -Name ui_directory             -Value (Join-Path -Path $root -ChildPath "Source/ui")
 
 Import-Module bjd.Common.Functions
 Import-Module bjd.Azure.Functions
@@ -142,20 +141,19 @@ Connect-AzAccount
 Select-AzSubscription -SubscriptionName $SubscriptionName
 
 Set-Location -Path $apim_directory 
-./Deploy.ps1 -ApplicationName $AppName -DeploymentType $DeploymentType -PFXPath $ApiManagementPfxFilePath  -PFXPassword $PFXPassword -ApimProxies $ApiManagementUrls
+./Deploy.ps1 -ApplicationName $AppName -Regions $Regions -DeploymentType $DeploymentType -PFXPath $ApiManagementPfxFilePath  -PFXPassword $PFXPassword -ApimProxies $ApiManagementUrls
 
 Set-Location -Path $apim_product_directory
 ./Deploy.ps1 -ApplicationName $AppName -primaryBackendUrl ("https://{0}" -f $AksIngressUrl) -Verbose
 
-#Set-Location -Path $appgw_directory
-#./Deploy.ps1 -ApplicationName $AppName -DeploymentType $DeploymentType  -PFXPath $AppGatewayPfxFilePath -PFXPassword $PFXPassword -BackendHostNames $ApiManagementUrls
+Set-Location -Path $appgw_directory
+./Deploy.ps1 -ApplicationName $AppName -Regions $Regions -DeploymentType $DeploymentType  -PFXPath $AppGatewayPfxFilePath -PFXPassword $PFXPassword -BackendHostNames $ApiManagementUrls
 
-#Set-Location -Path $frontdoor_directory
-#./Deploy.ps1 -ApplicationName $AppName -FrontDoorUri $FrontDoorUrl -BackendHostNames $AppGatewayUrls -DeployWAFPolicies
+Set-Location -Path $frontdoor_directory
+./Deploy.ps1 -ApplicationName $AppName -FrontDoorUri $FrontDoorUrl -BackendHostNames $AppGatewayUrls -DeployWAFPolicies
 
-#Set-Location -Path $ui_directory
-#$location = (Get-AzResourceGroup -Name $APP_UI_RG).Location
-#New-AzStaticWebApp -Name $APP_UI_NAME -ResourceGroupName $APP_UI_RG -Location $location -AppLocation "/src/ui" -AppArtifactLocation "wwwroot"
+Set-Location -Path $ui_directory
+New-AzStaticWebApp -Name $APP_UI_NAME -ResourceGroupName $APP_UI_RG -Location $Regions[0] -AppLocation "/src/ui" -AppArtifactLocation "wwwroot"
 #Deploy-toAzStaticWebApp -Name $APP_UI_NAME -ResourceGroup $APP_UI_RG -LocalPath (Join-Path -Path $PWD.Path -ChildPath "build")
 
 Set-Location -Path $cwd
