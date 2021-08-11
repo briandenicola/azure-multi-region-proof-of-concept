@@ -69,8 +69,8 @@
             }
         }],
         "emptyArray": [],
-        "additionalLocationConfig": "[if(equals(parameters('multiRegionDeployment'),'true'),variables('secondaryLocationObject'),variables('emptyArray'))]",
-        "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'true'),'Premium','Developer')]"
+        "additionalLocationConfig": "[if(equals(parameters('multiRegionDeployment'),'True'),variables('secondaryLocationObject'),variables('emptyArray'))]",
+        "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'True'),'Premium','Developer')]"
     },
     "resources": [
         {
