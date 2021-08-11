@@ -22,7 +22,7 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
 * api.us.bjd.demo - Public IP Address of Azure Gateway US Region.This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
 * api.uk.bjd.demo - Public IP Address of Azure Gateway UK Region.This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
 
-### Let's Encrypt TLS Certificates using acme.sh Script
+### Let's Encrypt TLS Certificates
 * Installation
     * curl https://get.acme.sh | sh
 * Required Certificates 
