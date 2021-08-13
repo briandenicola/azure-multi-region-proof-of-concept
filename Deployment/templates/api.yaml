@@ -83,7 +83,7 @@ spec:
     targetPort: 8081
   type: NodePort
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: cqrsapi
@@ -92,11 +92,14 @@ spec:
   - http: 
       paths: 
       - backend:
-          serviceName: cqrsapisvc
-          servicePort: 8081
+          service:
+            name: cqrsapisvc
+            port: 
+                number: 8081
         path: /
+        pathType: Prefix 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: cqrsapitls
@@ -109,8 +112,11 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: cqrsapisvc
-          servicePort: 8081
+          service:
+            name: cqrsapisvc
+            port: 
+                number: 8081
         path: /
+        pathType: Prefix 
   tls:
   - secretName: traefik-api-cert
