@@ -22,7 +22,7 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
 * api.us.bjd.demo - Public IP Address of Azure Gateway US Region.This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
 * api.uk.bjd.demo - Public IP Address of Azure Gateway UK Region.This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
 
-### Let's Encrypt TLS Certificates using acme.sh Script
+### Let's Encrypt TLS Certificates
 * Installation
     * curl https://get.acme.sh | sh
 * Required Certificates 
@@ -55,10 +55,9 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
 ## Automated Steps
 * pwsh
 * cd ./Infrastructure
-* .\create_external_infrastructure.ps1 -AppName ${appName} -Regions @("eastus2","ukwest") -SubscriptionId xxxxxxxx-
-    xxxx-xxxx-xxxx-xxxxxxxxxxxx -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
+./create_external_infrastructure.ps1 -AppName ${appName} -Regions @("eastus2","ukwest") -SubscriptionName BJD_APP01_SUB -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
 
-## Manual Steps:
+## Manual Steps
 * You must take the output of the App Gateway ARM template then update your external DNS Names as with those IP Address.
 * You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their regional WAF policy
 * You need to manually enable TLS on the custom Front Door Uri. You can use the Front Door provided certificate 
