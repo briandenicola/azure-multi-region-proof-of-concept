@@ -318,7 +318,7 @@
                 ],
                 "sslCertificates": [
                     {
-                        "name": "portal_us",
+                        "name": "portal_uri",
                         "properties": {
                             "data": "[parameters('domainCertificateData')]",
                             "password": "[parameters('domainCertificatePassword')]"
@@ -416,7 +416,7 @@
                             },
                             "protocol": "Https",
                             "sslCertificate": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('appGatewayName')), '/sslCertificates/portal_us')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('appGatewayName')), '/sslCertificates/portal_uri')]"
                             },
                             "hostNames": [],
                             "requireServerNameIndication": false
@@ -507,7 +507,7 @@
                 ],
                 "sslCertificates": [
                     {
-                        "name": "portal_uk",
+                        "name": "portal_uri",
                         "properties": {
                             "data": "[parameters('domainCertificateData')]",
                             "password": "[parameters('domainCertificatePassword')]"
@@ -605,7 +605,7 @@
                             },
                             "protocol": "Https",
                             "sslCertificate": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('appGatewaySecondaryName')), '/sslCertificates/portal_uk')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('appGatewaySecondaryName')), '/sslCertificates/portal_uri')]"
                             },
                             "hostNames": [],
                             "requireServerNameIndication": false
