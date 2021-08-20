@@ -55,12 +55,13 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
 ## Automated Steps
 * pwsh
 * cd ./Infrastructure
-./create_external_infrastructure.ps1 -AppName ${appName} -Regions @("eastus2","ukwest") -SubscriptionName BJD_APP01_SUB -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
+* ./create_external_infrastructure.ps1 -AppName ${appName} -Regions @("eastus2","ukwest") -SubscriptionName BJD_APP01_SUB -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
 
 ## Manual Steps
-* You must take the output of the App Gateway ARM template then update your external DNS Names as with those IP Address.
+* You need to take the IP Addresses from the output of the App Gateway ARM template to create DNS records with your external DNS provider
+* You need to assoicate the APIM Product Key Service with the Key Service and Key Service v2 APIs
 * You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their regional WAF policy
-* You need to manually enable TLS on the custom Front Door Uri. You can use the Front Door provided certificate 
+* You need to manually enable TLS on the custom Front Door Uri. Use the Front Door provided certificate 
 
 # Testing
 ## Test Local Deployment directly on AKS clusters 
