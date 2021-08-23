@@ -171,6 +171,8 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
   dns_prefix                      = "${var.aks_name}${index(var.locations,each.key)+1}"
   sku_tier                        = "Paid"
   api_server_authorized_ip_ranges = [var.api_server_authorized_ip_ranges, "${azurerm_public_ip.firewall[each.key].ip_address}/32"]
+  automatic_channel_upgrade       = "patch"
+
   linux_profile {
     admin_username = "manager"
 
@@ -207,12 +209,16 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
     network_plugin     = "azure"
     load_balancer_sku  = "standard"
     outbound_type      = "userDefinedRouting"
+    network_policy     = "calico"
   }
 
   addon_profile {
     oms_agent {
       enabled                    = true
       log_analytics_workspace_id = azurerm_log_analytics_workspace.cqrs_logs.id
+    }
+    azure_policy {
+      enabled                   = "true"
     }
   }
 
