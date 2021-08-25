@@ -1,7 +1,3 @@
-locals {
-  locations_set = toset(var.locations)
-}
-
 resource "azurerm_monitor_diagnostic_setting" "cosmosdb" {
   name                        = "diag"
   target_resource_id          = azurerm_cosmosdb_account.cqrs_db.id
