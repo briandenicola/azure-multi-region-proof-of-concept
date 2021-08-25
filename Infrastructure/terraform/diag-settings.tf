@@ -135,3 +135,29 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
     category = "AllMetrics"
   }
 }
+
+resource "azurerm_monitor_diagnostic_setting" "firewall" {
+  for_each                    = local.locations_set
+  name                        = "diag"
+  target_resource_id          = azurerm_firewall.cqrs_region[each.key].id
+  log_analytics_workspace_id  = azurerm_log_analytics_workspace.cqrs_logs.id
+
+  log {
+    category = "AzureFirewallApplicationRule"
+    enabled  = true
+  }
+
+  log {
+    category = "AzureFirewallNetworkRule"
+    enabled  = true
+  }
+
+  log {
+    category = "AzureFirewallDnsProxy"
+    enabled  = true
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
