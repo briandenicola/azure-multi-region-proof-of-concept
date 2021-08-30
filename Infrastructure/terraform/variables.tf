@@ -96,3 +96,9 @@ variable "firewall_name" {
   description = "Name of the Azure Firewall"
   type        = string
 }
+
+variable "api_server_addresses" {
+  description = "The FQDN(s) of the AKS API Server"
+  type        = list 
+  default     = ["AzureCloud"]
+}
