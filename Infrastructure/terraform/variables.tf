@@ -96,3 +96,13 @@ variable "firewall_name" {
   description = "Name of the Azure Firewall"
   type        = string
 }
+
+variable api_server_destination {
+  description = "IP Address of the API Server"
+  type        = string
+  default     = "AzureCloud"
+  validation {
+    condition     = contains(["AzureCloud", "Custom"], var.api_server_destination)
+    error_message = "The api_server_destination value must be either AzureCloud or Custom. Use Custom if the FQDN of the AKS API server is known."
+  }
+}
