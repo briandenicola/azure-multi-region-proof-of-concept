@@ -45,9 +45,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
             type            = "Https"
         }
 
-        destination_fqdns = [
-            "*.hcp.${azurerm_resource_group.cqrs_region[each.key].location}.azmk8s.io"
-        ]
+        destination_fqdns = var.api_server_addresses == ["AzureCloud"] ? ["*.hcp.${azurerm_resource_group.cqrs_region[each.key].location}.azmk8s.io"] : var.api_server_addresses
     }
 
     rule {
@@ -348,9 +346,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       source_addresses      = ["*"]
       destination_ports     = ["1194"]
       protocols             = ["UDP"]
-      destination_addresses = [
-        "AzureCloud"
-      ]
+      destination_addresses = var.api_server_addresses == ["AzureCloud"] ? ["AzureCloud"] : var.api_server_addresses
     }
 
     rule {
@@ -358,9 +354,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       source_addresses      = ["*"]
       destination_ports     = ["9000"]
       protocols             = ["TCP"]
-      destination_addresses = [
-        "AzureCloud"
-      ]
+      destination_addresses = var.api_server_addresses == ["AzureCloud"] ? ["AzureCloud"] : var.api_server_addresses
     }
 
     rule {
