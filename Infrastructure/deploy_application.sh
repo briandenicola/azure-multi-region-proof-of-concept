@@ -148,7 +148,11 @@ do
     helm repo update
     kubectl create namespace keda
     helm upgrade -i keda kedacore/keda --namespace keda --version 2.0.0
-    #helm upgrade -i keda kedacore/keda --namespace keda --version 1.5.0
+
+    ## Install Kured 
+    helm repo add kured https://weaveworks.github.io/kured
+    helm repo update
+    helm upgrade -i kured kured/kured -n kured --create-namespace
 
     #Install App
     helm upgrade --install \
