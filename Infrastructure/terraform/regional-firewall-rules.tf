@@ -1,3 +1,36 @@
+locals {
+    aks_service_tag_rules = [
+      {
+        name                  = "apitcp"
+        source_addresses      = ["*"]
+        destination_ports     = ["9000"]
+        protocols             = ["TCP"]
+        destination_addresses = ["AzureCloud"]
+      },
+      {
+        name                  = "apiudp"
+        source_addresses      = ["*"]
+        destination_ports     = ["1194"]
+        protocols             = ["UDP"]
+        destination_addresses = ["AzureCloud"]
+      }
+    ]
+    aks_fqdn_fw_rules = [
+      {
+        name                  = "apitcp"
+        source_addresses      = ["*"]
+        destination_ports     = ["9000"]
+        protocols             = ["TCP"]
+      },
+      {
+        name                  = "apiudp"
+        source_addresses      = ["*"]
+        destination_ports     = ["1194"]
+        protocols             = ["UDP"]
+      }
+    ]
+}
+
 resource "azurerm_firewall" "cqrs_region" {
   for_each            = local.locations_set
   name                = "${var.firewall_name}${index(var.locations,each.key)+1}"
@@ -45,7 +78,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
             type            = "Https"
         }
 
-        destination_fqdns = var.api_server_addresses == ["AzureCloud"] ? ["*.hcp.${azurerm_resource_group.cqrs_region[each.key].location}.azmk8s.io"] : var.api_server_addresses
+        destination_fqdns = contains(var.api_server_addresses, "AzureCloud") ? ["*.hcp.${azurerm_resource_group.cqrs_region[each.key].location}.azmk8s.io"] : var.api_server_addresses
     }
 
     rule {
@@ -342,45 +375,23 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
     action                  = "Allow"
 
     dynamic rule {
-      for_each = var.api_server_addresses == ["AzureCloud"] ? [1] : []
+      for_each = contains(var.api_server_addresses, "AzureCloud") ? local.aks_service_tag_rules : []
       content {
-        name                  = "apiudp"
-        source_addresses      = ["*"]
-        destination_ports     = ["1194"]
-        protocols             = ["UDP"]
-        destination_addresses = ["AzureCloud"]
-      }
-    }
-  
-    dynamic rule {
-      for_each = var.api_server_addresses == ["AzureCloud"] ? [1] : []
-      content {
-        name                  = "apitcp"
-        source_addresses      = ["*"]
-        destination_ports     = ["9000"]
-        protocols             = ["TCP"]
-        destination_addresses = ["AzureCloud"]
+        name                  = rule.value["name"]
+        source_addresses      = rule.value["source_addresses"]
+        destination_ports     = rule.value["destination_ports"]
+        protocols             = rule.value["protocols"]
+        destination_addresses = rule.value["destination_addresses"]
       }
     }
 
     dynamic rule {
-      for_each = var.api_server_addresses != ["AzureCloud"] ? [1] : []
+      for_each = contains(var.api_server_addresses, "AzureCloud") ? [] : local.aks_fqdn_fw_rules
       content {
-        name                  = "apiudp"
-        source_addresses      = ["*"]
-        destination_ports     = ["1194"]
-        protocols             = ["UDP"]
-        destination_fqdns     = var.api_server_addresses
-      }
-    }
-
-    dynamic rule {
-      for_each = var.api_server_addresses != ["AzureCloud"] ? [1] : []
-      content {
-        name                  = "apitcp"
-        source_addresses      = ["*"]
-        destination_ports     = ["9000"]
-        protocols             = ["TCP"]
+        name                  = rule.value["name"]
+        source_addresses      = rule.value["source_addresses"]
+        destination_ports     = rule.value["destination_ports"]
+        protocols             = rule.value["protocols"]
         destination_fqdns     = var.api_server_addresses
       }
     }
