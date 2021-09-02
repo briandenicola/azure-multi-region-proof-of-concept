@@ -341,20 +341,48 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
     priority                = 400
     action                  = "Allow"
 
-    rule {
-      name                  = "apiudp"
-      source_addresses      = ["*"]
-      destination_ports     = ["1194"]
-      protocols             = ["UDP"]
-      destination_addresses = var.api_server_addresses == ["AzureCloud"] ? ["AzureCloud"] : var.api_server_addresses
+    dynamic rule {
+      for_each = var.api_server_addresses == ["AzureCloud"] ? [1] : []
+      content {
+        name                  = "apiudp"
+        source_addresses      = ["*"]
+        destination_ports     = ["1194"]
+        protocols             = ["UDP"]
+        destination_addresses = ["AzureCloud"]
+      }
+    }
+  
+    dynamic rule {
+      for_each = var.api_server_addresses == ["AzureCloud"] ? [1] : []
+      content {
+        name                  = "apitcp"
+        source_addresses      = ["*"]
+        destination_ports     = ["9000"]
+        protocols             = ["TCP"]
+        destination_addresses = ["AzureCloud"]
+      }
     }
 
-    rule {
-      name                  = "apitcp"
-      source_addresses      = ["*"]
-      destination_ports     = ["9000"]
-      protocols             = ["TCP"]
-      destination_addresses = var.api_server_addresses == ["AzureCloud"] ? ["AzureCloud"] : var.api_server_addresses
+    dynamic rule {
+      for_each = var.api_server_addresses != ["AzureCloud"] ? [1] : []
+      content {
+        name                  = "apiudp"
+        source_addresses      = ["*"]
+        destination_ports     = ["1194"]
+        protocols             = ["UDP"]
+        destination_fqdns     = var.api_server_addresses
+      }
+    }
+
+    dynamic rule {
+      for_each = var.api_server_addresses != ["AzureCloud"] ? [1] : []
+      content {
+        name                  = "apitcp"
+        source_addresses      = ["*"]
+        destination_ports     = ["9000"]
+        protocols             = ["TCP"]
+        destination_fqdns     = var.api_server_addresses
+      }
     }
 
     rule {
