@@ -15,6 +15,13 @@ resource "azurerm_resource_group" "cqrs_region" {
   }
 }
 
+resource "azurerm_network_security_group" "cqrs_region" {
+  for_each            = local.locations_set
+  name                = "${var.vnet_name}${index(var.locations,each.key)+1}-default-nsg"
+  location            = azurerm_resource_group.cqrs_region[each.key].location
+  resource_group_name = azurerm_resource_group.cqrs_region[each.key].name
+}
+
 resource "azurerm_virtual_network" "cqrs_region" {
   for_each            = local.locations_set
   name                = "${var.vnet_name}${index(var.locations,each.key)+1}"
@@ -47,12 +54,24 @@ resource "azurerm_subnet" "APIM" {
   address_prefixes      = [cidrsubnet(local.subnets[index(var.locations,each.key)], 8, 2)]
 }
 
+resource "azurerm_subnet_network_security_group_association" "apim_subnet" {
+  for_each                  = local.locations_set
+  subnet_id                 = azurerm_subnet.APIM[each.key].id
+  network_security_group_id = azurerm_network_security_group.cqrs_region[each.key].id
+}
+
 resource "azurerm_subnet" "databricks-private" {
   for_each              = local.locations_set
   name                  = "databricks-private"
   resource_group_name   = azurerm_resource_group.cqrs_region[each.key].name
   virtual_network_name  = azurerm_virtual_network.cqrs_region[each.key].name
   address_prefixes      = [cidrsubnet(local.subnets[index(var.locations,each.key)], 8, 3)]
+}
+
+resource "azurerm_subnet_network_security_group_association" "databricks-private_subnet" {
+  for_each                  = local.locations_set
+  subnet_id                 = azurerm_subnet.databricks-private[each.key].id
+  network_security_group_id = azurerm_network_security_group.cqrs_region[each.key].id
 }
 
 resource "azurerm_subnet" "databricks-public" {
@@ -63,6 +82,12 @@ resource "azurerm_subnet" "databricks-public" {
   address_prefixes      = [cidrsubnet(local.subnets[index(var.locations,each.key)], 8, 4)]
 }
 
+resource "azurerm_subnet_network_security_group_association" "databricks-public_subnet" {
+  for_each                  = local.locations_set
+  subnet_id                 = azurerm_subnet.databricks-public[each.key].id
+  network_security_group_id = azurerm_network_security_group.cqrs_region[each.key].id
+}
+
 resource "azurerm_subnet" "private-endpoints" {
   for_each            = local.locations_set
   name                 = "private-endpoints"
@@ -71,6 +96,12 @@ resource "azurerm_subnet" "private-endpoints" {
   address_prefixes     = [cidrsubnet(local.subnets[index(var.locations,each.key)], 8, 5)]
 
   enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_subnet_network_security_group_association" "private-endpoints_subnet" {
+  for_each                  = local.locations_set
+  subnet_id                 = azurerm_subnet.private-endpoints[each.key].id
+  network_security_group_id = azurerm_network_security_group.cqrs_region[each.key].id
 }
 
 resource "azurerm_subnet" "kubernetes" {
