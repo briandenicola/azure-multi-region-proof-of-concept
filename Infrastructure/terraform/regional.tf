@@ -112,6 +112,12 @@ resource "azurerm_subnet" "kubernetes" {
   address_prefixes      = [cidrsubnet(local.subnets[index(var.locations,each.key)], 6, 3)]
 }
 
+resource "azurerm_subnet_network_security_group_association" "kubernetes_subnet" {
+  for_each                  = local.locations_set
+  subnet_id                 = azurerm_subnet.kubernetes[each.key].id
+  network_security_group_id = azurerm_network_security_group.cqrs_region[each.key].id
+}
+
 resource "azurerm_subnet_route_table_association" "cqrs_region" {
   for_each              = local.locations_set
   subnet_id             = azurerm_subnet.kubernetes[each.key].id
