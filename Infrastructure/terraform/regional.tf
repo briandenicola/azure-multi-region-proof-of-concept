@@ -20,6 +20,18 @@ resource "azurerm_network_security_group" "cqrs_region" {
   name                = "${var.vnet_name}${index(var.locations,each.key)+1}-default-nsg"
   location            = azurerm_resource_group.cqrs_region[each.key].location
   resource_group_name = azurerm_resource_group.cqrs_region[each.key].name
+
+  security_rule {
+    name                       = "api_management"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3443"
+    source_address_prefix      = "ApiManagement"
+    destination_address_prefix = cidrsubnet(local.subnets[index(var.locations,each.key)], 8, 2)
+  }
 }
 
 resource "azurerm_virtual_network" "cqrs_region" {
