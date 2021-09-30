@@ -22,7 +22,7 @@ namespace Eventing
                 LeaseCollectionName =  "leases",
                 LeaseCollectionPrefix = "blob",
                 CreateLeaseCollectionIfNotExists = true
-            )]IReadOnlyList<AesKey> changeStream,  
+            )]IReadOnlyList<Microsoft.Azure.Documents.Document> changeStream,  
             
             [RedisOutput(
                 Connection = "%REDISCACHE_CONNECTIONSTRING%"
@@ -40,9 +40,11 @@ namespace Eventing
 
                 foreach( var document in changeStream ) 
                 {
+                    var key = (AccountPassword)(dynamic)document;
+                    
                     var redisItem = new RedisOutput(){
-                        Key = document.keyId,
-                        TextValue = JsonConvert.SerializeObject(document)
+                        Key = key.keyId,
+                        TextValue = JsonConvert.SerializeObject(key)
                     };
                     await cacheKeys.AddAsync(redisItem);
                 }
