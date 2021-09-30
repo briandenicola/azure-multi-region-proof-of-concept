@@ -7,8 +7,6 @@ using Newtonsoft.Json;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Fbeltrao.AzureFunctionExtensions;
-using StackExchange.Redis;
 
 namespace Eventing
 {
@@ -24,9 +22,6 @@ namespace Eventing
                 databaseName: "AesKeys", 
                 collectionName: "Items", 
                 ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
-            [RedisOutput(
-                Connection = "%REDISCACHE_CONNECTIONSTRING%")] IAsyncCollector<RedisOutput> cacheKeys,
-                
             ILogger log)
         {
             var exceptions = new List<Exception>();         
@@ -38,16 +33,8 @@ namespace Eventing
                     log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
                     var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
 
-                    var redisItem = new RedisOutput()
-                    {
-                        Key = key.keyId,
-                        TextValue = messageBody
-                    };
-
                     await keys.AddAsync(key);
-                    await cacheKeys.AddAsync(redisItem);
-                    await Task.Yield();
-        
+                    await Task.Yield();        
                 }
                 catch (Exception e) {
                     exceptions.Add(e);
