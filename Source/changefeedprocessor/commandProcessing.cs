@@ -40,7 +40,7 @@ namespace Eventing
 
                 foreach( var document in changeStream ) 
                 {
-                    var key = (AccountPassword)(dynamic)document;
+                    var key = (AesKey)(dynamic)document;
                     
                     var redisItem = new RedisOutput(){
                         Key = key.keyId,
