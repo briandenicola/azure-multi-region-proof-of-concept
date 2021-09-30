@@ -159,6 +159,9 @@ do
     helm repo update
     helm upgrade -i kured kured/kured -n kured --create-namespace
 
+    #Region encoding
+    regionEncoded=`echo -n ${region} | base64 -w 0`
+    
     #Install App
     helm upgrade --install \
       --set acr_name=${acrAccountName} \
@@ -167,7 +170,7 @@ do
       --set COSMOSDB_CONNECTIONSTRING=${cosmosEncoded} \
       --set REDISCACHE_CONNECTIONSTRING=${redisEncoded} \
       --set APPINSIGHTS_INSTRUMENTATIONKEY=${instrumentationKeyEncoded} \
-      --set LEASE_COLLECTION_PREFIX=${region} \
+      --set LEASE_COLLECTION_PREFIX=${regionEncoded} \
       --set api_version=${version} \
       --set eventprocessor_version=${version} \
       --set changefeedprocessor_version=${version} \
