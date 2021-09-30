@@ -14,7 +14,7 @@ namespace Eventing
     public static class ChangeFeedProcessor
     {
         [FunctionName("CosmosChangeFeedProcessor")]
-        public static async Task CosmosChangeFeedProcessor(
+        public static async Task Run (
             [CosmosDBTrigger(
                 databaseName: "AesKeys", 
                 collectionName: "Items", 
