@@ -34,7 +34,7 @@ spec:
           mountPath: /env
       containers:
       - name: aeskeyapi
-        image: {{ print .Values.acr_name "".azurecr.io/cqrs/api:" .Values.api_version }} 
+        image: {{ print .Values.acr_name ".azurecr.io/cqrs/api:" .Values.api_version }} 
         command: ['/bin/busybox', 'sh', '-c', 'source /env/metadata; ./main']
         volumeMounts:
         - name: config-data
