@@ -167,6 +167,7 @@ do
       --set COSMOSDB_CONNECTIONSTRING=${cosmosEncoded} \
       --set REDISCACHE_CONNECTIONSTRING=${redisEncoded} \
       --set APPINSIGHTS_INSTRUMENTATIONKEY=${instrumentationKeyEncoded} \
+      --set LEASE_COLLECTION_PREFIX=${region} \
       --set api_version=${version} \
       --set eventprocessor_version=${version} \
       --set changefeedprocessor_version=${version} \

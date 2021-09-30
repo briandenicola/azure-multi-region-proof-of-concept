@@ -20,7 +20,7 @@ namespace Eventing
                 collectionName: "Items", 
                 ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING",
                 LeaseCollectionName =  "leases",
-                LeaseCollectionPrefix = "blob",
+                LeaseCollectionPrefix = "%LEASE_COLLECTION_PREFIX%",
                 CreateLeaseCollectionIfNotExists = true
             )]IReadOnlyList<Microsoft.Azure.Documents.Document> changeStream,  
             
