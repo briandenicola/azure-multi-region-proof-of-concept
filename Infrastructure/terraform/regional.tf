@@ -187,6 +187,7 @@ resource "azurerm_public_ip" "firewall" {
   location            = azurerm_resource_group.cqrs_region[each.key].location
   allocation_method   = "Static"
   sku                 = "Standard"
+  availability_zone   = "No-Zone"
 }
 
 resource "azurerm_route_table" "cqrs_region" {
