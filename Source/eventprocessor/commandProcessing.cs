@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json; 
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.EventHubs;
+using Azure.Messaging.EventHubs;
 using Microsoft.Extensions.Logging;
 
 
@@ -25,28 +25,14 @@ namespace Eventing
                 Connection = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
             ILogger log)
         {
-            var exceptions = new List<Exception>();         
-
-            foreach (EventData eventData in events)
+            foreach (var e in events)
             {
-                try {
-                    string messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
-                    log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
-                    var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
-
-                    await keys.AddAsync(key);
-                    await Task.Yield();        
-                }
-                catch (Exception e) {
-                    exceptions.Add(e);
-                }
+                log.LogInformation($"C# function triggered to process a message: {e.EventBody}");
+                string messageBody = Encoding.UTF8.GetString(e.EventBody);
+                var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
+                await keys.AddAsync(key);
+                await Task.Yield();
             }
-
-            if (exceptions.Count > 1)
-                throw new AggregateException(exceptions);
-
-            if (exceptions.Count == 1)
-                throw exceptions.Single();
 
         }
     }
