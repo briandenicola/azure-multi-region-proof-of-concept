@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json; 
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,7 @@ namespace Eventing
                 LeaseContainerName =  "leases",
                 LeaseContainerPrefix = "%LEASE_COLLECTION_PREFIX%",
                 CreateLeaseContainerIfNotExists = true
-            )]IReadOnlyList<Document> changeStream,  
+            )]IReadOnlyList<AesKey> changeStream,  
             
             [RedisOutput(
                 Connection = "%REDISCACHE_CONNECTIONSTRING%"
@@ -31,27 +32,22 @@ namespace Eventing
             
             ILogger log)
         {
-            if (changeStream == null || changeStream.Count <= 0) {
-                log.LogInformation($"CosmosChangeFeedProcessor - Fired but inputStream is null");
-                return;
-            }
+            if (changeStream != null || changeStream.Count > 0) {
+                try {
+                    log.LogInformation($"{changeStream.Count} - Documents will be added to Cache");
 
-            try {
-                log.LogInformation($"{changeStream.Count} - Documents will be added to Cache");
-
-                foreach( var document in changeStream ) 
-                {
-                    var key = (AesKey)(dynamic)document;
-                    
-                    var redisItem = new RedisOutput(){
-                        Key = key.keyId,
-                        TextValue = JsonConvert.SerializeObject(key)
-                    };
-                    await cacheKeys.AddAsync(redisItem);
+                    foreach( var key in changeStream ) 
+                    {                       
+                        var redisItem = new RedisOutput(){
+                            Key = key.keyId,
+                            TextValue = JsonConvert.SerializeObject(key)
+                        };
+                        await cacheKeys.AddAsync(redisItem);
+                    }
                 }
-            }
-            catch( Exception e ) {
-                log.LogInformation($"Failed to index some of the documents: {e.ToString()}");
+                catch( Exception e ) {
+                    log.LogInformation($"Failed to index some of the documents: {e.ToString()}");
+                }
             }
         }
     }
