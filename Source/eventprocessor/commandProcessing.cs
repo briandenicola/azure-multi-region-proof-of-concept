@@ -31,8 +31,9 @@ namespace Eventing
                 log.LogInformation($"C# function triggered to process a message: {e.EventBody}");
                 string messageBody = Encoding.UTF8.GetString(e.EventBody);
                 var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
+                key.Id = Guid.NewGuid();
 
-                log.LogInformation($"Adding {key.keyId} to Cosmosdb Collection");
+                log.LogInformation($"Adding {key} to Cosmosdb Collection");
                 await keys.AddAsync(key);
             }
 
@@ -41,10 +42,11 @@ namespace Eventing
 
     public class AesKey 
     {
-        public string keyId { get; set; }
-        public string key { get; set; }
-        public string readHost  { get; set; }
-        public string writeHost  { get; set; }
+        public string Id { get; set; }
+        public string KeyId { get; set; }
+        public string Key { get; set; }
+        public string ReadHost  { get; set; }
+        public string WriteHost  { get; set; }
         public string readRegion  { get; set; }
         public string writeRegion  { get; set; }
         public string timeStamp { get; set; }
