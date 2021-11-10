@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json; 
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Host;
 using Azure.Messaging.EventHubs;
 using Microsoft.Extensions.Logging;
 
@@ -30,8 +31,9 @@ namespace Eventing
                 log.LogInformation($"C# function triggered to process a message: {e.EventBody}");
                 string messageBody = Encoding.UTF8.GetString(e.EventBody);
                 var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
+
+                log.LogInformation($"Adding {key.keyId} to Cosmosdb Collection");
                 await keys.AddAsync(key);
-                await Task.Yield();
             }
 
         }
