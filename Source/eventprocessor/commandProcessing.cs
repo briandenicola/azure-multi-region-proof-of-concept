@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json; 
-using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Host;
+using Azure.Messaging.EventHubs;
 using Microsoft.Extensions.Logging;
+
 
 namespace Eventing
 {
@@ -20,44 +22,53 @@ namespace Eventing
                 Connection = "EVENTHUB_CONNECTIONSTRING")] EventData[] events,
             [CosmosDB(
                 databaseName: "AesKeys", 
-                collectionName: "Items", 
-                ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
+                containerName: "Items", 
+                Connection = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
             ILogger log)
         {
-            var exceptions = new List<Exception>();         
-
-            foreach (EventData eventData in events)
+            foreach (var e in events)
             {
-                try {
-                    string messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
-                    log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
-                    var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
+                log.LogInformation($"C# function triggered to process a message: {e.EventBody}");
+                string messageBody = Encoding.UTF8.GetString(e.EventBody);
+                var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
+                key.Id = Guid.NewGuid().ToString(); 
 
-                    await keys.AddAsync(key);
-                    await Task.Yield();        
-                }
-                catch (Exception e) {
-                    exceptions.Add(e);
-                }
+                log.LogInformation($"Adding key ({key.Id}) to Cosmosdb Collection");
+                await keys.AddAsync(key);
+
             }
-
-            if (exceptions.Count > 1)
-                throw new AggregateException(exceptions);
-
-            if (exceptions.Count == 1)
-                throw exceptions.Single();
 
         }
     }
 
     public class AesKey 
     {
-        public string keyId { get; set; }
-        public string key { get; set; }
-        public string readHost  { get; set; }
-        public string writeHost  { get; set; }
-        public string readRegion  { get; set; }
-        public string writeRegion  { get; set; }
-        public string timeStamp { get; set; }
+        [JsonProperty("id")]   
+        public string Id { get; set; }
+
+        [JsonProperty("keyId")]
+        public string KeyId { get; set; }
+
+        [JsonProperty("key")]
+        public string Key { get; set; }
+
+        [JsonProperty("readHost")]
+        public string ReadHost  { get; set; }
+
+        [JsonProperty("writeHost")]
+        public string WriteHost  { get; set; }
+
+        [JsonProperty("readRegion")]
+        public string ReadRegion  { get; set; }
+
+        [JsonProperty("writeRegion")]
+        public string WriteRegion  { get; set; }
+
+        [JsonProperty("timeStamp")]
+        public string TimeStamp { get; set; }
+
+		public AesKey() {
+			Id = Guid.NewGuid().ToString();
+		}
     }
 }
