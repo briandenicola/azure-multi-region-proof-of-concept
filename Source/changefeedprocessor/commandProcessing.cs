@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json; 
+using Microsoft.Azure.Documents;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Fbeltrao.AzureFunctionExtensions;
@@ -17,12 +18,12 @@ namespace Eventing
         public static async Task Run (
             [CosmosDBTrigger(
                 databaseName: "AesKeys", 
-                collectionName: "Items", 
-                ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING",
-                LeaseCollectionName =  "leases",
-                LeaseCollectionPrefix = "%LEASE_COLLECTION_PREFIX%",
-                CreateLeaseCollectionIfNotExists = true
-            )]IReadOnlyList<Microsoft.Azure.Documents.Document> changeStream,  
+                containerName: "Items", 
+                Connection = "COSMOSDB_CONNECTIONSTRING",
+                LeaseContainerName =  "leases",
+                LeaseContainerPrefix = "%LEASE_COLLECTION_PREFIX%",
+                CreateLeaseContainerIfNotExists = true
+            )]IReadOnlyList<Document> changeStream,  
             
             [RedisOutput(
                 Connection = "%REDISCACHE_CONNECTIONSTRING%"

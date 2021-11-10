@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json; 
-using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.EventHubs;
 using Microsoft.Extensions.Logging;
+
 
 namespace Eventing
 {
@@ -20,8 +21,8 @@ namespace Eventing
                 Connection = "EVENTHUB_CONNECTIONSTRING")] EventData[] events,
             [CosmosDB(
                 databaseName: "AesKeys", 
-                collectionName: "Items", 
-                ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
+                containerName: "Items", 
+                Connection = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
             ILogger log)
         {
             var exceptions = new List<Exception>();         
