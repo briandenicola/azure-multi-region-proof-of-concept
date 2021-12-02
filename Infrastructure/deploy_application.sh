@@ -96,6 +96,11 @@ docker build -t ${acrAccountName}.azurecr.io/cqrs/eventprocessor:${version} .
 docker push ${acrAccountName}.azurecr.io/cqrs/eventprocessor:${version} 
 cd ${cwd}
 
+cd Source/changefeedprocessor
+docker build -t ${acrAccountName}.azurecr.io/cqrs/changefeedprocessor:${version} .
+docker push ${acrAccountName}.azurecr.io/cqrs/changefeedprocessor:${version} 
+cd ${cwd}
+
 ## Get Cosmos Connection String
 #cosmosConnectionString=`az cosmosdb list-connection-strings -n ${cosmosDBAccountName} -g ${rgGlobal} --query 'connectionStrings[0].connectionString' -o tsv`
 cosmosConnectionString=`az cosmosdb keys list --type connection-strings -n ${cosmosDBAccountName} -g ${rgGlobal} --query 'connectionStrings[0].connectionString' -o tsv`
@@ -154,6 +159,9 @@ do
     helm repo update
     helm upgrade -i kured kured/kured -n kured --create-namespace
 
+    #Region encoding
+    regionEncoded=`echo -n ${region} | base64 -w 0`
+    
     #Install App
     helm upgrade --install \
       --set acr_name=${acrAccountName} \
@@ -162,8 +170,10 @@ do
       --set COSMOSDB_CONNECTIONSTRING=${cosmosEncoded} \
       --set REDISCACHE_CONNECTIONSTRING=${redisEncoded} \
       --set APPINSIGHTS_INSTRUMENTATIONKEY=${instrumentationKeyEncoded} \
+      --set LEASE_COLLECTION_PREFIX=${regionEncoded} \
       --set api_version=${version} \
       --set eventprocessor_version=${version} \
+      --set changefeedprocessor_version=${version} \
       --set uri=${ingressUri}.${domainName} \
       --set tlsCertificate=${tlsCertData} \
       --set tlsSecret=${tlsSecretData} \
