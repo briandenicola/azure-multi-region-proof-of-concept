@@ -216,7 +216,7 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
   name                            = "${var.aks_name}${index(var.locations,each.key)+1}"
   resource_group_name             = azurerm_resource_group.cqrs_region[each.key].name
   location                        = azurerm_resource_group.cqrs_region[each.key].location
-  node_resource_group             = "${azurerm_resource_group.cqrs_region[each.key].name}_k8s_nodes"
+  node_resource_group             = "${var.application_name}_${each.key}_aks_nodes"
   dns_prefix                      = "${var.aks_name}${index(var.locations,each.key)+1}"
   sku_tier                        = "Paid"
   api_server_authorized_ip_ranges = [var.api_server_authorized_ip_ranges, "${azurerm_public_ip.firewall[each.key].ip_address}/32"]
