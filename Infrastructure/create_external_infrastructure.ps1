@@ -116,7 +116,7 @@ function Deploy-toAzStaticWebApp
 
     docker run --entrypoint "/bin/staticsites/StaticSitesClient" `
         --volume ${LocalPath}:/root/build `
-        mcr.microsoft.com/appsvc/staticappsclient:stable `
+        mcr.microsoft.com/appsvc/staticappsclient:latest `
         upload `
         --skipAppBuild true `
         --app /root/build/wwwroot `
