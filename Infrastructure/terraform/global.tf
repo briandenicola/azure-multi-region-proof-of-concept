@@ -60,14 +60,13 @@ resource "azurerm_container_registry" "cqrs_acr" {
   location                 = azurerm_resource_group.cqrs_global.location
   sku                      = "Premium"
   admin_enabled            = false
-  #georeplication_locations = length(var.locations) - 1 >= 1 ? slice(var.locations, 1, length(var.locations)) : null
+  data_endpoint_enabled    = true 
 
   dynamic "georeplications" {
     for_each = length(var.locations) - 1 >= 1 ? slice(var.locations, 1, length(var.locations)) : []
     iterator = each
     content {
       location                = each.value
-      #zone_redundancy_enabled = true
     }
   } 
 
@@ -77,10 +76,6 @@ resource "azurerm_container_registry" "cqrs_acr" {
       action   = "Allow"
       ip_range = var.api_server_authorized_ip_ranges
     }
-  }
-
-  provisioner "local-exec" {
-    command = "az acr update -n ${var.acr_account_name} --data-endpoint-enabled true"
   }
 }
 
