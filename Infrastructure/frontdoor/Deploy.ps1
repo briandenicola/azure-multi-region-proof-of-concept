@@ -12,17 +12,17 @@ param (
     [switch]    $DeployWAFPolicies,
 
     [Parameter(Mandatory = $true)]
-    [string[]]          $Regions,
+    [string[]]  $Regions,
 
     [Parameter(Mandatory = $true)]
     [ValidateSet("single", "multi")]
-    [string]          $DeploymentType
+    [string]    $DeploymentType
 )  
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
-$FrontDoorName = "fd-{0}" -f $ApplicationName 
+$FrontDoorName = "afd-{0}" -f $ApplicationName 
 
-Read-Host -Prompt ("Ensure that a CNAME DNS record exists that maps {0} to {1}.azurefd.net..." -f $FrontDoorUri, $FrontDoorName)
+Read-Host -Prompt ("Ensure that a CNAME DNS record exists that maps {0} to {1}.z01.azurefd.net..." -f $FrontDoorUri, $FrontDoorName)
 
 $opts = @{
     Name                  = ("FrontDoor-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))

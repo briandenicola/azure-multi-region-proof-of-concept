@@ -16,184 +16,146 @@
         }
     },
     "variables": {
-        "backendPoolName": "apim",
-        "frontDoorUrlName": "[replace(parameters('frontDoorUrl'),'.', '-')]",
-        "healthProbeSettings": "bjdHealthProbe",
-        "loadBalancingSettings": "bjdLBSettings",
-        "healthProbeUrl": "/status-0123456789abcdef"
+        "originGroupName": "apim",
+        "endpointName": "[parameters('frontDoorName')]",
+        "healthProbeUrl": "/status-0123456789abcdef",
+        "skuName": "Premium_AzureFrontDoor",
+        "customDomainResourceName": "[replace(parameters('frontDoorUrl'),'.', '-')]",
+        "primaryOriginName": "[replace(parameters('primaryBackendEndFQDN'),'.', '-')]",
+        "secondaryOriginName": "[replace(parameters('secondaryBackendEndFQDN'),'.', '-')]",
+        "routeName": "default"
     },
     "resources": [
         {
-            "type": "Microsoft.Network/frontdoorwebapplicationfirewallpolicies",
-            "apiVersion": "2018-08-01",
-            "name": "FDPolicies",
-            "location": "Global",
-            "properties": {
-                "policySettings": {
-                    "enabledState": "Enabled",
-                    "mode": "Prevention"
-                },
-                "customRules": {
-                    "rules": [
-                        {
-                            "name": "BlockJapan",
-                            "priority": 200,
-                            "ruleType": "MatchRule",
-                            "rateLimitDurationInMinutes": 1,
-                            "rateLimitThreshold": 100,
-                            "matchConditions": [
-                                {
-                                    "matchVariable": "RemoteAddr",
-                                    "operator": "GeoMatch",
-                                    "negateCondition": false,
-                                    "matchValue": [
-                                        "JP"
-                                    ]
-                                }
-                            ],
-                            "action": "Block"
-                        }   
-                    ]
-                },
-                "managedRules": {
-                    "ruleSets": []
-                }
+            "type": "Microsoft.Cdn/profiles",
+            "apiVersion": "2020-09-01",
+            "name": "[parameters('frontDoorName')]",
+            "location": "global",
+            "sku": {
+                "name": "[variables('skuName')]"
             }
         },
         {
-            "type": "Microsoft.Network/frontdoors",
-            "apiVersion": "2020-01-01",
-            "name": "[parameters('frontDoorName')]",
-            "location": "Global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', 'FDPolicies')]"
-            ],
+            "type": "Microsoft.Cdn/profiles/afdEndpoints",
+            "apiVersion": "2020-09-01",
+            "name": "[format('{0}/{1}', parameters('frontDoorName'), variables('endpointName'))]",
+            "location": "global",
             "properties": {
-                "resourceState": "Enabled",
-                "backendPools": [
+                "originResponseTimeoutSeconds": 240,
+                "enabledState": "Enabled"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Cdn/profiles/originGroups",
+            "apiVersion": "2020-09-01",
+            "name": "[format('{0}/{1}', parameters('frontDoorName'), variables('originGroupName'))]",
+            "properties": {
+                "loadBalancingSettings": {
+                    "sampleSize": 4,
+                    "successfulSamplesRequired": 3
+                },
+                "healthProbeSettings": {
+                    "probePath": "[variables('healthProbeUrl')]",
+                    "probeRequestType": "HEAD",
+                    "probeProtocol": "Http",
+                    "probeIntervalInSeconds": 100
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Cdn/profiles/originGroups/origins",
+            "apiVersion": "2020-09-01",
+            "name": "[format('{0}/{1}/{2}', parameters('frontDoorName'), variables('originGroupName'), variables('primaryOriginName'))]",
+            "properties": {
+                "hostName": "[parameters('primaryBackendEndFQDN')]",
+                "httpPort": 80,
+                "httpsPort": 443,
+                "originHostHeader": "[parameters('primaryBackendEndFQDN')]",
+                "priority": 1,
+                "weight": 1000
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Cdn/profiles/originGroups/origins",
+            "apiVersion": "2020-09-01",
+            "name": "[format('{0}/{1}/{2}', parameters('frontDoorName'), variables('originGroupName'), variables('secondaryOriginName'))]",
+            "properties": {
+                "hostName": "[parameters('secondaryBackendEndFQDN')]",
+                "httpPort": 80,
+                "httpsPort": 443,
+                "originHostHeader": "[parameters('secondaryBackendEndFQDN')]",
+                "priority": 1,
+                "weight": 1000
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
+            "apiVersion": "2020-09-01",
+            "name": "[format('{0}/{1}/{2}', parameters('frontDoorName'), variables('endpointName'), variables('routeName'))]",
+            "properties": {
+                "customDomains": [
                     {
-                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/BackendPools/', variables('backendPoolName'))]",
-                        "name": "[variables('backendPoolName')]",
-                        "properties": {
-                            "backends": [
-                                {
-                                    "address": "[parameters('primaryBackendEndFQDN')]",
-                                    "httpPort": 80,
-                                    "httpsPort": 443,
-                                    "priority": 1,
-                                    "weight": 50,
-                                    "backendHostHeader": "[parameters('primaryBackendEndFQDN')]",
-                                    "enabledState": "Enabled"
-                                },
-                                {
-                                    "address": "[parameters('secondaryBackendEndFQDN')]",
-                                    "httpPort": 80,
-                                    "httpsPort": 443,
-                                    "priority": 1,
-                                    "weight": 50,
-                                    "backendHostHeader": "[parameters('secondaryBackendEndFQDN')]",
-                                    "enabledState": "Enabled"
-                                }
-                            ],
-                            "healthProbeSettings": {
-                                "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/HealthProbeSettings/', variables('healthProbeSettings'))]"
-                            },
-                            "loadBalancingSettings": {
-                                "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/LoadBalancingSettings/', variables('loadBalancingSettings'))]"
-                            },
-                            "resourceState": "Enabled"
-                        }
+                        "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainResourceName'))]"
                     }
                 ],
-                "healthProbeSettings": [
-                    {
-                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/HealthProbeSettings/', variables('healthProbeSettings'))]",
-                        "name": "[variables('healthProbeSettings')]",
-                        "properties": {
-                            "intervalInSeconds": 30,
-                            "path": "[variables('healthProbeUrl')]",
-                            "protocol": "Https",
-                            "resourceState": "Enabled"
-                        }
-                    }
+                "originGroup": {
+                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]"
+                },
+                "supportedProtocols": [
+                    "Http",
+                    "Https"
                 ],
-                "frontendEndpoints": [
-                    {
-                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/FrontendEndpoints/', parameters('frontDoorName') ,'-azurefd-net')]",
-                        "name": "[concat(parameters('frontDoorName') ,'-azurefd-net')]",
-                        "properties": {
-                            "hostName": "[concat(parameters('frontDoorName') ,'.azurefd.net')]",
-                            "sessionAffinityEnabledState": "Disabled",
-                            "sessionAffinityTtlSeconds": 0,
-                            "webApplicationFirewallPolicyLink": {
-                                "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', 'FDPolicies')]"
-                            },
-                            "resourceState": "Enabled"
-                        }
-                    },
-                    {
-                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/FrontendEndpoints/', variables('frontDoorUrlName'))]",
-                        "name": "[variables('frontDoorUrlName')]",
-                        "properties": {
-                            "hostName": "[parameters('frontDoorUrl')]",
-                            "sessionAffinityEnabledState": "Disabled",
-                            "sessionAffinityTtlSeconds": 0,
-                            "webApplicationFirewallPolicyLink": {
-                                "id": "[resourceId('Microsoft.Network/frontdoorwebapplicationfirewallpolicies', 'FDPolicies')]"
-                            },
-                            "resourceState": "Enabled"
-                        }
-                    }
+                "patternsToMatch": [
+                    "/*"
                 ],
-                "loadBalancingSettings": [
-                    {
-                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/LoadBalancingSettings/', variables('loadBalancingSettings'))]",
-                        "name": "[variables('loadBalancingSettings')]",
-                        "properties": {
-                            "additionalLatencyMilliseconds": 0,
-                            "sampleSize": 4,
-                            "successfulSamplesRequired": 2,
-                            "resourceState": "Enabled"
-                        }
-                    }
-                ],
-                "routingRules": [
-                    {
-                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/RoutingRules/', variables('backendPoolName'))]",
-                        "name": "apim",
-                        "properties": {
-                            "frontendEndpoints": [
-                                {
-                                    "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/frontendendpoints/', variables('frontDoorUrlName'))]"
-                                }
-                            ],
-                            "acceptedProtocols": [
-                                "Https"
-                            ],
-                            "patternsToMatch": [
-                                "/*"
-                            ],
-                            "routeConfiguration": {
-                                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration",                                
-                                "forwardingProtocol": "HttpsOnly",
-                                "backendPool": {
-                                    "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '/BackendPools/', variables('backendPoolName'))]"
-                                }                                
-                            },
-                            "enabledState": "Enabled",
-                            "resourceState": "Enabled"
-                        }
-                    }
-                ],
-                "enabledState": "Enabled",
-                "friendlyName": "[parameters('frontDoorName')]"
-            }
+                "queryStringCachingBehavior": "IgnoreQueryString",
+                "forwardingProtocol": "HttpsOnly",
+                "linkToDefaultDomain": "Enabled",
+                "httpsRedirect": "Enabled"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('frontDoorName'), variables('customDomainResourceName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('frontDoorName'), variables('endpointName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('primaryOriginName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('frontDoorName'), variables('originGroupName'), variables('secondaryOriginName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('frontDoorName'), variables('originGroupName'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Cdn/profiles/customDomains",
+            "apiVersion": "2020-09-01",
+            "name": "[format('{0}/{1}', parameters('frontDoorName'), variables('customDomainResourceName'))]",
+            "properties": {
+              "hostName": "[parameters('frontDoorUrl')]",
+              "tlsSettings": {
+                "certificateType": "ManagedCertificate",
+                "minimumTlsVersion": "TLS12"
+              }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
+            ]
         }
     ],
     "outputs": {
         "Front Door ID" : {
             "type" : "string",
-            "value": "[reference(resourceId('Microsoft.Network/frontdoors', parameters('frontDoorName')), '2020-01-01', 'Full').properties.frontDoorId]"
+            "value": "[reference(resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName')), '2020-09-01', 'Full').properties.frontDoorId]"
         }
     }
 }
