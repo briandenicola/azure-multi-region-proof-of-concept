@@ -392,13 +392,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "custom_domain" {
 
 resource "azurerm_private_endpoint" "storage_account" {
   for_each                  = local.locations_set
-  name                      = "${var.storage_name}-${each.key}-ep"
+  name                      = "${var.storage_name}${index(var.locations,each.key)+1}-${each.key}-ep"
   resource_group_name       = azurerm_resource_group.cqrs_region[each.key].name
   location                  = azurerm_resource_group.cqrs_region[each.key].location
   subnet_id                 = azurerm_subnet.private-endpoints[each.key].id
 
   private_service_connection {
-    name                           = "${var.storage_name}-${each.key}-ep"
+    name                           = "${var.storage_name}${index(var.locations,each.key)+1}-${each.key}-ep"
     private_connection_resource_id = azurerm_storage_account.cqrs_region[each.key].id
     subresource_names              = [ "blob" ]
     is_manual_connection           = false
@@ -432,13 +432,13 @@ resource "azurerm_private_endpoint" "cosmos_db" {
 
 resource "azurerm_private_endpoint" "eventhub_namespace" {
   for_each            = local.locations_set
-  name                = "${var.eventhub_namespace_name}-${each.key}-ep"
+  name                = "${var.eventhub_namespace_name}${index(var.locations,each.key)+1}-${each.key}-ep"
   resource_group_name = azurerm_resource_group.cqrs_region[each.key].name
   location            = azurerm_resource_group.cqrs_region[each.key].location
   subnet_id           = azurerm_subnet.private-endpoints[each.key].id
 
   private_service_connection {
-    name                           = "${var.eventhub_namespace_name}-${each.key}-ep"
+    name                           = "${var.eventhub_namespace_name}${index(var.locations,each.key)+1}-${each.key}-ep"
     private_connection_resource_id = azurerm_eventhub_namespace.cqrs_region[each.key].id
     subresource_names              = ["namespace"]
     is_manual_connection           = false
@@ -452,13 +452,13 @@ resource "azurerm_private_endpoint" "eventhub_namespace" {
 
 resource "azurerm_private_endpoint" "redis_account" {
   for_each            = local.locations_set
-  name                = "${var.redis_name}-${each.key}-ep"
+  name                = "${var.redis_name}${index(var.locations,each.key)+1}-${each.key}-ep"
   resource_group_name = azurerm_resource_group.cqrs_region[each.key].name
   location            = azurerm_resource_group.cqrs_region[each.key].location
   subnet_id           = azurerm_subnet.private-endpoints[each.key].id
 
   private_service_connection {
-    name                           = "${var.redis_name}-${each.key}-ep"
+    name                           = "${var.redis_name}${index(var.locations,each.key)+1}-${each.key}-ep"
     private_connection_resource_id = azurerm_redis_cache.cqrs_region[each.key].id
     subresource_names              = ["redisCache"]
     is_manual_connection           = false
