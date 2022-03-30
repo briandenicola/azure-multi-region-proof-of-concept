@@ -161,14 +161,23 @@ resource "azurerm_redis_cache" "cqrs_region" {
   resource_group_name   = azurerm_resource_group.cqrs_region[each.key].name
   location              = azurerm_resource_group.cqrs_region[each.key].location
   capacity              = 1
-  family                = "C"
-  sku_name              = "Standard"
+  family                = "P"
+  sku_name              = "Premium"
   enable_non_ssl_port   = false
   minimum_tls_version   = "1.2"
 
   redis_configuration {
   }
 }
+
+/*
+resource "azurerm_redis_linked_server" "cqrs_region-link" {
+  target_redis_cache_name     = azurerm_redis_cache.cqrs_region[(var.locations[0])].name
+  resource_group_name         = azurerm_redis_cache.cqrs_region[(var.locations[0])].resource_group_name
+  linked_redis_cache_id       = azurerm_redis_cache.cqrs_region[(var.locations[1])].id
+  linked_redis_cache_location = azurerm_redis_cache.cqrs_region[(var.locations[1])].location
+  server_role                 = "Secondary"
+}*/
 
 resource "azurerm_storage_account" "cqrs_region" {
   for_each                 = local.locations_set
