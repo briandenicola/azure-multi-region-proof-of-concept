@@ -9,7 +9,14 @@ param (
     [string[]]  $BackendHostNames,
 
     [Parameter(Mandatory = $false)]
-    [switch]    $DeployWAFPolicies
+    [switch]    $DeployWAFPolicies,
+
+    [Parameter(Mandatory = $true)]
+    [string[]]          $Regions,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateSet("single", "multi")]
+    [string]          $DeploymentType
 )  
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
@@ -43,6 +50,10 @@ if ($DeployWAFPolicies) {
         ResourceGroupName = $ResourceGroupName
         TemplateFile      = (Join-Path -Path $PWD.Path -ChildPath ".\appgw-waf-policies\azuredeploy.json")
         AzureFrontDoorID  = $frontDoorId
+    }
+
+    if ($DeploymentType -eq "multi") {
+        $opts.secondaryLocation  = $Regions[1]
     }
 
     New-AzResourceGroupDeployment @opts -verbose   

@@ -150,7 +150,7 @@ Set-Location -Path $appgw_directory
 ./Deploy.ps1 -ApplicationName $AppName -Regions $Regions -DeploymentType $DeploymentType  -PFXPath $AppGatewayPfxFilePath -PFXPassword $PFXPassword -BackendHostNames $ApiManagementUrls
 
 Set-Location -Path $frontdoor_directory
-./Deploy.ps1 -ApplicationName $AppName -FrontDoorUri $FrontDoorUrl -BackendHostNames $AppGatewayUrls -DeployWAFPolicies
+./Deploy.ps1 -ApplicationName $AppName -FrontDoorUri $FrontDoorUrl -BackendHostNames $AppGatewayUrls -DeployWAFPolicies -DeploymentType $DeploymentType -Regions $Regions
 
 Set-Location -Path $ui_directory
 Start-UiBuild
