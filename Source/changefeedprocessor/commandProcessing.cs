@@ -19,11 +19,11 @@ namespace Eventing
         public static async Task Run (
             [CosmosDBTrigger(
                 databaseName: "AesKeys", 
-                containerName: "Items", 
-                Connection = "COSMOSDB_CONNECTIONSTRING",
-                LeaseContainerName =  "leases",
-                LeaseContainerPrefix = "%LEASE_COLLECTION_PREFIX%",
-                CreateLeaseContainerIfNotExists = true
+                collectionName: "Items", 
+                ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING",
+                LeaseCollectionName  =  "leases",
+                LeaseCollectionPrefix = "%LEASE_COLLECTION_PREFIX%",
+                CreateLeaseCollectionIfNotExists = true
             )]IReadOnlyList<AesKey> changeStream,  
             
             [RedisOutput(
