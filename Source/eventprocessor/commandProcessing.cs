@@ -18,7 +18,8 @@ namespace Eventing
         public static async Task Run(
         
             [EventHubTrigger(
-                "events", 
+                "events",
+                ConsumerGroup =  "eventsfunction",
                 Connection = "EVENTHUB_CONNECTIONSTRING")] EventData[] events,
             [CosmosDB(
                 databaseName: "AesKeys", 

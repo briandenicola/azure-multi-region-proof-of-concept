@@ -155,6 +155,14 @@ resource "azurerm_eventhub" "cqrs_region" {
   message_retention     = 7
 }
 
+resource "azurerm_eventhub_consumer_group" "cqrs_region" {
+  for_each              = local.locations_se
+  name                  = "eventsfunction"
+  namespace_name        = azurerm_eventhub_namespace.cqrs_region[each.key].name
+  eventhub_name         = azurerm_eventhub.cqrs_region[each.key].name
+  resource_group_name   = azurerm_resource_group.cqrs_region[each.key].name
+}
+
 resource "azurerm_redis_cache" "cqrs_region" {
   for_each              = local.locations_set
   name                  = "${var.redis_name}${index(var.locations,each.key)+1}"

@@ -49,6 +49,8 @@ spec:
   triggers:
   - type: azure-eventhub
     metadata:
+      consumerGroup: eventsfunction
+      checkpointStrategy: azureFunction
       connectionFromEnv: EVENTHUB_CONNECTIONSTRING
       storageConnectionFromEnv: AzureWebJobsStorage
 ---
