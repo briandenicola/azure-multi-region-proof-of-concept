@@ -83,7 +83,7 @@ resource "azurerm_log_analytics_workspace" "cqrs_logs" {
   name                = var.loganalytics_account_name
   resource_group_name = azurerm_resource_group.cqrs_global.name
   location            = azurerm_resource_group.cqrs_global.location
-  sku                 = "pergb2018"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_application_insights" "cqrs_ai" {

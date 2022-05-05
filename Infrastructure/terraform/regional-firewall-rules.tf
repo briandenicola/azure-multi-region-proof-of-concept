@@ -37,6 +37,8 @@ resource "azurerm_firewall" "cqrs_region" {
   resource_group_name = azurerm_resource_group.cqrs_region[each.key].name
   location            = azurerm_resource_group.cqrs_region[each.key].location
   firewall_policy_id  = azurerm_firewall_policy.cqrs_region[each.key].id
+  sku_tier            = "Standard"
+  sku_name            = "AZFW_VNet"
 
   ip_configuration {
     name                 = "confiugration"
@@ -177,6 +179,21 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
         destination_fqdns = [
             "*.docker.io",
             "production.cloudflare.docker.com"
+        ]
+    } 
+
+    rule {
+        name              = "keda"
+        source_addresses  = ["*"]
+      
+        protocols {
+            port            = "443"
+            type            = "Https"
+        }
+
+        destination_fqdns = [
+            "ghcr.io",
+            "pkg-containers.githubusercontent.com"
         ]
     } 
 

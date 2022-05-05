@@ -156,7 +156,7 @@ resource "azurerm_eventhub" "cqrs_region" {
 }
 
 resource "azurerm_eventhub_consumer_group" "cqrs_region" {
-  for_each              = local.locations_se
+  for_each              = local.locations_set
   name                  = "eventsfunction"
   namespace_name        = azurerm_eventhub_namespace.cqrs_region[each.key].name
   eventhub_name         = azurerm_eventhub.cqrs_region[each.key].name
@@ -178,15 +178,6 @@ resource "azurerm_redis_cache" "cqrs_region" {
   }
 }
 
-/*
-resource "azurerm_redis_linked_server" "cqrs_region-link" {
-  target_redis_cache_name     = azurerm_redis_cache.cqrs_region[(var.locations[0])].name
-  resource_group_name         = azurerm_redis_cache.cqrs_region[(var.locations[0])].resource_group_name
-  linked_redis_cache_id       = azurerm_redis_cache.cqrs_region[(var.locations[1])].id
-  linked_redis_cache_location = azurerm_redis_cache.cqrs_region[(var.locations[1])].location
-  server_role                 = "Secondary"
-}*/
-
 resource "azurerm_storage_account" "cqrs_region" {
   for_each                 = local.locations_set
   name                     = "${var.storage_name}${index(var.locations,each.key)+1}"
@@ -204,7 +195,6 @@ resource "azurerm_public_ip" "firewall" {
   location            = azurerm_resource_group.cqrs_region[each.key].location
   allocation_method   = "Static"
   sku                 = "Standard"
-  availability_zone   = "No-Zone"
 }
 
 resource "azurerm_route_table" "cqrs_region" {
@@ -229,24 +219,19 @@ resource "azurerm_route_table" "cqrs_region" {
 }
 
 resource "azurerm_kubernetes_cluster" "cqrs_region" {
-  for_each                        = local.locations_set
-  depends_on                      = [ azurerm_route_table.cqrs_region, azurerm_firewall_policy_rule_collection_group.cqrs_region ]
-  name                            = "${var.aks_name}${index(var.locations,each.key)+1}"
-  resource_group_name             = azurerm_resource_group.cqrs_region[each.key].name
-  location                        = azurerm_resource_group.cqrs_region[each.key].location
-  node_resource_group             = "${var.application_name}_${each.key}_aks_nodes"
-  dns_prefix                      = "${var.aks_name}${index(var.locations,each.key)+1}"
-  sku_tier                        = "Paid"
-  api_server_authorized_ip_ranges = [var.api_server_authorized_ip_ranges, "${azurerm_public_ip.firewall[each.key].ip_address}/32"]
-  automatic_channel_upgrade       = "patch"
-
-  linux_profile {
-    admin_username = "manager"
-
-    ssh_key {
-      key_data = var.ssh_public_key
-    }
-  }
+  for_each                            = local.locations_set
+  depends_on                          = [ azurerm_route_table.cqrs_region, azurerm_firewall_policy_rule_collection_group.cqrs_region ]
+  name                                = "${var.aks_name}${index(var.locations,each.key)+1}"
+  resource_group_name                 = azurerm_resource_group.cqrs_region[each.key].name
+  location                            = azurerm_resource_group.cqrs_region[each.key].location
+  node_resource_group                 = "${var.application_name}_${each.key}_aks_nodes"
+  dns_prefix                          = "${var.aks_name}${index(var.locations,each.key)+1}"
+  sku_tier                            = "Paid"
+  azure_policy_enabled                = true
+  oidc_issuer_enabled                 = true 
+  role_based_access_control_enabled   = true
+  api_server_authorized_ip_ranges     = [var.api_server_authorized_ip_ranges, "${azurerm_public_ip.firewall[each.key].ip_address}/32"]
+  automatic_channel_upgrade           = "patch"
 
   identity {
     type = "SystemAssigned"
@@ -265,10 +250,6 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
     max_pods            = 40
   }
 
-  role_based_access_control {
-    enabled = "true"
-  }
-
   network_profile {
     dns_service_ip     = "10.19${index(var.locations,each.key)}.0.10"
     service_cidr       = "10.19${index(var.locations,each.key)}.0.0/16"
@@ -279,14 +260,12 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
     network_policy     = "calico"
   }
 
-  addon_profile {
-    oms_agent {
-      enabled                    = true
-      log_analytics_workspace_id = azurerm_log_analytics_workspace.cqrs_logs.id
-    }
-    azure_policy {
-      enabled                   = "true"
-    }
+  oms_agent {
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.cqrs_logs.id
+  }
+
+  microsoft_defender {
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.cqrs_logs.id
   }
 
 }
