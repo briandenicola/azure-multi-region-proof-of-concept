@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using Newtonsoft.Json; 
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
-using Microsoft.Azure.EventHubs;
+//using Microsoft.Azure.EventHubs;
+using Azure.Messaging.EventHubs;
 using Microsoft.Extensions.Logging;
 
 
@@ -20,18 +21,17 @@ namespace Eventing
             [EventHubTrigger(
                 "events",
                 ConsumerGroup =  "eventsfunction",
-                Connection = "EVENTHUB_CONNECTIONSTRING")] EventData[] events,
+                Connection = "EVENTHUB_CONNECTIONSTRING")] string[] events,
             [CosmosDB(
                 databaseName: "AesKeys", 
                 collectionName: "Items", 
                 ConnectionStringSetting  = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
             ILogger log)
         {
-            foreach (var e in events)
+            foreach (var message in events )
             {
-                string messageBody = Encoding.UTF8.GetString(e.Body.Array, e.Body.Offset, e.Body.Count);
-                log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
-                var key = JsonConvert.DeserializeObject<AesKey>(messageBody);
+                log.LogInformation($"C# Event Hub trigger function processed a message: {message}");
+                var key = JsonConvert.DeserializeObject<AesKey>(message);
                 
                 key.Id = Guid.NewGuid().ToString(); 
 
