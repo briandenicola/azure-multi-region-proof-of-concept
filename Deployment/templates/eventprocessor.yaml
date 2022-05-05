@@ -42,8 +42,9 @@ metadata:
 spec:
   scaleTargetRef:
     name: eventprocessor
-  minReplicaCount: 3
-  maxReplicaCount: 15
+  minReplicaCount: 0
+  maxReplicaCount: 3
+  cooldownPeriod:  2 
   pollingInterval: 15
   triggers:
   - type: azure-eventhub
