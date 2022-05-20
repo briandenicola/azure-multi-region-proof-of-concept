@@ -69,8 +69,8 @@ namespace Eventing
         [JsonProperty("timeStamp")]
         public string TimeStamp { get; set; }
 
-		public AesKey() {
-			Id = Guid.NewGuid().ToString();
-		}
+	public AesKey() {
+		Id = Guid.NewGuid().ToString();
+	}
     }
 }
