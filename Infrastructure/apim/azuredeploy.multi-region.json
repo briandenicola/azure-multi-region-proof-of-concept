@@ -75,7 +75,7 @@
     "resources": [
         {
             "type": "Microsoft.ApiManagement/service",
-            "apiVersion": "2019-01-01",
+            "apiVersion": "2021-01-01-preview",
             "name": "[parameters('apiManagementName')]",
             "location": "[parameters('location')]",
             "sku": {
