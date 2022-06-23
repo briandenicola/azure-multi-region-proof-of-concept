@@ -62,29 +62,34 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
 * You need to manually enable TLS on the custom Front Door Uri. Use the Front Door provided certificate 
 
 # Testing
-## Test Local Deployment directly on AKS clusters 
-* ./Scripts/create_keys.sh 100 
-* ./Scripts/get_keys.sh ${keyId} 
-    * Where ${keyId} is a GUID taken from the output of create_keys.sh
+## Test Local Deployment directly on AKS clusters
+```bash
+./Scripts/create_keys.sh 100 
+./Scripts/get_keys.sh ${keyId} //Where ${keyId} is a GUID taken from the output of create_keys.sh
+```
 
 ## Test Application Gateways Individually using PowerShell
 * Obtain your APIM subscription key
-* $h = New-APIMHeader -key $apiSubscriptionKey _New-APIMHeader is a method in bjd.Azure.Functions_
-* Invoke-RestMethod -UseBasicParsing -Uri https://api.us.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
-* Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
-* $keyId = copy a reply from the commands above
-* Invoke-RestMethod -UseBasicParsing -Uri https://api.us.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
-* Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
+```pwsh
+$h = New-APIMHeader -key $apiSubscriptionKey _New-APIMHeader is a method in bjd.Azure.Functions_
+Invoke-RestMethod -UseBasicParsing -Uri https://api.us.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
+Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
+$keyId = copy a reply from the commands above
+Invoke-RestMethod -UseBasicParsing -Uri https://api.us.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
+Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
+```
 
 ## Test Azure Front Door globally with Azure ACI
-* cd .\Infrastructure\ACI
-* New-AzResourceGroup -Name ${appName}_tests_rg -l eastus2
-* New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_testing_rg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjd.demo -keyGuid ${keyId}
-* az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-get
-* az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-post
-* az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-get
-* az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-post
-* az container logs --resource-group ${appName}_tests_rg --name utils-japaneast-get
+```pwsh
+cd .\Infrastructure\ACI
+New-AzResourceGroup -Name ${appName}_tests_rg -l eastus2
+New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_testing_rg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjd.demo -keyGuid ${keyId}
+az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-get
+az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-post
+az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-get
+az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-post
+az container logs --resource-group ${appName}_tests_rg --name utils-japaneast-get
+```
 
 ## Test using Azure Static Web Apps using Playwright
 * TBD
