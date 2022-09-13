@@ -10,7 +10,7 @@ In other words, the world's most expensive random number generator....
 # Setup
 
 ## Prerequisite
-* Azure PowerShell, Azure Cli, Terraform, Helm and Kubectl
+* Azure PowerShell, Azure Cli, Azure Static Webapp cli, Terraform, Helm and Kubectl
 * A public domain that you can create DNS records
    * Will use bjd.demo for this documentation 
    * The Public domain is used by Let's Encrypt to valiate domain ownership before granting tls certificates 

@@ -94,33 +94,20 @@ function Deploy-toAzStaticWebApp
 {
     param(
         [string] $Name,
-        [string] $ResourceGroup,
         [string] $LocalPath
     )
 
     function Get-AzStaticWebAppSecrets {
         param (
-            [string] $Name,
-            [string] $ResourceGroup
+            [string] $Name
         )
 
-        $management_uri = "https://management.azure.com"
-        $api_version_query = "listsecrets?api-version=2020-06-01"
-        $id = Get-AzStaticWebApp -Name $Name -ResourceGroupName $ResourceGroup | Select-Object -ExpandProperty Id
-        $uri = "{0}{1}/{2}" -f $management_uri, $id, $api_version_query
-
-        return (Invoke-AzRestMethod -Method POST -Uri $uri | Select-Object -ExpandProperty Properties | Select-Object -ExpandProperty apiKey)
+        return (az staticwebapp secrets list --name $Name -o tsv --query "properties.apiKey")
     }
 
-    $token = Get-AzStaticWebAppSecrets -Name $Name -ResourceGroup $ResourceGroup
+    $token = Get-AzStaticWebAppSecrets -Name $Name
+    swa deploy $LocalPath --deployment-token $token --env production
 
-    docker run --entrypoint "/bin/staticsites/StaticSitesClient" `
-        --volume ${LocalPath}:/root/build `
-        mcr.microsoft.com/appsvc/staticappsclient:latest `
-        upload `
-        --skipAppBuild true `
-        --app /root/build/wwwroot `
-        --apiToken $token
 }
 
 Set-Variable -Name APP_UI_NAME              -Value ("{0}ui01" -f $AppName)         -Option Constant
@@ -155,6 +142,6 @@ Set-Location -Path $frontdoor_directory
 Set-Location -Path $ui_directory
 Start-UiBuild
 New-AzStaticWebApp -Name $APP_UI_NAME -ResourceGroupName $APP_UI_RG -Location $Regions[0] -SkuName Free -AppLocation "/Source/ui" -AppArtifactLocation "wwwroot" 
-Deploy-toAzStaticWebApp -Name $APP_UI_NAME -ResourceGroup $APP_UI_RG -LocalPath (Join-Path -Path $PWD.Path -ChildPath "build")
+Deploy-toAzStaticWebApp -Name $APP_UI_NAME -LocalPath (Join-Path -Path $PWD.Path -ChildPath "build")
 
 Set-Location -Path $cwd
