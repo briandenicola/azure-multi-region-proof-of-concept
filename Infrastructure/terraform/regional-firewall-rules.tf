@@ -449,17 +449,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "keda_requirements" {
     priority                = 600
     action                  = "Allow"
 
-    dynamic "rule" {
-      for_each                = local.locations_set
-      content {
-        name                  = "aksapi-ip-${each.key}"
-        source_addresses      = ["*"]
-        destination_ports     = ["443"]
-        protocols             = ["TCP"]
-        destination_fqdns     = [
-          azurerm_kubernetes_cluster.cqrs_region[each.key].fqdn
-        ]
-      }
+    rule {
+      name                  = "aksapi-ips"
+      source_addresses      = ["*"]
+      destination_ports     = ["443"]
+      protocols             = ["TCP"]
+      destination_fqdns     = [
+        azurerm_kubernetes_cluster.cqrs_region[each.key].fqdn
+      ]
     }
   }
 }
