@@ -19,6 +19,7 @@ type RequestBody struct {
 type AesKey struct {
 	KeyID 		string	`json:"keyId"`
 	Key   		string	`json:"key"`
+	FromCache	bool	`json:"fromCache"`
 	ReadHost	string	`json:"readHost"`
 	WriteHost 	string	`json:"writeHost"`
 	ReadRegion	string	`json:"readRegion"`
@@ -31,6 +32,7 @@ type Document struct {
 	documentdb.Document
 	KeyID 		string	`json:"keyId,omitempty"`
 	Key   		string	`json:"key,omitempty"`
+	FromCache	bool	`json:"fromCache,omitempty"`
 	ReadHost	string	`json:"readHost,omitempty"`
 	WriteHost 	string	`json:"writeHost,omitempty"`
 	ReadRegion	string	`json:"readRegion,omitempty"`

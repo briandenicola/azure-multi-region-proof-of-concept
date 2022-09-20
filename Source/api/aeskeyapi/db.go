@@ -104,6 +104,7 @@ func (k *AESKeyDB) Get(id string)(*AesKey,error) {
 	
 	if err == nil {
 		_ = json.Unmarshal([]byte(result), &key)
+		key.FromCache = true
 		return key, nil
 	}
 
