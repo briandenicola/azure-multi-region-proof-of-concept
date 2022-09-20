@@ -14,11 +14,11 @@ namespace Eventing
         public static async Task Run (
             [CosmosDBTrigger(
                 databaseName: "AesKeys", 
-                collectionName: "Items", 
-                ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING",
-                LeaseCollectionName  =  "leases",
-                LeaseCollectionPrefix = "LEASE_COLLECTION_PREFIX",
-                CreateLeaseCollectionIfNotExists = true
+                containerName: "Items", 
+                Connection  = "COSMOSDB_CONNECTIONSTRING",
+                LeaseContainerName   =  "leases",
+                LeaseContainerPrefix = "LEASE_COLLECTION_PREFIX",
+                CreateLeaseContainerIfNotExists = true
             )]IReadOnlyList<AesKey> changeStream,  
             
             [RedisOutput(
@@ -27,7 +27,7 @@ namespace Eventing
             
             ILogger log)
         {
-            if (changeStream != null || changeStream.Count > 0) {
+            if (changeStream != null && changeStream.Count > 0) {
                 try {
                     log.LogInformation($"{changeStream.Count} - Documents will be added to Cache");
 
@@ -51,6 +51,7 @@ namespace Eventing
     {
         public string keyId { get; set; }
         public string key { get; set; }
+
         public bool fromCache  { get; set; }
         public string readHost  { get; set; }
         public string writeHost  { get; set; }
