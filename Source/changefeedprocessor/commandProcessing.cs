@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json; 
-using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Documents;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Fbeltrao.AzureFunctionExtensions;
-using StackExchange.Redis;
 
 namespace Eventing
 {
@@ -22,12 +17,12 @@ namespace Eventing
                 collectionName: "Items", 
                 ConnectionStringSetting = "COSMOSDB_CONNECTIONSTRING",
                 LeaseCollectionName  =  "leases",
-                LeaseCollectionPrefix = "%LEASE_COLLECTION_PREFIX%",
+                LeaseCollectionPrefix = "LEASE_COLLECTION_PREFIX",
                 CreateLeaseCollectionIfNotExists = true
             )]IReadOnlyList<AesKey> changeStream,  
             
             [RedisOutput(
-                Connection = "%REDISCACHE_CONNECTIONSTRING%"
+                Connection = "REDISCACHE_CONNECTIONSTRING"
             )] IAsyncCollector<RedisOutput> cacheKeys,                
             
             ILogger log)
@@ -56,7 +51,7 @@ namespace Eventing
     {
         public string keyId { get; set; }
         public string key { get; set; }
-        public bool FromCache  { get; set; }
+        public bool fromCache  { get; set; }
         public string readHost  { get; set; }
         public string writeHost  { get; set; }
         public string readRegion  { get; set; }
