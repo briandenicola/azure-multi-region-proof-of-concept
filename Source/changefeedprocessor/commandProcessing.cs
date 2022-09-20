@@ -22,7 +22,7 @@ namespace Eventing
             )]IReadOnlyList<AesKey> changeStream,  
             
             [RedisOutput(
-                Connection = "REDISCACHE_CONNECTIONSTRING"
+                Connection = "%REDISCACHE_CONNECTIONSTRING%"
             )] IAsyncCollector<RedisOutput> cacheKeys,                
             
             ILogger log)
