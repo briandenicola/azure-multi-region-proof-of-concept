@@ -70,6 +70,7 @@ func NewAesKey() (*AesKey) {
 	var key = AesKey{ 
 		createUUID(),
 		createKey(),
+		false,
 		getEmptyString(),
 		getHost(),
 		getEmptyString(),

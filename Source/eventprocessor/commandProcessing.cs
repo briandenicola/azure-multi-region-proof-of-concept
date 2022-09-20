@@ -54,6 +54,9 @@ namespace Eventing
         [JsonProperty("key")]
         public string Key { get; set; }
 
+        [JsonProperty("fromCache")]
+        public bool FromCache  { get; set; }
+
         [JsonProperty("readHost")]
         public string ReadHost  { get; set; }
 
