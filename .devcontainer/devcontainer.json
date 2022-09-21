@@ -1,0 +1,50 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.236.0/containers/dotnet
+{
+	"name": "azure-multi-region-proof-of-concept",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": { 
+			"VARIANT": "1.17-bullseye",
+			"NODE_VERSION": "lts/*"
+		}		
+	},
+	"runArgs": ["--init", "--privileged"],
+
+	"forwardPorts": [
+		8081
+	],
+
+	"portsAttributes": {
+		"8081": { "label": "App"}
+	},
+
+	"customizations": {
+		"vscode": {	
+			"settings": { 
+				"go.toolsManagement.checkForUpdates": "local",
+				"go.useLanguageServer": true,
+				"go.gopath": "/go",
+				"go.goroot": "/usr/local/go"
+			},
+			
+			"extensions": [
+				"golang.Go",
+				"GitHub.copilot"
+			]
+		}
+	},
+
+	"remoteUser": "vscode",
+	"features": {
+		"kubectl-helm-minikube": "1.23",
+		"terraform": "latest",
+		"azure-cli": "latest",
+		"docker-from-docker": "latest"
+	},
+
+	"waitFor": "postCreateCommand",
+
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	"postStartCommand": "bash .devcontainer/post-start.sh"
+}
