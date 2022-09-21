@@ -1,9 +1,9 @@
 package main
 
 import (
-	"os"
-	"log"
 	"github.com/bjd145/cqrs/aeskeyapi"
+	"log"
+	"os"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 	port := ":8081"
 	if os.Getenv("AES_KEYS_PORT") != "" {
 		port = os.Getenv("AES_KEYS_PORT")
-	} 
+	}
 
 	s := aeskeyapi.NewKeyAPI()
 	s.InitHTTPServer(port)

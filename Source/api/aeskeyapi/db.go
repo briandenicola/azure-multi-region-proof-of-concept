@@ -3,60 +3,60 @@ package aeskeyapi
 import (
 	"context"
 	"crypto/tls"
-	"time"
-	"os"
 	"encoding/json"
 	"github.com/Azure/azure-event-hubs-go/v3"
-	"github.com/go-redis/redis/v8"
 	"github.com/a8m/documentdb"
+	"github.com/go-redis/redis/v8"
+	"os"
+	"time"
 )
 
-//DB Interface 
+//DB Interface
 type DB interface {
-	Get(id string) (*AesKey,error)
+	Get(id string) (*AesKey, error)
 	Add(k *AesKey)
-	Save() ([]*AesKey,error)
+	Save() ([]*AesKey, error)
 	Flush()
 }
 
-//AESKeyDB Structure 
+//AESKeyDB Structure
 type AESKeyDB struct {
 	Database   string
 	Collection string
 	EventHub   string
 
-	kafkaClient *eventhub.Hub
-	redisClient *redis.Client
+	kafkaClient  *eventhub.Hub
+	redisClient  *redis.Client
 	cosmosClient *documentdb.DocumentDB
 
 	db         *documentdb.Database
 	collection *documentdb.Collection
-	
-	keys	   []*AesKey
+
+	keys []*AesKey
 }
 
-//NewKeysDB - Initialize connections to Event Hub, Cosmos and Redis 
-func NewKeysDB() (*AESKeyDB, error){
+//NewKeysDB - Initialize connections to Event Hub, Cosmos and Redis
+func NewKeysDB() (*AESKeyDB, error) {
 	var err error
 
 	db := new(AESKeyDB)
-	db.Database   = COSMOS_DATABASE_NAME 
+	db.Database = COSMOS_DATABASE_NAME
 	db.Collection = COSMOS_COLLECTION_NAME
-	db.EventHub   = EVENT_HUB_NAME
+	db.EventHub = EVENT_HUB_NAME
 
-	kafkaConStr := parseEventHubConnectionString( os.Getenv("EVENTHUB_CONNECTIONSTRING") ) 
+	kafkaConStr := parseEventHubConnectionString(os.Getenv("EVENTHUB_CONNECTIONSTRING"))
 	db.kafkaClient, _ = eventhub.NewHubFromConnectionString(kafkaConStr)
-	
-	redisServer, redisPasswords := parseRedisConnectionString( os.Getenv("REDISCACHE_CONNECTIONSTRING") )
+
+	redisServer, redisPasswords := parseRedisConnectionString(os.Getenv("REDISCACHE_CONNECTIONSTRING"))
 	db.redisClient = redis.NewClient(&redis.Options{
-		Addr:     		redisServer,
-		Password: 		redisPasswords, 
-		DB:       		0,
-		TLSConfig:		&tls.Config{InsecureSkipVerify: true},
+		Addr:      redisServer,
+		Password:  redisPasswords,
+		DB:        0,
+		TLSConfig: &tls.Config{InsecureSkipVerify: true},
 	})
 	//defer db.redisClient.Close()
 
-	cosmsosURL, cosomosMasterKey := parseCosmosConnectionString( os.Getenv("COSMOSDB_CONNECTIONSTRING") )
+	cosmsosURL, cosomosMasterKey := parseCosmosConnectionString(os.Getenv("COSMOSDB_CONNECTIONSTRING"))
 	cosmosConfig := documentdb.NewConfig(&documentdb.Key{
 		Key: cosomosMasterKey,
 	})
@@ -72,11 +72,11 @@ func NewKeysDB() (*AESKeyDB, error){
 }
 
 //Save - Write AES Key object to Azure Event Hub
-func (k *AESKeyDB) Save() ([]*AesKey,error) {
+func (k *AESKeyDB) Save() ([]*AesKey, error) {
 
-	var(
-		 err   	error
-		 events	[]*eventhub.Event
+	var (
+		err    error
+		events []*eventhub.Event
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -84,24 +84,24 @@ func (k *AESKeyDB) Save() ([]*AesKey,error) {
 
 	for index := range k.keys {
 		encodedAesKey, _ := json.Marshal(k.keys[index])
-		events  = append(events, eventhub.NewEvent(encodedAesKey))
+		events = append(events, eventhub.NewEvent(encodedAesKey))
 	}
 
 	err = k.kafkaClient.SendBatch(ctx, eventhub.NewEventBatchIterator(events...))
 	return k.keys, err
 }
 
-//Get - Retrieve AES Key object from Redis cache or Cosmos DB 
-func (k *AESKeyDB) Get(id string)(*AesKey,error) {
+//Get - Retrieve AES Key object from Redis cache or Cosmos DB
+func (k *AESKeyDB) Get(id string) (*AesKey, error) {
 	var keys []*AesKey
-	var key  *AesKey
-	var err  error 
+	var key *AesKey
+	var err error
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	result, err := k.redisClient.Get(ctx, id).Result()
-	
+
 	if err == nil {
 		_ = json.Unmarshal([]byte(result), &key)
 		key.FromCache = true
@@ -111,10 +111,10 @@ func (k *AESKeyDB) Get(id string)(*AesKey,error) {
 	query := documentdb.NewQuery("SELECT * FROM c WHERE c.keyId=@keyId", documentdb.P{Name: "@keyId", Value: id})
 	_, err = k.cosmosClient.QueryDocuments(k.collection.Self, query, &keys)
 
-	if err == nil && len(keys) != 0  {
-		return keys[0],nil
-	} 
-	
+	if err == nil && len(keys) != 0 {
+		return keys[0], nil
+	}
+
 	return nil, err
 
 }
@@ -133,23 +133,23 @@ func (k *AESKeyDB) Flush() {
 func (k *AESKeyDB) findCollection(name string) (err error) {
 
 	query := documentdb.NewQuery("SELECT * FROM ROOT r WHERE r.id=@name", documentdb.P{Name: "@name", Value: name})
-	colls, err := k.cosmosClient.QueryCollections(k.db.Self, query);
+	colls, err := k.cosmosClient.QueryCollections(k.db.Self, query)
 	if err != nil {
 		return err
-	} 
-	
-	k.collection = &colls[0]	
+	}
+
+	k.collection = &colls[0]
 	return
 }
 
 //findDatabase - Finds Database in CosmosDB Account
 func (k *AESKeyDB) findDatabase(name string) (err error) {
-	
+
 	query := documentdb.NewQuery("SELECT * FROM ROOT r WHERE r.id=@name", documentdb.P{Name: "@name", Value: name})
-	dbs, err := k.cosmosClient.QueryDatabases(query);
+	dbs, err := k.cosmosClient.QueryDatabases(query)
 	if err != nil {
 		return err
-	} 
+	}
 
 	k.db = &dbs[0]
 	return
