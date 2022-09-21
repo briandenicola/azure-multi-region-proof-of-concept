@@ -10,7 +10,6 @@ import (
 )
 
 func parseEventHubConnectionString(constr string)(string) {
-	//return constr + ";EntityPath=" + EVENT_HUB_NAME
 	return constr
 }
 

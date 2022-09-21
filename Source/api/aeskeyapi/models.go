@@ -1,7 +1,7 @@
 package aeskeyapi
 
 import (
-	"github.com/a8m/documentdb"
+	//"github.com/a8m/documentdb"
 )
 
 const (
@@ -27,6 +27,7 @@ type AesKey struct {
 	TimeStamp 	string	`json:"timeStamp"`
 }
 
+/*
 //Document - AESKey Document Object
 type Document struct {
 	documentdb.Document
@@ -38,7 +39,7 @@ type Document struct {
 	ReadRegion	string	`json:"readRegion,omitempty"`
 	WriteRegion	string	`json:"writeRegion,omitempty"`
 	TimeStamp 	string	`json:"timeStamp,omitempty"`
-}
+}*/
 
 type KeepAlive struct {
 	State		string `json:"state"`
