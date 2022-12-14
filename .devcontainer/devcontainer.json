@@ -37,7 +37,6 @@
 
 	"remoteUser": "vscode",
 	"features": {
-		"kubectl-helm-minikube": "1.23",
 		"terraform": "latest",
 		"azure-cli": "latest",
 		"docker-from-docker": "latest"
