@@ -1,16 +1,13 @@
 package aeskeyapi
 
 import (
-	//"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/microsoft/ApplicationInsights-Go/appinsights"
-	//"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	//"strconv"
 	"time"
 )
 
@@ -53,7 +50,7 @@ func (a *AESApi) InitHTTPServer(port string) {
 	router.SetTrustedProxies(nil)
 	router.Use(gin.LoggerWithFormatter(a.CustomLogger))
 	router.Use(a.AppInsightsTracer())
-    router.Use(cors.Default())
+	router.Use(cors.Default())
 	router.Use(gin.Recovery())
 
 	apirouter := router.Group("/api")
@@ -73,6 +70,7 @@ func (a *AESApi) InitHTTPServer(port string) {
 }
 
 func (a *AESApi) CustomLogger(param gin.LogFormatterParams) string {
+
 	return fmt.Sprintf("%s - [%s] %s %s %s %d %s %s\n",
 		param.ClientIP,
 		param.TimeStamp.Format(time.RFC1123),
@@ -86,7 +84,7 @@ func (a *AESApi) CustomLogger(param gin.LogFormatterParams) string {
 }
 
 func (a *AESApi) AppInsightsTracer() gin.HandlerFunc {
-	log.Print("Inside AppInsightTracer()")
+
 	return func(c *gin.Context) {
 
 		startTime := time.Now()
@@ -102,6 +100,7 @@ func (a *AESApi) AppInsightsTracer() gin.HandlerFunc {
 }
 
 func (a *AESApi) LogErrorHandler(c *gin.Context, err error) {
+
 	if err != nil {
 		log.Printf("Error - %s", err)
 		trace := appinsights.NewTraceTelemetry(err.Error(), appinsights.Error)
@@ -114,6 +113,7 @@ func (a *AESApi) LogErrorHandler(c *gin.Context, err error) {
 }
 
 func (a *AESApi) ParseRequestBody(c *gin.Context) int {
+
 	var json RequestBody
 
 	if c.BindJSON(&json) == nil {
@@ -134,6 +134,7 @@ func (a *AESApi) NotImplemented(c *gin.Context) {
 
 //GetbyId - HTTP GET Handler
 func (a *AESApi) GetById(c *gin.Context) {
+
 	id := c.Param("id")
 	key, err := a.keydb.Get(id)
 
@@ -152,6 +153,7 @@ func (a *AESApi) GetById(c *gin.Context) {
 
 //Post - HTTP POST Handler
 func (a *AESApi) Post(c *gin.Context) {
+	
 	keysToGenerator := a.ParseRequestBody(c)
 
 	log.Printf("Keys to generate - %d", keysToGenerator)
