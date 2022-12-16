@@ -58,26 +58,19 @@ func (a *AESApi) InitHTTPServer(port string) {
 	apirouter.DELETE("/keys/:id", a.NotImplemented)
 	apirouter.PUT("/keys/:id", a.NotImplemented)
 	
-	/*apirouter.Methods("GET").Path("/keys").HandlerFunc(a.NotImplemented)
-	apirouter.Methods("GET").Path("/keys/{id}").HandlerFunc(a.GetById)
-	apirouter.Methods("DELETE").Path("/keys/{id}").HandlerFunc(a.NotImplemented)
-	apirouter.Methods("PUT").Path("/keys/{id}").HandlerFunc(a.NotImplemented)
-	apirouter.Methods("POST").Path("/keys").HandlerFunc(a.Post)
-	apirouter.Methods("OPTIONS").Path("/keys").HandlerFunc(a.Options)
-	*/
-
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"state": "I'm alive!"})
 	})
 
-	//router.Use(a.AppInsightsTracer())
-	//router.Use(gin.LoggerWithFormatter(a.Logger))
+	router.SetTrustedProxies(nil)
+	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	//router.Use(a.AppInsightsTracer())
+	router.Use(gin.LoggerWithFormatter(a.Logger))
     router.Use(cors.Default())
-    router.Run()
 
 	log.Print("Listening on ", port)
-	log.Fatal(router.Run())
+	log.Fatal(router.Run(port))
 }
 
 func (a *AESApi) Logger(param gin.LogFormatterParams) string {
@@ -94,17 +87,23 @@ func (a *AESApi) Logger(param gin.LogFormatterParams) string {
 }
 
 func (a *AESApi) AppInsightsTracer() gin.HandlerFunc {
+	log.Print("Inside AppInsightTracer()")
 	return func(c *gin.Context) {
 
+		log.Print("[Debug] - Inside return")
 		startTime := time.Now()
 		c.Next()
 		duration := time.Since(startTime)
 
+		log.Print("[Debug] - Creating NewRequestTelemetry")
 		trace := appinsights.NewRequestTelemetry(c.Request.Method, c.FullPath(), duration, "200")
 		trace.Id = c.GetHeader("Correlation-Id")
 		trace.Properties["X-FORWARD-FOR"] = c.GetHeader("X-FORWARDED-FOR")
+		log.Print("[Debug] - Got X-FORWARD-FOR value: ", c.GetHeader("X-FORWARDED-FOR"))
 		trace.Timestamp = time.Now()
+		log.Print("[Debug] - Sending track to AppInsights")
 		a.aiClient.Track(trace)
+		log.Print("[Debug] - Sending track to AppInsights (Complete)")
 	}
 }
 
