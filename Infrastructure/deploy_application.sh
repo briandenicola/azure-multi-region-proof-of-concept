@@ -155,9 +155,9 @@ do
     helm upgrade -i keda kedacore/keda --namespace keda --version 2.6.2
 
     ## Install Kured 
-    helm repo add kured https://weaveworks.github.io/kured
+    helm repo add kured https://kubereboot.github.io/charts
     helm repo update
-    helm upgrade -i kured kured/kured -n kured --create-namespace
+    helm upgrade -i kured kured/kured -n kured-system --create-namespace
 
     #Region encoding
     regionEncoded=`echo -n ${region} | base64 -w 0`
