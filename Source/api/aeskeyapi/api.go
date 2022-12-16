@@ -22,7 +22,7 @@ type API interface {
 	Post(c *gin.Context)
 	Options(c *gin.Context)
 	ParseRequestBody(c *gin.Context) int
-	Logger(param gin.LogFormatterParams) string
+	CustomLogger(param gin.LogFormatterParams) string
 	AppInsightsTracer() gin.HandlerFunc 
 	LogErrorHandler(err error)
 }
@@ -51,7 +51,7 @@ func (a *AESApi) InitHTTPServer(port string) {
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
-	router.Use(gin.LoggerWithFormatter(a.Logger))
+	router.Use(gin.LoggerWithFormatter(a.CustomLogger))
 	router.Use(a.AppInsightsTracer())
     router.Use(cors.Default())
 	router.Use(gin.Recovery())
@@ -72,7 +72,7 @@ func (a *AESApi) InitHTTPServer(port string) {
 	log.Fatal(router.Run(port))
 }
 
-func (a *AESApi) Logger(param gin.LogFormatterParams) string {
+func (a *AESApi) CustomLogger(param gin.LogFormatterParams) string {
 	return fmt.Sprintf("%s - [%s] %s %s %s %d %s %s\n",
 		param.ClientIP,
 		param.TimeStamp.Format(time.RFC1123),
@@ -89,20 +89,15 @@ func (a *AESApi) AppInsightsTracer() gin.HandlerFunc {
 	log.Print("Inside AppInsightTracer()")
 	return func(c *gin.Context) {
 
-		log.Print("[Debug] - Inside return")
 		startTime := time.Now()
 		c.Next()
 		duration := time.Since(startTime)
 
-		log.Print("[Debug] - Creating NewRequestTelemetry")
 		trace := appinsights.NewRequestTelemetry(c.Request.Method, c.FullPath(), duration, "200")
 		trace.Id = c.GetHeader("Correlation-Id")
-		trace.Properties["X-FORWARD-FOR"] = c.GetHeader("X-FORWARDED-FOR")
-		log.Print("[Debug] - Got X-FORWARD-FOR value: ", c.GetHeader("X-FORWARDED-FOR"))
+		trace.Properties["X-FORWARDED-FOR"] = c.GetHeader("X-FORWARDED-FOR")
 		trace.Timestamp = time.Now()
-		log.Print("[Debug] - Sending track to AppInsights")
 		a.aiClient.Track(trace)
-		log.Print("[Debug] - Sending track to AppInsights (Complete)")
 	}
 }
 
