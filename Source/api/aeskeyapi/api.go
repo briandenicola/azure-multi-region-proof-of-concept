@@ -49,7 +49,13 @@ func NewKeyAPI() *AESApi {
 //InitHTTPServer - Initialized HTTP Server
 func (a *AESApi) InitHTTPServer(port string) {
 
-	router := gin.Default()
+	router := gin.New()
+	router.SetTrustedProxies(nil)
+	router.Use(gin.LoggerWithFormatter(a.Logger))
+	router.Use(a.AppInsightsTracer())
+    router.Use(cors.Default())
+	router.Use(gin.Recovery())
+
 	apirouter := router.Group("/api")
 	apirouter.GET("/keys/:id", a.GetById)
 	apirouter.POST("/keys",a.Post)
@@ -61,13 +67,6 @@ func (a *AESApi) InitHTTPServer(port string) {
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"state": "I'm alive!"})
 	})
-
-	router.SetTrustedProxies(nil)
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
-	//router.Use(a.AppInsightsTracer())
-	router.Use(gin.LoggerWithFormatter(a.Logger))
-    router.Use(cors.Default())
 
 	log.Print("Listening on ", port)
 	log.Fatal(router.Run(port))
