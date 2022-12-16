@@ -39,8 +39,8 @@ type Document struct {
 	ReadRegion	string	`json:"readRegion,omitempty"`
 	WriteRegion	string	`json:"writeRegion,omitempty"`
 	TimeStamp 	string	`json:"timeStamp,omitempty"`
-}*/
+}
 
 type KeepAlive struct {
 	State string `json:"state"`
-}
+}*/

@@ -9,7 +9,7 @@ import (
 func main() {
 	log.Print("Starting Server . . ")
 
-	port := ":8081"
+	port := ":8080"
 	if os.Getenv("AES_KEYS_PORT") != "" {
 		port = os.Getenv("AES_KEYS_PORT")
 	}

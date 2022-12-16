@@ -12,11 +12,11 @@
 	"runArgs": ["--init", "--privileged"],
 
 	"forwardPorts": [
-		8081
+		8080
 	],
 
 	"portsAttributes": {
-		"8081": { "label": "App"}
+		"8080": { "label": "App"}
 	},
 
 	"customizations": {
