@@ -10,5 +10,5 @@ FROM scratch
 COPY --from=busybox:1.28 /bin/busybox /bin/busybox
 COPY --from=builder /src/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /main ./
-EXPOSE 8081
+EXPOSE 8080
 ENTRYPOINT ["./main" ]
