@@ -226,7 +226,7 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
   location                            = azurerm_resource_group.cqrs_region[each.key].location
   node_resource_group                 = "${var.application_name}_${each.key}_aks_nodes"
   dns_prefix                          = "${var.aks_name}${index(var.locations,each.key)+1}"
-  sku_tier                            = "Paid"
+  sku_tier                            = "Standard"
   azure_policy_enabled                = true
   oidc_issuer_enabled                 = true 
   role_based_access_control_enabled   = true
