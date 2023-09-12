@@ -149,10 +149,10 @@ do
     helm upgrade -i traefik traefik/traefik -f  ../Infrastructure/traefik/values.yaml --wait
          
     ## Install Keda
-    helm repo add kedacore https://kedacore.github.io/charts
-    helm repo update
-    kubectl create namespace keda
-    helm upgrade -i keda kedacore/keda --namespace keda --version 2.6.2
+    #helm repo add kedacore https://kedacore.github.io/charts
+    #helm repo update
+    #kubectl create namespace keda
+    #helm upgrade -i keda kedacore/keda --namespace keda --version 2.11.2
 
     ## Install Kured 
     helm repo add kured https://kubereboot.github.io/charts
