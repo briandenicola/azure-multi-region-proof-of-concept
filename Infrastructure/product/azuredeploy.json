@@ -30,7 +30,7 @@
     "resources": [
         {
             "type": "Microsoft.ApiManagement/service/products",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-service')]",
             "properties": {
                 "displayName": "Key Service",
@@ -42,7 +42,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/products",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-service-1rps')]",
             "properties": {
                 "displayName": "Key Service (1rps)",
@@ -54,7 +54,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/apiVersionSets",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/', parameters('apiSet'))]",
             "properties": {
                 "displayName": "Key Service",
@@ -64,7 +64,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/apis",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service/apiVersionSets', parameters('apiManagementName'), parameters('apiSet'))]"
@@ -84,7 +84,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/apis",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api-v2')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service/apiVersionSets', parameters('apiManagementName'), parameters('apiSet'))]"
@@ -105,7 +105,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/apis/operations",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api/create-keys')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
@@ -138,7 +138,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/apis/operations",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api-v2/create-keys')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api-v2')]"
@@ -160,7 +160,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/apis/operations",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api-v2/get-key')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api-v2')]"
@@ -183,7 +183,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/products/policies",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-service-1rps/policy')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service/products', parameters('apiManagementName'), 'key-service-1rps')]"
@@ -195,7 +195,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/apis/policies",
-            "apiVersion": "2021-08-01",,
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api/policy')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api')]"
@@ -207,7 +207,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/apis/policies",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api-v2/policy')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apiManagementName'), 'key-api-v2')]"
@@ -219,7 +219,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/apis/operations/policies",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/key-api-v2/create-keys/policy')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('apiManagementName'), 'key-api-v2', 'create-keys')]",
@@ -232,7 +232,7 @@
         },
         {
             "type": "Microsoft.ApiManagement/service/namedValues",
-            "apiVersion": "2021-08-01",
+            "apiVersion": "2022-08-01",
             "name": "[concat(parameters('apiManagementName'), '/primaryBackendUrl')]",
             "properties": {
                 "displayName": "primaryBackendUrl",

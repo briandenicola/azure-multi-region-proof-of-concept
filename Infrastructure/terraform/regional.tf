@@ -231,13 +231,15 @@ resource "azurerm_kubernetes_cluster" "cqrs_region" {
   oidc_issuer_enabled               = true
   workload_identity_enabled         = true
   role_based_access_control_enabled = true
-  api_server_authorized_ip_ranges   = [var.api_server_authorized_ip_ranges, "${azurerm_public_ip.firewall[each.key].ip_address}/32"]
   automatic_channel_upgrade         = "patch"
   node_os_channel_upgrade           = "NodeImage"
   open_service_mesh_enabled         = false
   image_cleaner_enabled             = true
   image_cleaner_interval_hours      = 48
 
+  api_server_access_profile {
+    authorized_ip_ranges     = [var.api_server_authorized_ip_ranges, "${azurerm_public_ip.firewall[each.key].ip_address}/32"]
+  }
 
   identity {
     type = "SystemAssigned"
