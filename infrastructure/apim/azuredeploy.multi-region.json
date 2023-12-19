@@ -53,8 +53,8 @@
     },
     "variables": {
         "skuCount": 1,
-        "publisherName": "bjdcsacloud",
-        "publisherEmail": "brian@bjdcsa.cloud",
+        "publisherName": "bjdazuretech",
+        "publisherEmail": "brian@bjdazure.tech",
         "subnetName" : "/subnets/APIM",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
         "secondaryLocationSubnetId": "[concat(resourceId(parameters('secondaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('secondaryVnetName')), variables('subnetName'))]",
