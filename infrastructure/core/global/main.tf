@@ -1,3 +1,4 @@
+
 locals {
   rg_name                   = "${var.app_name}_global_rg"
   acr_name                  = "${replace(var.app_name, "-", "")}acr"
@@ -7,3 +8,6 @@ locals {
   cosmosdb_database_name    = "AesKeys"
   cosmosdb_collections_name = "Items"
 }
+
+data "azurerm_client_config" "current" {}
+data "azurerm_subscription" "current" {}

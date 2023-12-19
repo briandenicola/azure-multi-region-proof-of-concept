@@ -1,4 +1,4 @@
-resource "azurerm_eventhub_namespace" "cqrs_region" {
+resource azurerm_eventhub_namespace cqrs_region {
   name                     = local.eventhub_namespace_name
   location                 = azurerm_resource_group.cqrs_region.location
   resource_group_name      = azurerm_resource_group.cqrs_region.name
@@ -7,7 +7,7 @@ resource "azurerm_eventhub_namespace" "cqrs_region" {
   auto_inflate_enabled     = true
 }
 
-resource "azurerm_monitor_diagnostic_setting" "eventhub_namespace" {
+resource azurerm_monitor_diagnostic_setting eventhub_namespace {
   name                       = "diag"
   target_resource_id         = azurerm_eventhub_namespace.cqrs_region.id
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.cqrs_logs.id
@@ -29,7 +29,7 @@ resource "azurerm_monitor_diagnostic_setting" "eventhub_namespace" {
   }
 }
 
-resource "azurerm_eventhub" "cqrs_region" {
+resource azurerm_eventhub cqrs_region {
   name                = local.eventhub_name
   namespace_name      = azurerm_eventhub_namespace.cqrs_region.name
   resource_group_name = azurerm_resource_group.cqrs_region.name
@@ -37,14 +37,14 @@ resource "azurerm_eventhub" "cqrs_region" {
   message_retention   = 7
 }
 
-resource "azurerm_eventhub_consumer_group" "cqrs_region" {
+resource azurerm_eventhub_consumer_group cqrs_region {
   name                = local.azurerm_eventhub_consumer_group_name
   namespace_name      = azurerm_eventhub_namespace.cqrs_region.name
   eventhub_name       = azurerm_eventhub.cqrs_region.name
   resource_group_name = azurerm_resource_group.cqrs_region.name
 }
 
-resource "azurerm_private_endpoint" "eventhub_namespace" {
+resource azurerm_private_endpoint eventhub_namespace {
   name                = "${local.eventhub_namespace_name}-ep"
   resource_group_name = azurerm_resource_group.cqrs_region.name
   location            = azurerm_resource_group.cqrs_region.location

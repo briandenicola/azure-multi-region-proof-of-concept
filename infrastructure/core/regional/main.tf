@@ -33,3 +33,6 @@ locals {
   databricks_public_subnet_cidr        = cidrsubnet(local.vnet_cidr, 8, 7)
   nodes_subnet_cidir                   = cidrsubnet(local.vnet_cidr, 15, 2)
 }
+
+data "azurerm_client_config" "current" {}
+data "azurerm_subscription" "current" {}

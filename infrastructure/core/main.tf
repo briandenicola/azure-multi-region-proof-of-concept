@@ -17,7 +17,7 @@ locals {
 
 module "global_resources" {
   source                          = "./global"
-  api_server_authorized_ip_ranges = ["${chomp(data.http.myip.response_body)}/32"]
+  api_server_authorized_ip_ranges = "${chomp(data.http.myip.response_body)}/32"
   locations                       = var.locations
   app_name                        = local.resource_name
 }
