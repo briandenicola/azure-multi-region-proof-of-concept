@@ -21,7 +21,7 @@ az account set -s $SubscriptionName
 terraform workspace new cqrs-infrastructure
 terraform workspace select cqrs-infrastructure
 terraform init
-terraform plan -out=\"${tf_plan}\" -var=\"locations=${Regions}\" -var=\"custom_domain=${DomainName}\"
+terraform plan -out="${tf_plan}" -var="locations=${Regions}" -var custom_domain=${DomainName}
 terraform apply -auto-approve ${tf_plan}
 
 $AppName = $(terraform output -raw APP_NAME)
