@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    azapi = {
+      source  = "azure/azapi"
+    }
+  }
+}
+
 resource "random_integer" "vnet_cidr" {
   min = 10
   max = 250
@@ -31,7 +39,7 @@ locals {
   appgw_subnet_cidr                    = cidrsubnet(local.vnet_cidr, 8, 5)
   databricks_private_subnet_cidr       = cidrsubnet(local.vnet_cidr, 8, 6)
   databricks_public_subnet_cidr        = cidrsubnet(local.vnet_cidr, 8, 7)
-  nodes_subnet_cidir                   = cidrsubnet(local.vnet_cidr, 15, 2)
+  nodes_subnet_cidir                   = cidrsubnet(local.vnet_cidr, 4, 1)
 }
 
 data "azurerm_client_config" "current" {}

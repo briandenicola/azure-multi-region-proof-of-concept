@@ -23,6 +23,11 @@ module "global_resources" {
 }
 
 module "regional_resources" {
+  
+  depends_on = [ 
+    module.global_resources
+  ]
+
   for_each                        = toset(var.locations)
   source                          = "./regional"
   location                        = each.value

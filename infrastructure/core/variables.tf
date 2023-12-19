@@ -1,7 +1,7 @@
 variable locations {
   description = "The location for this application deployment"
   type        = list(string)
-  default     = ["southcentralus", "eastus2"]
+  default     = ["eastus2","westus3"]
 }
 
 variable custom_domain {
