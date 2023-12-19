@@ -1,12 +1,19 @@
 param(
   [Parameter(Mandatory=$true)]
-  [string] $SubscriptionName,
+  [String]            $SubscriptionName,
 
   [Parameter(Mandatory=$true)]
-  [string] $Regions,
+  [String]            $Regions,
 
   [Parameter(Mandatory=$true)]
-  [string[]] $DomainName
+  [String]            $DomainName,
+
+  [Parameter(Mandatory = $true)]
+  [ValidateScript( { Test-Path $_ })]
+  [String]            $IngressPfxFilePath,
+
+  [Parameter(Mandatory = $true)]
+  [SecureString]      $PFXPassword
 )
 
 $today = (Get-Date).ToString("yyyyMMdd")
@@ -21,7 +28,7 @@ az account set -s $SubscriptionName
 terraform workspace new cqrs-infrastructure
 terraform workspace select cqrs-infrastructure
 terraform init
-terraform plan -out="${tf_plan}" -var="locations=${Regions}" -var custom_domain=${DomainName}
+terraform plan -out="${tf_plan}" -var="locations=${Regions}" -var custom_domain=${DomainName} -var="certificate_file_path=${IngressPfxFilePath}" -var="certificate_password=${PFXPassword}"
 terraform apply -auto-approve ${tf_plan}
 
 $AppName = $(terraform output -raw APP_NAME)

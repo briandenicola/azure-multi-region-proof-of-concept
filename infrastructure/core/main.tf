@@ -34,4 +34,6 @@ module "regional_resources" {
   primary_location                = element(var.locations, 0)
   app_name                        = local.resource_name
   custom_domain                   = var.custom_domain
+  certificate_file_path           = var.certificate_file_path
+  certificate_password            = var.certificate_password
 }

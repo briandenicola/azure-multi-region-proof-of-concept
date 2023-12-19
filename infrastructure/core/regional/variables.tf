@@ -13,3 +13,11 @@ variable "app_name" {
 variable "custom_domain" {
   description = "The custom domain for this application deployment"
 }
+
+variable "certificate_file_path" {
+  description = "The pfx certificate file name for this application deployment"
+}
+
+variable "certificate_password" {
+  description = "The pfx certificate password for this application deployment"
+}

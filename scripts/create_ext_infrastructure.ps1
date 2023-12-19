@@ -48,90 +48,52 @@ Full Path to Log file. Parameter Set = Logging
 #>
 param (
     [Parameter(Mandatory = $true)]
-    [string]          $AppName,
+    [string]            $AppName,
 
     [Parameter(Mandatory = $true)]
     [string[]]          $Regions,
 
     [Parameter(Mandatory = $true)]
-    [string]          $SubscriptionName,
+    [string]            $SubscriptionName,
 
     [Parameter(Mandatory = $true)]
     [ValidateSet("single", "multi")]
-    [string]          $DeploymentType,
+    [string]            $DeploymentType,
 
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Test-Path $_ })]
-    [string]          $ApiManagementPfxFilePath,
+    [string]            $ApiManagementPfxFilePath,
 
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Test-Path $_ })]
-    [string]          $AppGatewayPfxFilePath,
+    [string]            $AppGatewayPfxFilePath,
         
     [Parameter(Mandatory = $true)]
-    [securestring]    $PFXPassword,
+    [securestring]      $PFXPassword,
 
     [Parameter(Mandatory = $true)]
-    [string]          $AksIngressUrl,
+    [string]            $IngressUrl,
 
     [Parameter(Mandatory = $true)]
-    [string[]]        $ApiManagementUrls,
+    [string[]]          $ApiManagementUrls,
 
     [Parameter(Mandatory = $true)]
-    [string[]]        $AppGatewayUrls,
+    [string[]]          $AppGatewayUrls,
 
     [Parameter(Mandatory = $true)]
-    [string]        $FrontDoorUrl
+    [string]            $FrontDoorUrl
 )  
 
-function Start-UiBuild
-{   
-    dotnet build
-    dotnet publish -c Release -o build
-}
+. ./modules/functions.ps1
+. ./modules/naming.ps1 -AppName $AppName
 
-function Deploy-toAzStaticWebApp
-{
-    param(
-        [string] $Name,
-        [string] $LocalPath
-    )
-
-    function Get-AzStaticWebAppSecrets {
-        param (
-            [string] $Name
-        )
-
-        return (az staticwebapp secrets list --name $Name -o tsv --query "properties.apiKey")
-    }
-
-    $token = Get-AzStaticWebAppSecrets -Name $Name
-    swa deploy $LocalPath --deployment-token $token --env production
-
-}
-
-Set-Variable -Name APP_UI_NAME              -Value ("{0}ui01" -f $AppName)         -Option Constant
-Set-Variable -Name APP_UI_RG                -Value ("{0}_global_rg" -f $AppName)   -Option Constant
-
-Set-Variable -Name cwd                      -Value $PWD.Path
-Set-Variable -Name root                     -Value (Get-Item $PWD.Path).Parent.FullName
-Set-Variable -Name apim_directory           -Value (Join-Path -Path $root -ChildPath "Infrastructure/apim")
-Set-Variable -Name apim_product_directory   -Value (Join-Path -Path $root -ChildPath "Infrastructure/product")
-Set-Variable -Name appgw_directory          -Value (Join-Path -Path $root -ChildPath "Infrastructure/gateway")
-Set-Variable -Name frontdoor_directory      -Value (Join-Path -Path $root -ChildPath "Infrastructure/frontdoor")
-Set-Variable -Name ui_directory             -Value (Join-Path -Path $root -ChildPath "Source/ui")
-
-Import-Module bjd.Common.Functions
-Import-Module bjd.Azure.Functions
-
-Connect-AzAccount
-Select-AzSubscription -SubscriptionName $SubscriptionName
+Connect-ToAzure -SubscriptionName $SubscriptionName
 
 Set-Location -Path $apim_directory 
 ./Deploy.ps1 -ApplicationName $AppName -Regions $Regions -DeploymentType $DeploymentType -PFXPath $ApiManagementPfxFilePath  -PFXPassword $PFXPassword -ApimProxies $ApiManagementUrls
 
 Set-Location -Path $apim_product_directory
-./Deploy.ps1 -ApplicationName $AppName -primaryBackendUrl ("https://{0}" -f $AksIngressUrl) -Verbose
+./Deploy.ps1 -ApplicationName $AppName -primaryBackendUrl ("https://{0}" -f $IngressUrl) -Verbose
 
 Set-Location -Path $appgw_directory
 ./Deploy.ps1 -ApplicationName $AppName -Regions $Regions -DeploymentType $DeploymentType  -PFXPath $AppGatewayPfxFilePath -PFXPassword $PFXPassword -BackendHostNames $ApiManagementUrls
@@ -141,7 +103,7 @@ Set-Location -Path $frontdoor_directory
 
 Set-Location -Path $ui_directory
 Start-UiBuild
-New-AzStaticWebApp -Name $APP_UI_NAME -ResourceGroupName $APP_UI_RG -Location $Regions[0] -SkuName Free -AppLocation "/Source/ui" -AppArtifactLocation "wwwroot" 
-Deploy-toAzStaticWebApp -Name $APP_UI_NAME -LocalPath (Join-Path -Path $PWD.Path -ChildPath "build")
+New-AzStaticWebApp -Name $APP_UI_NAME -ResourceGroupName $APP_UI_RG -Location $Regions[0] -SkuName Free -AppLocation "/src/ui" -AppArtifactLocation "wwwroot" 
+Deploy-toAzStaticWebApp -Name $APP_UI_NAME -LocalPath $local_path
 
 Set-Location -Path $cwd
