@@ -27,7 +27,7 @@ resource "azurerm_container_app" "api" {
     custom_domain {
       certificate_binding_type = "SniEnabled"
       certificate_id           = data.azurerm_container_app_environment_certificate.this.id
-      name                     = "api.ingress.${var.custom_domain}"
+      name                     = "api-internal.${var.custom_domain}"
     }
 
     traffic_weight {
