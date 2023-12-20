@@ -1,4 +1,10 @@
 resource "azurerm_container_app" "changefeedprocessor" {
+  lifecycle {
+    ignore_changes = [
+      secret
+    ]
+  }
+
   name                         = "changefeedprocessor"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = data.azurerm_resource_group.cqrs_regional.name
@@ -28,12 +34,18 @@ resource "azurerm_container_app" "changefeedprocessor" {
         name = "AzureFunctionsJobHost__functions__0"
         value = "CosmosChangeFeedProcessor"
       }
+
+      env {
+        name = "FUNCTIONS_WORKER_RUNTIME"
+        value = "dotnet"
+      }
     }
   }
 }
 
 resource "azapi_update_resource" "changefeedprocessor_secrets" {
   depends_on = [ 
+    azurerm_container_app.changefeedprocessor,
     azurerm_key_vault_secret.eventhub_connection_string,
     azurerm_key_vault_secret.cosmosdb_connection_string,
     azurerm_key_vault_secret.redis_connection_string,
@@ -68,6 +80,29 @@ resource "azapi_update_resource" "changefeedprocessor_secrets" {
             identity = var.app_identity
           }
         ]
+      },
+      template = {
+        containers = [{
+          name = "changefeedprocessor",
+          env = [
+            {
+              name = "EVENTHUB_CONNECTIONSTRING"
+              secretRef = local.EVENTHUB_CONNECTIONSTRING
+            },
+            {
+              name = "COSMOSDB_CONNECTIONSTRING"
+              secretRef = local.EVENTHUB_CONNECTIONSTRING
+            },
+            {
+              name = "REDISCACHE_CONNECTIONSTRING"
+              secretRef = local.REDISCACHE_CONNECTIONSTRING
+            },
+            {
+              name = "AzureWebJobsStorage"
+              secretRef = local.AzureWebJobsStorage
+            }
+          ]
+        }]
       }
     }
   })

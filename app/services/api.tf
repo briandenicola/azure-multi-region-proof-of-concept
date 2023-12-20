@@ -1,4 +1,10 @@
 resource "azurerm_container_app" "api" {
+  lifecycle {
+    ignore_changes = [
+      secret
+    ]
+  }
+
   name                         = "api"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = data.azurerm_resource_group.cqrs_regional.name
@@ -36,47 +42,89 @@ resource "azurerm_container_app" "api" {
   }
 
   template {
-    # Init Container
-    # - name: init-region
-    #   image: bjd145/utils:latest
-    #   command: ['sh', '-c', 'REGION=`curl -H Metadata:true "http://169.254.169.254/metadata/instance/compute/location?api-version=2017-08-01&format=text"`; echo export REGION=${REGION} >> /env/metadata']
-    #   volumeMounts:
-    #   - name: config-data
-    #     mountPath: /env
-
-    #       command: ['/bin/busybox', 'sh', '-c', 'source /env/metadata; ./main']
-    # volumeMounts:
-    # - name: config-data
-    #   mountPath: /env
-    #   readOnly: true
-
-    # livenessProbe:
-    #   httpGet:
-    #     path: /healthz
-    #     port: 8080
-    #   initialDelaySeconds: 3
-    #   periodSeconds: 3
-
-    # resources:
-    #   limits:
-    #     cpu: "1"
-    #     memory: 256Mi
-    #   requests:
-    #     cpu: "0.5"
-    #     memory: 128Mi
-
-    # ports:
-    # - containerPort: 8080
-    # envFrom:
-    # - secretRef:
-    #     name: cqrssecrets
-
     container {
       name   = "api"
       image  = local.api_image
-      cpu    = 0.5
-      memory = "1Gi"
+      cpu    = 1
+      memory = "0.5Gi"
+
+      env {
+        name  = "REGION"
+        value = var.location
+      }
+
+      liveness_probe {
+        path             = "/healthz"
+        port             = 8080
+        initial_delay    = 3
+        interval_seconds = 3
+        transport        = "HTTP"
+      }
     }
   }
 }
 
+resource "azapi_update_resource" "api_secrets" {
+  depends_on = [
+    azurerm_container_app.api,
+    azurerm_key_vault_secret.eventhub_connection_string,
+    azurerm_key_vault_secret.cosmosdb_connection_string,
+    azurerm_key_vault_secret.redis_connection_string,
+    azurerm_key_vault_secret.storage_connection_string
+  ]
+
+  type        = "Microsoft.App/containerApps@2023-05-01"
+  resource_id = azurerm_container_app.api.id
+
+  body = jsonencode({
+    properties = {
+      configuration = {
+        secrets = [
+          {
+            keyVaultUrl = azurerm_key_vault_secret.eventhub_connection_string.id
+            name        = local.EVENTHUB_CONNECTIONSTRING
+            identity    = var.app_identity
+          },
+          {
+            keyVaultUrl = azurerm_key_vault_secret.cosmosdb_connection_string.id
+            name        = local.COSMOSDB_CONNECTIONSTRING
+            identity    = var.app_identity
+          },
+          {
+            keyVaultUrl = azurerm_key_vault_secret.redis_connection_string.id
+            name        = local.REDISCACHE_CONNECTIONSTRING
+            identity    = var.app_identity
+          },
+          {
+            keyVaultUrl = azurerm_key_vault_secret.storage_connection_string.id
+            name        = local.AzureWebJobsStorage
+            identity    = var.app_identity
+          }
+        ]
+      },
+      template = {
+        containers = [{
+          name = "api",
+          env = [
+            {
+              name = "EVENTHUB_CONNECTIONSTRING"
+              secretRef = local.EVENTHUB_CONNECTIONSTRING
+            },
+            {
+              name = "COSMOSDB_CONNECTIONSTRING"
+              secretRef = local.EVENTHUB_CONNECTIONSTRING
+            },
+            {
+              name = "REDISCACHE_CONNECTIONSTRING"
+              secretRef = local.REDISCACHE_CONNECTIONSTRING
+            },
+            {
+              name = "AzureWebJobsStorage"
+              secretRef = local.AzureWebJobsStorage
+            }
+          ]
+        }]
+      }
+    }
+  })
+}

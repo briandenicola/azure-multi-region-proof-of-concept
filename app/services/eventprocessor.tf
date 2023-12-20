@@ -1,13 +1,16 @@
 resource "azurerm_container_app" "eventprocessor" {
+  
+  lifecycle {
+    ignore_changes = [
+      secret
+    ]
+  }
+
   name                         = "eventprocessor"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = data.azurerm_resource_group.cqrs_regional.name
   revision_mode                = "Single"
   workload_profile_name        = "default"
-
-  # Define access to backend databases
-  #secret 
-
 
   identity {
     type = "UserAssigned"
@@ -21,59 +24,107 @@ resource "azurerm_container_app" "eventprocessor" {
     identity = var.app_identity
   }
 
-
   template {
-
-    # Environment variables
-    # AzureWebJobsStorage: {{.Values.AzureWebJobsStorage}}       
-    # FUNCTIONS_WORKER_RUNTIME: ZG90bmV0                
-    # EVENTHUB_CONNECTIONSTRING: {{.Values.EVENTHUB_CONNECTIONSTRING}}  
-    # COSMOSDB_CONNECTIONSTRING: {{.Values.COSMOSDB_CONNECTIONSTRING}}   
-    # REDISCACHE_CONNECTIONSTRING: {{.Values.REDISCACHE_CONNECTIONSTRING}}
-    # APPINSIGHTS_INSTRUMENTATIONKEY: {{.Values.APPINSIGHTS_INSTRUMENTATIONKEY}}
-    # LEASE_COLLECTION_PREFIX: {{.Values.LEASE_COLLECTION_PREFIX}}
-
-    #  env:
-    #   - name: AzureFunctionsJobHost__functions__0
-    #     value: CommandProcessing
-    #   envFrom:
-    #   - secretRef:
-    #       name: cqrssecrets
-    #   resources:
-    #     limits:
-    #       cpu: "1"
-    #       memory: 512Mi
-    #     requests:
-    #       cpu: "0.5"
-    #       memory: 128Mi
-
-    # Need to define Keda scaling rules here
-    # kind: ScaledObject
-    # metadata:
-    #   name: eventprocessor
-    # spec:
-    #   scaleTargetRef:
-    #     name: eventprocessor
-    #   minReplicaCount: 0
-    #   maxReplicaCount: 15
-    #   cooldownPeriod:  120
-    #   pollingInterval: 15
-    #   triggers:
-    #   - type: azure-eventhub
-    #     metadata:
-    #       consumerGroup: eventsfunction
-    #       checkpointStrategy: azureFunction
-    #       connectionFromEnv: EVENTHUB_CONNECTIONSTRING
-    #       storageConnectionFromEnv: AzureWebJobsStorage
-
     container {
       name   = "eventprocessor"
       image  = local.eventprocessor_image
       cpu    = 0.5
       memory = "1Gi"
 
+      env {
+        name = "AzureFunctionsJobHost__functions__0"
+        value = "CommandProcessing"
+      }
 
+      env {
+        name = "FUNCTIONS_WORKER_RUNTIME"
+        value = "dotnet"
+      }
+
+      env {
+        name = "LEASE_COLLECTION_PREFIX"
+        value = var.location
+      }
+    }
+
+    custom_scale_rule {
+      name = "eventprocessor"
+      custom_rule_type = "azure-eventhub"
+      metadata = {
+        minReplica = 0
+        maxReplica = 15
+        cooldownPeriod  = 120
+        pollingInterval = 15
+        consumerGroup   = "eventsfunction"
+        checkpointStrategy = "azureFunction"
+        connectionFromEnv = "EVENTHUB_CONNECTIONSTRING"
+        storageConnectionFromEnv: "AzureWebJobsStorage"
+      }
     }
   }
 }
 
+resource "azapi_update_resource" "eventprocessor_secrets" {
+  depends_on = [
+    azurerm_container_app.eventprocessor,
+    azurerm_key_vault_secret.eventhub_connection_string,
+    azurerm_key_vault_secret.cosmosdb_connection_string,
+    azurerm_key_vault_secret.redis_connection_string,
+    azurerm_key_vault_secret.storage_connection_string
+  ]
+
+  type        = "Microsoft.App/containerApps@2023-05-01"
+  resource_id = azurerm_container_app.eventprocessor.id
+
+  body = jsonencode({
+    properties = {
+      configuration = {
+        secrets = [
+          {
+            keyVaultUrl = azurerm_key_vault_secret.eventhub_connection_string.id
+            name = local.EVENTHUB_CONNECTIONSTRING
+            identity = var.app_identity
+          },
+          {
+            keyVaultUrl = azurerm_key_vault_secret.cosmosdb_connection_string.id
+            name = local.COSMOSDB_CONNECTIONSTRING
+            identity = var.app_identity
+          },
+          {
+            keyVaultUrl = azurerm_key_vault_secret.redis_connection_string.id
+            name = local.REDISCACHE_CONNECTIONSTRING
+            identity = var.app_identity
+          },
+          {
+            keyVaultUrl = azurerm_key_vault_secret.storage_connection_string.id
+            name = local.AzureWebJobsStorage
+            identity = var.app_identity
+          }
+        ]
+      },
+      template = {
+        containers = [{
+          name = "eventprocessor",
+          env = [
+            {
+              name = "EVENTHUB_CONNECTIONSTRING"
+              secretRef = local.EVENTHUB_CONNECTIONSTRING
+            },
+            {
+              name = "COSMOSDB_CONNECTIONSTRING"
+              secretRef = local.EVENTHUB_CONNECTIONSTRING
+            },
+            {
+              name = "REDISCACHE_CONNECTIONSTRING"
+              secretRef = local.REDISCACHE_CONNECTIONSTRING
+            },
+            {
+              name = "AzureWebJobsStorage"
+              secretRef = local.AzureWebJobsStorage
+            }
+          ]
+        }]
+      }
+    }
+  })
+}

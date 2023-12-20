@@ -22,10 +22,7 @@ locals {
   REDISCACHE_CONNECTIONSTRING = "rediscache-connectionstring"
   AzureWebJobsStorage         = "azurewebjobsstorage"
 
-  #api_image                 = "${local.acr_name}/cqrs/api:${var.commit_version}"
-  #eventprocessor_image      = "${local.acr_name}/cqrs/eventprocessor:${var.commit_version}"
-  #changefeedprocessor_image = "${local.acr_name}/cqrs/changefeedprocessor:${var.commit_version}"
-  api_image                 = "mcr.microsoft.com/k8se/quickstart:latest"
-  eventprocessor_image      = "mcr.microsoft.com/k8se/quickstart:latest"
-  changefeedprocessor_image = "mcr.microsoft.com/k8se/quickstart:latest"
+  api_image                 = "${local.acr_name}/cqrs/api:${var.commit_version}"
+  eventprocessor_image      = "${local.acr_name}/cqrs/eventprocessor:${var.commit_version}"
+  changefeedprocessor_image = "${local.acr_name}/cqrs/changefeedprocessor:${var.commit_version}"
 }
