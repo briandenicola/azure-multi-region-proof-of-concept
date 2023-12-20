@@ -2,15 +2,15 @@
 A very simple setup for Command Query Responsibility Separation (CQRS) in Azure that can be deployed to one or more Azure regions.
 In other words, the world's most expensive random number generator....
 
-![Architecture](./architecture.png)
-
-# Deployment 
-![CQRS deploy to Azure](https://github.com/briandenicola/cqrs/workflows/CQRS%20deploy%20to%20Azure/badge.svg)
+![Architecture](./.assets/architecture.png)
 
 # Setup
 
 ## Prerequisite
-* Azure PowerShell, Azure Cli, Azure Static Webapp cli, Terraform, Helm and Kubectl
+* PowerShell
+* Azure Cli
+* Azure Static Webapp cli, 
+* Terraform
 * A public domain that you can create DNS records
    * Will use bjd.demo for this documentation 
    * The Public domain is used by Let's Encrypt to valiate domain ownership before granting tls certificates 
@@ -38,22 +38,29 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
         * acme.sh --toPkcs -d api.bjd.demo --password $PASSWORD
     
 ## Infrastructure Steps
-* cd ./Infrastructure
-* ./create_infrastructure.sh -r eastus2 -r ukwest --domain bjd.demo
-    * Generates a Terraform variable file with randomize variables then applies configuration 
+```powershell
+pwsh
+cd ./scripts
+./create_core_infrastructure.ps1 -regions '["westus3", "eastus2"]' -SubscriptionName my_subscription -DomainName bjd.demo -IngressPfxFilePath ~/certs/wildcard.bjd.demo.pfx -PFXPassword $PASSWORD   
+```
 
-## Application Deployment 
-* cd ./Infrastructure
-* ./deploy_application.sh -n ${appName} -r eastus2 -r ukwest --domain bjd.demo --hostname api.ingress --cert {path_to_ingress_cer_file} --key {path_to_ingress_key_file}
+## Application Build Deployment 
+```powershell
+pwsh
+$AppName = "quetzal-8233" #This will be the output from the create_core_infrastructure.ps1 script
+cd ./scripts
+./deploy_application.ps1 -AppName  $AppNam -Regions '["westus3", "eastus2"]' -SubscriptionName my_subscription -DomainName bjda.demo 
+```
 
 # Expose API Externally 
-* The create_infrastructure.sh and deploy_application.sh scripts only create the foundations for this demo application. 
 * The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway - for external access.
 
 ## Automated Steps
-* pwsh
-* cd ./Infrastructure
-* ./create_external_infrastructure.ps1 -AppName ${appName} -Regions @("eastus2","ukwest") -SubscriptionName BJD_APP01_SUB -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
+```powershell
+pwsh
+cd ./scripts
+./create_ext_infrastructure.ps1 -AppName ${appName} -Regions @("westus3","eastus2") -SubscriptionName my_subscription -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -IngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
+```
 
 ## Manual Steps
 * You need to take the IP Addresses from the output of the App Gateway ARM template to create DNS records with your external DNS provider
@@ -62,15 +69,9 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
 * You need to manually enable TLS on the custom Front Door Uri. Use the Front Door provided certificate 
 
 # Testing
-## Test Local Deployment directly on AKS clusters
-```bash
-./Scripts/create_keys.sh 100 
-./Scripts/get_keys.sh ${keyId} //Where ${keyId} is a GUID taken from the output of create_keys.sh
-```
-
 ## Test Application Gateways Individually using PowerShell
 * Obtain your APIM subscription key
-```pwsh
+```powershell
 $h = New-APIMHeader -key $apiSubscriptionKey _New-APIMHeader is a method in bjd.Azure.Functions_
 Invoke-RestMethod -UseBasicParsing -Uri https://api.us.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
 Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
@@ -80,7 +81,7 @@ Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/${keyId}?api-v
 ```
 
 ## Test Azure Front Door globally with Azure ACI
-```pwsh
+```powershell
 cd .\Infrastructure\ACI
 New-AzResourceGroup -Name ${appName}_tests_rg -l eastus2
 New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_testing_rg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjd.demo -keyGuid ${keyId}
@@ -90,9 +91,6 @@ az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-g
 az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-post
 az container logs --resource-group ${appName}_tests_rg --name utils-japaneast-get
 ```
-
-## Test using Azure Static Web Apps using Playwright
-* TBD
 
 # To Do List 
 - [x] Infrastructure 
@@ -120,4 +118,5 @@ az container logs --resource-group ${appName}_tests_rg --name utils-japaneast-ge
 - [x] Update for Terraforms to create main infrastructure components
 - [x] GitHub Actions pipeline 
 - [x] Simplify deployment
-- [ ] Playwright automated UI testing
+- [x] Move to Azure Container Apps
+- [ ] Move to dotnet8
