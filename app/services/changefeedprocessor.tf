@@ -1,7 +1,8 @@
 resource "azurerm_container_app" "changefeedprocessor" {
   lifecycle {
     ignore_changes = [
-      secret
+      secret,
+      template[0].container[0].env
     ]
   }
 
@@ -29,16 +30,6 @@ resource "azurerm_container_app" "changefeedprocessor" {
       image  = local.changefeedprocessor_image
       cpu    = 1
       memory = "0.5Gi"
-      
-      env {
-        name = "AzureFunctionsJobHost__functions__0"
-        value = "CosmosChangeFeedProcessor"
-      }
-
-      env {
-        name = "FUNCTIONS_WORKER_RUNTIME"
-        value = "dotnet"
-      }
     }
   }
 }
@@ -78,6 +69,11 @@ resource "azapi_update_resource" "changefeedprocessor_secrets" {
             keyVaultUrl = azurerm_key_vault_secret.storage_connection_string.id
             name = local.AzureWebJobsStorage
             identity = var.app_identity
+          },
+          {
+            keyVaultUrl = azurerm_key_vault_secret.app_insights_connection_string.id
+            name = local.APPINSIGHTS_INSTRUMENTATIONKEY
+            identity = var.app_identity
           }
         ]
       },
@@ -86,16 +82,28 @@ resource "azapi_update_resource" "changefeedprocessor_secrets" {
           name = "changefeedprocessor",
           env = [
             {
+              name = "AzureFunctionsJobHost__functions__0"
+              value = "CosmosChangeFeedProcessor"
+            },
+            {
+              name = "FUNCTIONS_WORKER_RUNTIME"
+              value = "dotnet"
+            },
+            {
               name = "EVENTHUB_CONNECTIONSTRING"
               secretRef = local.EVENTHUB_CONNECTIONSTRING
             },
             {
               name = "COSMOSDB_CONNECTIONSTRING"
-              secretRef = local.EVENTHUB_CONNECTIONSTRING
+              secretRef = local.COSMOSDB_CONNECTIONSTRING
             },
             {
               name = "REDISCACHE_CONNECTIONSTRING"
               secretRef = local.REDISCACHE_CONNECTIONSTRING
+            },
+            {
+              name = "APPINSIGHTS_INSTRUMENTATIONKEY"
+              secretRef = local.APPINSIGHTS_INSTRUMENTATIONKEY
             },
             {
               name = "AzureWebJobsStorage"

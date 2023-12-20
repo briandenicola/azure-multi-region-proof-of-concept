@@ -28,6 +28,11 @@ data "azurerm_cosmosdb_account" "cqrs_global" {
   resource_group_name         = data.azurerm_resource_group.cqrs_global.name
 }
 
+data "azurerm_application_insights" "cqrs_region" {
+  name                        = local.ai_name
+  resource_group_name         = data.azurerm_resource_group.cqrs_global.name
+}
+
 data "azurerm_redis_cache" "cqrs_region" {
   name                        = local.redis_name
   resource_group_name         = data.azurerm_resource_group.cqrs_regional.name

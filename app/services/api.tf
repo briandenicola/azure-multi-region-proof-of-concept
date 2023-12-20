@@ -1,7 +1,7 @@
 resource "azurerm_container_app" "api" {
   lifecycle {
     ignore_changes = [
-      secret
+      template[0].container[0].env
     ]
   }
 
@@ -47,11 +47,6 @@ resource "azurerm_container_app" "api" {
       image  = local.api_image
       cpu    = 1
       memory = "0.5Gi"
-
-      env {
-        name  = "REGION"
-        value = var.location
-      }
 
       liveness_probe {
         path             = "/healthz"
@@ -99,6 +94,11 @@ resource "azapi_update_resource" "api_secrets" {
             keyVaultUrl = azurerm_key_vault_secret.storage_connection_string.id
             name        = local.AzureWebJobsStorage
             identity    = var.app_identity
+          },
+          {
+            keyVaultUrl = azurerm_key_vault_secret.app_insights_connection_string.id
+            name        = local.APPINSIGHTS_INSTRUMENTATIONKEY
+            identity    = var.app_identity
           }
         ]
       },
@@ -107,16 +107,24 @@ resource "azapi_update_resource" "api_secrets" {
           name = "api",
           env = [
             {
+              name  = "REGION"
+              value = var.location
+            },
+            {
               name = "EVENTHUB_CONNECTIONSTRING"
               secretRef = local.EVENTHUB_CONNECTIONSTRING
             },
             {
               name = "COSMOSDB_CONNECTIONSTRING"
-              secretRef = local.EVENTHUB_CONNECTIONSTRING
+              secretRef = local.COSMOSDB_CONNECTIONSTRING
             },
             {
               name = "REDISCACHE_CONNECTIONSTRING"
               secretRef = local.REDISCACHE_CONNECTIONSTRING
+            },
+            {
+              name = "APPINSIGHTS_INSTRUMENTATIONKEY"
+              secretRef = local.APPINSIGHTS_INSTRUMENTATIONKEY
             },
             {
               name = "AzureWebJobsStorage"

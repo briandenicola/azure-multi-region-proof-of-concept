@@ -2,7 +2,8 @@ resource "azurerm_container_app" "eventprocessor" {
   
   lifecycle {
     ignore_changes = [
-      secret
+      secret,
+      template[0].container[0].env
     ]
   }
 
@@ -30,21 +31,6 @@ resource "azurerm_container_app" "eventprocessor" {
       image  = local.eventprocessor_image
       cpu    = 0.5
       memory = "1Gi"
-
-      env {
-        name = "AzureFunctionsJobHost__functions__0"
-        value = "CommandProcessing"
-      }
-
-      env {
-        name = "FUNCTIONS_WORKER_RUNTIME"
-        value = "dotnet"
-      }
-
-      env {
-        name = "LEASE_COLLECTION_PREFIX"
-        value = var.location
-      }
     }
 
     custom_scale_rule {
@@ -99,6 +85,11 @@ resource "azapi_update_resource" "eventprocessor_secrets" {
             keyVaultUrl = azurerm_key_vault_secret.storage_connection_string.id
             name = local.AzureWebJobsStorage
             identity = var.app_identity
+          },
+          {
+            keyVaultUrl = azurerm_key_vault_secret.app_insights_connection_string.id
+            name = local.APPINSIGHTS_INSTRUMENTATIONKEY
+            identity = var.app_identity
           }
         ]
       },
@@ -107,16 +98,32 @@ resource "azapi_update_resource" "eventprocessor_secrets" {
           name = "eventprocessor",
           env = [
             {
+              name = "AzureFunctionsJobHost__functions__0"
+              value = "CommandProcessing"
+            },
+            {
+              name = "FUNCTIONS_WORKER_RUNTIME"
+              value = "dotnet"
+            },
+            {
+              name = "LEASE_COLLECTION_PREFIX"
+              value = var.location
+            },
+            {
               name = "EVENTHUB_CONNECTIONSTRING"
               secretRef = local.EVENTHUB_CONNECTIONSTRING
             },
             {
               name = "COSMOSDB_CONNECTIONSTRING"
-              secretRef = local.EVENTHUB_CONNECTIONSTRING
+              secretRef = local.COSMOSDB_CONNECTIONSTRING
             },
             {
               name = "REDISCACHE_CONNECTIONSTRING"
               secretRef = local.REDISCACHE_CONNECTIONSTRING
+            },
+            {
+              name = "APPINSIGHTS_INSTRUMENTATIONKEY"
+              secretRef = local.APPINSIGHTS_INSTRUMENTATIONKEY
             },
             {
               name = "AzureWebJobsStorage"
