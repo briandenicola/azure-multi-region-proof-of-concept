@@ -32,16 +32,23 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
     * _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
     * APIM Certificate: 
         * acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
-        * acme.sh --toPkcs -d portal.bjd.demo --password $PASSWORD
+        * acme.sh --toPkcs -d portal.bjd.demo --password $PfxPASSWORD
     * AppGateway Certificate: 
         * acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.us.bjd.demo -d api.uk.bjd.demo
-        * acme.sh --toPkcs -d api.bjd.demo --password $PASSWORD
+        * acme.sh --toPkcs -d api.bjd.demo --password $PfxPASSWORD
     
 ## Infrastructure Steps
 ```powershell
 pwsh
 cd ./scripts
-./create_core_infrastructure.ps1 -regions '["westus3", "eastus2"]' -SubscriptionName my_subscription -DomainName bjd.demo -IngressPfxFilePath ~/certs/wildcard.bjd.demo.pfx -PFXPassword $PASSWORD   
+$opts = @{
+    regions             = '["westus3", "eastus2"]'
+    SubscriptionName    = "my_subscription"
+    DomainName          = "bjd.demo" 
+    IngressPfxFilePath  = "~/certs/wildcard.bjd.demo.pfx"
+    PFXPassword         = $PfxPASSWORD   
+}
+./create_core_infrastructure.ps1 @opts
 ```
 
 ## Application Build Deployment 
@@ -49,7 +56,13 @@ cd ./scripts
 pwsh
 $AppName = "quetzal-8233" #This will be the output from the create_core_infrastructure.ps1 script
 cd ./scripts
-./deploy_application.ps1 -AppName  $AppNam -Regions '["westus3", "eastus2"]' -SubscriptionName my_subscription -DomainName bjda.demo 
+$opts = @{
+    AppName             = $AppName
+    Regions             = '["westus3", "eastus2"]'
+    SubscriptionName    = "my_subscription"
+    DomainName          = "bjda.demo"
+}
+./deploy_application.ps1 @opts
 ```
 
 # Expose API Externally 
@@ -59,7 +72,20 @@ cd ./scripts
 ```powershell
 pwsh
 cd ./scripts
-./create_ext_infrastructure.ps1 -AppName ${appName} -Regions @("westus3","eastus2") -SubscriptionName my_subscription -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -IngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
+$opts = @{
+	AppName                   = $AppName
+	Regions                   = @("westus3","eastus2")
+	SubscriptionName          = "my_subscription"
+	DeploymentType            = "multi"
+	ApiManagementPfxFilePath  = "~/certs/apim.pfx"
+	AppGatewayPfxFilePath     = "~/certs/gw.pfx"
+	PfxPassword               = (ConvertTo-SecureString -String $PfxPASSWORD -AsPlainText -Force)
+	IngressUrl                = "api.ingress.bjd.demo"
+	ApiManagementUrls         = @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") 
+	AppGatewayUrls            = ("api.us.bjd.demo","api.uk.bjd.demo")
+	FrontDoorUrl              = "api.bjd.demo"
+}
+./create_ext_infrastructure.ps1 @opts
 ```
 
 ## Manual Steps
@@ -70,21 +96,37 @@ cd ./scripts
 
 # Testing
 ## Test Application Gateways Individually using PowerShell
-* Obtain your APIM subscription key
+* Obtain your APIM subscription key from the APIM Service 
 ```powershell
-$h = New-APIMHeader -key $apiSubscriptionKey _New-APIMHeader is a method in bjd.Azure.Functions_
-Invoke-RestMethod -UseBasicParsing -Uri https://api.us.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
-Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 -Method Post -Headers $h
-$keyId = copy a reply from the commands above
-Invoke-RestMethod -UseBasicParsing -Uri https://api.us.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
-Invoke-RestMethod -UseBasicParsing -Uri https://api.uk.bjd.demo/k/${keyId}?api-version=2020-05-04 -Headers $h
+$h = New-APIMHeader -key $apiSubscriptionKey
+Invoke-RestMethod -UseBasicParsing `
+    -Uri https://api.us.bjd.demo/k/10?api-version=2020-05-04 ` 
+    -Method Post `
+    -Headers $h
+Invoke-RestMethod -UseBasicParsing `
+    -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 `
+    -Method Post `
+    -Headers $h
+
+$keyId = "" #copy a reply from the commands above
+Invoke-RestMethod -UseBasicParsing `
+    -Uri https://api.us.bjd.demo/k/${keyId}?api-version=2020-05-04 `
+    -Headers $h
+Invoke-RestMethod -UseBasicParsing `
+    -Uri https://api.uk.bjd.demo/k/${keyId}?api-version=2020-05-04 `
+    -Headers $h
 ```
 
 ## Test Azure Front Door globally with Azure ACI
 ```powershell
-cd .\Infrastructure\ACI
+cd .\infrastructure\ACI
 New-AzResourceGroup -Name ${appName}_tests_rg -l eastus2
-New-AzResourceGroupDeployment -Name aci -ResourceGroupName ${appName}_testing_rg -Verbose -TemplateFile .\azuredeploy.json -apimSubscriptionKey ${apiSubscriptionKey} -frontDoorUrl https://api.bjd.demo -keyGuid ${keyId}
+New-AzResourceGroupDeployment -Name aci  `
+    -ResourceGroupName ${appName}_testing_rg `
+    -TemplateFile .\azuredeploy.json `
+    -apimSubscriptionKey ${apiSubscriptionKey} `
+    -frontDoorUrl https://api.bjd.demo 
+    -keyGuid ${keyId}
 az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-get
 az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-post
 az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-get
