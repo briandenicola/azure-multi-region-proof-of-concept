@@ -24,8 +24,8 @@ namespace Eventing
                 Connection = "EVENTHUB_CONNECTIONSTRING")] string[] events,
             [CosmosDB(
                 databaseName: "AesKeys", 
-                collectionName: "Items", 
-                ConnectionStringSetting  = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
+                containerName: "Items", 
+                Connection  = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
             ILogger log)
         {
             foreach (var message in events )
