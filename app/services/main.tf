@@ -1,34 +1,31 @@
-data "http" "myip" {
-  url = "http://checkip.amazonaws.com/"
+terraform {
+  required_providers {
+    azapi = {
+      source  = "azure/azapi"
+    }
+  }
 }
 
 locals {
-  regional_name             = "${var.app_name}-${var.location}"
-  rg_name                   = "${local.regional_name}_rg"
-  global_rg_name            = "${var.app_name}_global_rg"
-  acr_name                  = "${replace(var.app_name, "-", "")}acr.azurecr.io"
-  aca_name                  = "${local.regional_name}-env"
-  workload_identity         = "${local.regional_name}-app-identity"
-  api_image                 = "${local.acr_name}/cqrs/api:${var.commit_version}"
-  eventprocessor_image      = "${local.acr_name}/cqrs/eventprocessor:${var.commit_version}"
-  changefeedprocessor_image = "${local.acr_name}/cqrs/changefeedprocessor:${var.commit_version}"
-}
+  regional_name               = "${var.app_name}-${var.location}"
+  rg_name                     = "${var.app_name}_${var.location}_rg"
+  global_rg_name              = "${var.app_name}_global_rg"
+  acr_name                    = "${replace(var.app_name, "-", "")}acr.azurecr.io"
+  aca_name                    = "${local.regional_name}-env"
+  kv_name                     = "${local.regional_name}-kv"
+  db_name                     = "${var.app_name}-cosmosdb"
+  eventhub_namespace_name     = "${local.regional_name}-ehns"
+  redis_name                  = "${local.regional_name}-cache"
+  storage_name                = "${replace(var.app_name, "-", "")}${var.location}sa"
+  EVENTHUB_CONNECTIONSTRING   = "eventhub-connectionstring"
+  COSMOSDB_CONNECTIONSTRING   = "cosmosdb-connectionstring"
+  REDISCACHE_CONNECTIONSTRING = "rediscache-connectionstring"
+  AzureWebJobsStorage         = "azurewebjobsstorage"
 
-data "azurerm_resource_group" "this" {
-  name = local.rg_name
-}
-
-data "azurerm_container_app_environment" "this" {
-  name                = local.aca_name
-  resource_group_name = data.azurerm_resource_group.this.name
-}
-
-data "azurerm_container_app_environment_certificate" "this" {
-  name                         = replace(var.custom_domain, ".", "-")
-  container_app_environment_id = data.azurerm_container_app_environment.this.id
-}
-
-data "azurerm_user_assigned_identity" "this" {
-  name                = local.workload_identity
-  resource_group_name = data.azurerm_resource_group.this.name
+  #api_image                 = "${local.acr_name}/cqrs/api:${var.commit_version}"
+  #eventprocessor_image      = "${local.acr_name}/cqrs/eventprocessor:${var.commit_version}"
+  #changefeedprocessor_image = "${local.acr_name}/cqrs/changefeedprocessor:${var.commit_version}"
+  api_image                 = "mcr.microsoft.com/k8se/quickstart:latest"
+  eventprocessor_image      = "mcr.microsoft.com/k8se/quickstart:latest"
+  changefeedprocessor_image = "mcr.microsoft.com/k8se/quickstart:latest"
 }

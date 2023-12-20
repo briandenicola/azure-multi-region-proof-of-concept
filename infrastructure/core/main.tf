@@ -17,7 +17,7 @@ locals {
 
 module "global_resources" {
   source                          = "./global"
-  api_server_authorized_ip_ranges = "${chomp(data.http.myip.response_body)}/32"
+  authorized_ip_ranges            = "${chomp(data.http.myip.response_body)}/32"
   locations                       = var.locations
   app_name                        = local.resource_name
 }
@@ -36,4 +36,5 @@ module "regional_resources" {
   custom_domain                   = var.custom_domain
   certificate_file_path           = var.certificate_file_path
   certificate_password            = var.certificate_password
+  authorized_ip_ranges            = "${chomp(data.http.myip.response_body)}/32"
 }

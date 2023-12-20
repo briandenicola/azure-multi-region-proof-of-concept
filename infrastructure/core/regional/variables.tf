@@ -21,3 +21,7 @@ variable "certificate_file_path" {
 variable "certificate_password" {
   description = "The pfx certificate password for this application deployment"
 }
+
+variable "authorized_ip_ranges" {
+    description = "The IP ranges that are allowed to access the Azure resources"
+}

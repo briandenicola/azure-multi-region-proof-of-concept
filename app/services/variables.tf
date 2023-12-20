@@ -13,3 +13,11 @@ variable commit_version {
 variable custom_domain {
   description = "The custom domain for this application deployment"
 }
+
+variable app_identity {
+  description = "value of the user assigned identity for this application deployment"
+}
+
+variable app_identity_principal_id {
+  description = "value of the user assigned identity principal id for this application deployment"
+}

@@ -18,7 +18,7 @@ resource "azurerm_container_registry" "cqrs_acr" {
     default_action = "Deny"
     ip_rule {
       action   = "Allow"
-      ip_range = var.api_server_authorized_ip_ranges
+      ip_range = var.authorized_ip_ranges
     }
   }
 }

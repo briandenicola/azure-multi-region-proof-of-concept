@@ -1,7 +1,7 @@
 resource "azurerm_container_app" "eventprocessor" {
   name                         = "eventprocessor"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
-  resource_group_name          = data.azurerm_resource_group.this.name
+  resource_group_name          = data.azurerm_resource_group.cqrs_regional.name
   revision_mode                = "Single"
   workload_profile_name        = "default"
 
@@ -12,13 +12,13 @@ resource "azurerm_container_app" "eventprocessor" {
   identity {
     type = "UserAssigned"
     identity_ids = [
-      data.azurerm_user_assigned_identity.this.id
+      var.app_identity
     ]
   }
 
   registry {
     server   = local.acr_name
-    identity = data.azurerm_user_assigned_identity.this.id
+    identity = var.app_identity
   }
 
 

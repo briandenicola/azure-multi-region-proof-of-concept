@@ -1,20 +1,19 @@
 resource "azurerm_container_app" "api" {
   name                         = "api"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
-  resource_group_name          = data.azurerm_resource_group.this.name
+  resource_group_name          = data.azurerm_resource_group.cqrs_regional.name
   revision_mode                = "Multiple"
   workload_profile_name        = "default"
 
   identity {
     type = "UserAssigned"
     identity_ids = [
-      data.azurerm_user_assigned_identity.this.id
+      var.app_identity
     ]
   }
 
   ingress {
     allow_insecure_connections = false
-    fqdn                       = "api.ingress.${var.custom_domain}"
     external_enabled           = false
     target_port                = 8080
     transport                  = "auto"
@@ -33,7 +32,7 @@ resource "azurerm_container_app" "api" {
 
   registry {
     server   = local.acr_name
-    identity = data.azurerm_user_assigned_identity.this.id
+    identity = var.app_identity
   }
 
   template {

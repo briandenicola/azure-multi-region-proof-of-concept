@@ -1,5 +1,5 @@
-variable "api_server_authorized_ip_ranges" {
-    description = "The IP ranges that are allowed to access the API server"
+variable "authorized_ip_ranges" {
+    description = "The IP ranges that are allowed to access the Azure resources"
 }
 
 variable "locations" {

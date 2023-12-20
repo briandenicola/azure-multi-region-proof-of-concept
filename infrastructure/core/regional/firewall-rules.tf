@@ -1,36 +1,3 @@
-locals {
-    aks_service_tag_rules = [
-      {
-        name                  = "apitcp"
-        source_addresses      = ["*"]
-        destination_ports     = ["9000"]
-        protocols             = ["TCP"]
-        destination_addresses = ["AzureCloud"]
-      },
-      {
-        name                  = "apiudp"
-        source_addresses      = ["*"]
-        destination_ports     = ["1194"]
-        protocols             = ["UDP"]
-        destination_addresses = ["AzureCloud"]
-      }
-    ]
-    aks_fqdn_fw_rules = [
-      {
-        name                  = "apitcp"
-        source_addresses      = ["*"]
-        destination_ports     = ["9000"]
-        protocols             = ["TCP"]
-      },
-      {
-        name                  = "apiudp"
-        source_addresses      = ["*"]
-        destination_ports     = ["1194"]
-        protocols             = ["UDP"]
-      }
-    ]
-}
-
 resource "azurerm_firewall_policy" "cqrs_region" {
   name                = "${local.firewall_name}-policies"
   resource_group_name = azurerm_resource_group.cqrs_region.name
@@ -81,7 +48,10 @@ resource azurerm_firewall_policy_rule_collection_group cqrs_region {
 
         destination_fqdns = [
             "management.microsoft.com",
-            "login.microsoftonline.com"
+            "login.microsoftonline.com",
+            "*.identity.azure.net",
+            "*.login.microsoftonline.com",
+            "*.login.microsoft.com"
         ]
     }  
 
@@ -96,6 +66,7 @@ resource azurerm_firewall_policy_rule_collection_group cqrs_region {
 
         destination_fqdns = [
             "*.docker.io",
+            "registry-1.docker.io",
             "production.cloudflare.docker.com"
         ]
     } 
@@ -145,7 +116,8 @@ resource azurerm_firewall_policy_rule_collection_group cqrs_region {
 
         destination_fqdns = [
             data.azurerm_container_registry.cqrs_acr.login_server,
-            "${local.acr_name}.${azurerm_resource_group.cqrs_region.location}.data.azurecr.io"
+            "${local.acr_name}.${azurerm_resource_group.cqrs_region.location}.data.azurecr.io",
+            "*.blob.core.windows.net"
         ]
     }
   }
@@ -174,6 +146,18 @@ resource azurerm_firewall_policy_rule_collection_group cqrs_region {
         "ntp.ubuntu.com"
       ]
     }
+
+    rule {
+      name                  = "keyvault"
+      source_addresses      = ["*"]
+      destination_ports     = ["443"]
+      protocols             = ["TCP"]
+      destination_addresses = [
+        "AzureKeyVault",
+        "AzureActiveDirectory"
+      ]
+    }
+
 
   }
 }
