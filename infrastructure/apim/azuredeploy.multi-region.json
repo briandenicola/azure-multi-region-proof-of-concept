@@ -1,0 +1,143 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apiManagementName": {
+            "type": "String"
+        },
+        "multiRegionDeployment": {
+            "type": "string",
+            "defaultValue": "false"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "secondaryLocation": {
+            "type": "string",
+            "defaultValue": "UK West"
+        },
+        "primaryVnetName": {
+            "type": "String"
+        },
+        "primaryVnetResourceGroup": {
+            "type": "String"
+        },
+        "secondaryVnetName": {
+            "type": "String",
+            "defaultValue": "undefined"
+        },
+        "secondaryVnetResourceGroup": {
+            "type": "String",
+            "defaultValue": "undefined"
+        },
+        "customDomain":{
+            "type": "string"
+        },
+        "primaryProxyFQDN": {
+            "type": "string"
+        },
+        "secondaryProxyFQDN": {
+            "type": "string",
+            "defaultValue": "undefined"
+        },
+        "customDomainCertificateData":{
+            "type": "string"
+        },
+        "customDomainCertificatePassword":{
+            "type": "securestring"
+        }
+    },
+    "variables": {
+        "skuCount": 1,
+        "publisherName": "bjdazuretech",
+        "publisherEmail": "brian@bjdazure.tech",
+        "subnetName" : "/subnets/APIM",
+        "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
+        "secondaryLocationSubnetId": "[concat(resourceId(parameters('secondaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('secondaryVnetName')), variables('subnetName'))]",
+        "secondaryLocationObject": [{
+            "location": "[parameters('secondaryLocation')]",
+            "sku": {
+                "name": "[variables('apimsku')]",
+                "capacity": "[variables('skuCount')]"
+            },
+            "virtualNetworkConfiguration": {
+                "subnetResourceId": "[variables('secondaryLocationSubnetId')]"
+            }
+        }],
+        "emptyArray": [],
+        "additionalLocationConfig": "[if(equals(parameters('multiRegionDeployment'),'True'),variables('secondaryLocationObject'),variables('emptyArray'))]",
+        "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'True'),'Premium','Developer')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ApiManagement/service",
+            "apiVersion": "2022-08-01",
+            "name": "[parameters('apiManagementName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[variables('apimsku')]",
+                "capacity": "[variables('skuCount')]"
+            },
+            "identity": {
+                "type": "systemAssigned"
+            },
+            "properties": {
+                "publisherEmail": "[variables('publisherEmail')]",
+                "publisherName": "[variables('publisherName')]",
+                "hostnameConfigurations": [
+                    {
+                        "type": "DeveloperPortal",
+                        "hostName": "[concat('developer.', parameters('customDomain'))]",
+                        "negotiateClientCertificate": false,
+                        "encodedCertificate": "[parameters('customDomainCertificateData')]",
+                        "certificatePassword": "[parameters('customDomainCertificatePassword')]",
+                        "defaultSslBinding": false
+                    },
+                    {
+                        "type": "Management",
+                        "hostName": "[concat('management.', parameters('customDomain'))]",
+                        "negotiateClientCertificate": false,
+                        "encodedCertificate": "[parameters('customDomainCertificateData')]",
+                        "certificatePassword": "[parameters('customDomainCertificatePassword')]",
+                        "defaultSslBinding": false
+                    },
+                    {
+                        "type": "Proxy",
+                        "hostName": "[parameters('primaryProxyFQDN')]",
+                        "negotiateClientCertificate": false,
+                        "encodedCertificate": "[parameters('customDomainCertificateData')]",
+                        "certificatePassword": "[parameters('customDomainCertificatePassword')]",
+                        "defaultSslBinding": true
+                    },
+                    {
+                        "type": "Proxy",
+                        "hostName": "[parameters('secondaryProxyFQDN')]",
+                        "negotiateClientCertificate": false,
+                        "encodedCertificate": "[parameters('customDomainCertificateData')]",
+                        "certificatePassword": "[parameters('customDomainCertificatePassword')]",
+                        "defaultSslBinding": true
+                    }
+                ],
+                "additionalLocations": "[variables('additionalLocationConfig')]",
+                "virtualNetworkConfiguration": {
+                    "subnetResourceId": "[variables('primarySubnetId')]"
+                },
+                "customProperties": {
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2": "True"
+                },
+                "virtualNetworkType": "Internal"
+            }
+        }
+    ]
+}

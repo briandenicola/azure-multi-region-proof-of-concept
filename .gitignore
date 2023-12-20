@@ -9,6 +9,8 @@ build
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.bak
+terraform.tfstate.d/
+.terraform.tfstate.lock.info
 *.plan*
 
 # Project Files

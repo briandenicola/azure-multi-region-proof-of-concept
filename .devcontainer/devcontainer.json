@@ -30,7 +30,12 @@
 			
 			"extensions": [
 				"golang.Go",
-				"GitHub.copilot"
+				"GitHub.copilot",
+				"ms-dotnettools.csharp",
+				"ms-azuretools.vscode-docker",
+				"ms-vscode.powershell",
+				"ms-azuretools.vscode-azurefunctions",
+				"ms-azuretools.vscode-azureterraform"
 			]
 		}
 	},
