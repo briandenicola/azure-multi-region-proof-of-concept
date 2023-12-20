@@ -79,7 +79,6 @@ terraform plan -out="${tf_plan}" -var="locations=${Regions}" -var="app_name=${Ap
 terraform apply -auto-approve ${tf_plan}
 
 if($?){
-    Write-Log ("{0} {1} @ {2}" -f $msg,$APP_API_URI, (Get-APIGatewayIP))
     Write-Log "Application successfully deployed. . ."
 }
 else {
