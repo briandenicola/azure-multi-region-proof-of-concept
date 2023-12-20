@@ -45,7 +45,7 @@ function Get-AzureRegion
 Import-Module -Name bjd.Azure.Functions
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
-$ApiMgmtName       = "apim-{0}" -f $ApplicationName
+$ApiMgmtName       = "{0}-apim" -f $ApplicationName
 $ManagementUris    = @("management", "portal", "developer", "management.scm")
 $ManagementDomain  = (Get-UriComponents -Uri $ApimProxies[0])
 $pfxEncoded        = Convert-CertificatetoBase64 -CertPath $PFXPath
@@ -60,7 +60,7 @@ $opts = @{
     customDomainCertificatePassword = $PFXPassword
     primaryProxyFQDN                = $ApimProxies[0]
     multiRegionDeployment           = $false
-    primaryVnetName                 = ("vnet{0}001" -f $ApplicationName)
+    primaryVnetName                 = ("{0}-{1}-vnet" -f $ApplicationName, $Regions[0])
     primaryVnetResourceGroup        = ("{0}_{1}_rg" -f $ApplicationName, $Regions[0])
 }
 
@@ -71,7 +71,7 @@ if ($DeploymentType -eq "multi") {
     }
     $opts.secondaryLocation  = $Regions[1]
     $opts.secondaryProxyFQDN = $ApimProxies[1]
-    $opts.secondaryVnetName  = ("vnet{0}002" -f $ApplicationName)
+    $opts.secondaryVnetName  =  ("{0}-{1}-vnet" -f $ApplicationName, $Regions[1])
     $opts.secondaryVnetResourceGroup = ("{0}_{1}_rg" -f $ApplicationName, $Regions[1])
     $opts.multiRegionDeployment = $true
 }

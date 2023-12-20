@@ -25,7 +25,7 @@ Import-Module -Name bjd.Azure.Functions
 $pfxEncoded = Convert-CertificatetoBase64 -CertPath $PFXPath
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
-$AppGatewayName = "appgw-{0}" -f $ApplicationName
+$AppGatewayName = "{0}-gw" -f $ApplicationName
 
 $opts = @{
     Name                            = ("AppGateway-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
@@ -36,7 +36,7 @@ $opts = @{
     domainCertificatePassword       = $PFXPassword
     primaryBackendEndFQDN           = $BackendHostNames[0]
     multiRegionDeployment           = $false
-    primaryVnetName                 = ("vnet{0}001" -f $ApplicationName)
+    primaryVnetName                 = ("{0}-{1}-vnet" -f $ApplicationName, $Regions[0])
     primaryVnetResourceGroup        = ("{0}_{1}_rg" -f $ApplicationName, $Regions[0])
 }
 
@@ -47,7 +47,7 @@ if ($DeploymentType -eq "multi") {
     }
     $opts.secondaryBackendEndFQDN = $BackendHostNames[1]
     $opts.secondaryLocation  = $Regions[1]
-    $opts.secondaryVnetName  = ("vnet{0}002" -f $ApplicationName)
+    $opts.secondaryVnetName  = ("{0}-{1}-vnet" -f $ApplicationName, $Regions[1])
     $opts.secondaryVnetResourceGroup = ("{0}_{1}_rg" -f $ApplicationName, $Regions[1])
     $opts.multiRegionDeployment = $true
 }
