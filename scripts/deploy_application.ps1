@@ -1,3 +1,32 @@
+<#
+.SYNOPSIS
+This PowerShell Script will build and deploy the CQRS appplication.
+
+.DESCRIPTION
+Version - 1.0.0
+This PowerShell Script will build and deploy the CQRS appplication.
+
+.EXAMPLE
+.\deploy_application.ps1 -AppName cheetah-37209 -Regions '["eastus2","ukwest"]' -DomainName bjd.demo
+
+.EXAMPLE
+.\deploy_application.ps1 -AppName cheetah-37209 -Regions '["eastus2"]' -DomainName bjd.demo -BuildOnly
+
+.PARAMETER AppNmame
+Specifies the Application Name as outputtee by the create_core_infrastructure.ps1 script
+
+.PARAMETER Regions
+Specifies the Regions used 
+
+.PARAMETER DomainName
+The Domain Name that will be used by the Ingress Controller to terminate TLS. Mandatory parameter
+
+.PARAMETER SkipBuild
+Skips the build process
+
+.PARAMETER BuildOnly
+Only builds the application and does not deploy
+#>
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
     [Parameter(ParameterSetName = 'Default', Mandatory=$true)]
@@ -23,7 +52,7 @@ param(
 . ./modules/naming.ps1 -AppName $AppName
 
 Connect-ToAzure -SubscriptionName $SubscriptionName
-Connect-ToAzureContainerRepo -ACRName $AcrName
+Connect-ToAzureContainerRepo -ACRName $APP_ACR_NAME
 Add-AzureCliExtensions
 
 #Build and Push All Containers from Source 

@@ -12,39 +12,38 @@ This PowerShell Script will stand up Azure API Management, Azure App Gateway, an
 .EXAMPLE
 .\create_external_infrastructure.ps1 -AppName example123 -Regions @("eastus2") -SubscriptionId xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -DeploymentType single -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo") -FrontDoorUrl api.bjd.demo
 
-.PARAMETER AppName
-Specifies the main directory to copy files from. Mandatory parameter
+.PARAMETER AppNmame
+Specifies the Application Name as outputtee by the create_core_infrastructure.ps1 script
 
 .PARAMETER Regions
-Specifies the main directory to copy files to. Mandatory parameter
+Specifies the Regions used 
 
 .PARAMETER SubscriptionName
-Specifies an array of extensions of files to ignore in the sync process
+The Subscription Name to deploy the Azure Resources. Mandatory parameter
 
 .PARAMETER DeploymentType
-Switch to including logging of files copied. Parameter Set = Logging
+The type of deployment. Mandatory parameter - Single region or Multiple regions
 
 .PARAMETER ApiManagementPfxFilePath
-Full Path to Log file. Parameter Set = Logging
+The Path to the certificate that will be used by the API Management to terminate TLS. Mandatory parameter
 
 .PARAMETER AppGatewayPfxFilePath
-Full Path to Log file. Parameter Set = Logging
+The Path to the certificate that will be used by the App Gateway to terminate TLS externally. Mandatory parameter
 
 .PARAMETER PFXPassword
-Full Path to Log file. Parameter Set = Logging
+The PFX Password. Mandatory parameter
 
-.PARAMETER AksIngressUrl
-Full Path to Log file. Parameter Set = Logging
+.PARAMETER IngressUrl
+The URL of the Container Apps endpoint. Mandatory parameter
 
 .PARAMETER ApiManagementUrls
-Full Path to Log file. Parameter Set = Logging
+An array of URLs for the API Management service. Mandatory parameter
 
 .PARAMETER AppGatewayUrls
-Full Path to Log file. Parameter Set = Logging
+An array of URLs for the App Gateway service. Mandatory parameter
 
 .PARAMETER FrontDoorUrl
-Full Path to Log file. Parameter Set = Logging
-
+The URL of the Front Door endpoint. Mandatory parameter
 #>
 param (
     [Parameter(Mandatory = $true)]

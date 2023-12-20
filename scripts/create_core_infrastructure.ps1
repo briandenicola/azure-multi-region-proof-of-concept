@@ -1,3 +1,32 @@
+<#
+.SYNOPSIS
+This PowerShell Script will stand up core infrastructure for the CQRS appplication.
+
+.DESCRIPTION
+Version - 1.0.0
+This PowerShell Script will stand upis PowerShell Script will stand up core infrastructure for the CQRS appplication..
+
+.EXAMPLE
+.\create_core_infrastructure.ps1 -Regions '["eastus2","ukwest"]' -DomainName bjd.demo -SubscriptionId xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -IngressPfxFilePath ~/certs/apim.pfx -PFXPassword xyz
+
+.EXAMPLE
+.\create_core_infrastructure.ps1 -Regions '["eastus2"]' -DomainName bjd.demo -SubscriptionId xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -IngressPfxFilePath ~/certs/apim.pfx -PFXPassword xyz
+
+.PARAMETER Regions
+Specifies the Regions used 
+
+.PARAMETER SubscriptionName
+The Subscription Name to deploy the Azure Resources. Mandatory parameter
+
+.PARAMETER DomainName
+The Domain Name that will be used by the Ingress Controller to terminate TLS. Mandatory parameter
+
+.PARAMETER IngressPfxFilePath
+The Path to the certificate that will be used by the Ingress Controller to terminate TLS. Mandatory parameter
+
+.PARAMETER PFXPassword
+The PFX Password. Mandatory parameter
+#>
 param(
   [Parameter(Mandatory=$true)]
   [String]            $SubscriptionName,
