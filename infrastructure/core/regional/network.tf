@@ -55,24 +55,13 @@ resource azurerm_subnet nodes {
   resource_group_name  = azurerm_resource_group.cqrs_region.name
   virtual_network_name = azurerm_virtual_network.cqrs_region.name
   address_prefixes     = [ local.nodes_subnet_cidir ]
-}
 
-resource azapi_update_resource nodes_delegation {
-  type        = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
-  resource_id = azurerm_subnet.nodes.id
+  delegation {
+    name = "aca-delegation"
 
-  body = jsonencode({
-    properties= {
-      delegations = [{
-        name = "Microsoft.App.environment"
-
-        properties = {
-          serviceName = "Microsoft.App/environments"
-          actions = [
-            "Microsoft.Network/virtualNetworks/subnets/join/action"
-          ]
-        }      
-      }]
+    service_delegation {
+      name    = "Microsoft.App/environments"
     }
-  })
+  }
+
 }

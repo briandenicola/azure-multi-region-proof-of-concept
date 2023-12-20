@@ -17,6 +17,7 @@ locals {
   acr_name                             = "${replace(var.app_name, "-", "")}acr"
   db_name                              = "${var.app_name}-cosmosdb"
   la_name                              = "${var.app_name}-logs"
+  ai_name                              = "${var.app_name}-ai"
   regional_name                        = "${var.app_name}-${var.location}"
   storage_name                         = "${replace(var.app_name, "-", "")}${var.location}sa"
   redis_name                           = "${local.regional_name}-cache"

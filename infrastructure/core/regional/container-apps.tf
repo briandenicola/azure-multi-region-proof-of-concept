@@ -1,11 +1,12 @@
 resource "azurerm_container_app_environment" "env" {
-  name                           = local.aca_name
-  location                       = azurerm_resource_group.cqrs_region.location
-  resource_group_name            = azurerm_resource_group.cqrs_region.name
-  log_analytics_workspace_id     = data.azurerm_log_analytics_workspace.cqrs_logs.workspace_id
-  infrastructure_subnet_id       = azurerm_subnet.nodes.id
-  internal_load_balancer_enabled = true
-  zone_redundancy_enabled        = true
+  name                                        = local.aca_name
+  location                                    = azurerm_resource_group.cqrs_region.location
+  resource_group_name                         = azurerm_resource_group.cqrs_region.name
+  log_analytics_workspace_id                  = data.azurerm_log_analytics_workspace.cqrs_logs.id
+  dapr_application_insights_connection_string = data.azurerm_application_insights.cqrs_app_insights.connection_string
+  infrastructure_subnet_id                    = azurerm_subnet.nodes.id
+  internal_load_balancer_enabled              = true
+  zone_redundancy_enabled                     = true
 
   workload_profile {
     name                  = local.workload_profile_name

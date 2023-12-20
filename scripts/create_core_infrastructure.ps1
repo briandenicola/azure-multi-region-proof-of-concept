@@ -13,7 +13,7 @@ param(
   [String]            $IngressPfxFilePath,
 
   [Parameter(Mandatory = $true)]
-  [SecureString]      $PFXPassword
+  [String]            $PFXPassword
 )
 
 $today = (Get-Date).ToString("yyyyMMdd")
