@@ -35,6 +35,7 @@ resource "azapi_resource" "azurerm_container_app_environment" {
           sharedKey  = data.azurerm_log_analytics_workspace.cqrs_logs.primary_shared_key
         }
       }
+      daprAIInstrumentationKey    = data.azurerm_application_insights.cqrs_app_insights.instrumentation_key
       daprAIConnectionString      = data.azurerm_application_insights.cqrs_app_insights.connection_string
       infrastructureResourceGroup = "${local.aca_name}_nodes_rg"
       zoneRedundant               = true
