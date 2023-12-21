@@ -3,7 +3,7 @@ resource azurerm_key_vault_secret eventhub_connection_string {
     azurerm_role_assignment.administrator
   ]
   name         = local.EVENTHUB_CONNECTIONSTRING
-  value        = data.azurerm_eventhub_namespace.cqrs_region.default_primary_connection_string
+  value        = "${data.azurerm_eventhub_namespace.cqrs_region.default_primary_connection_string};EntityPath=${local.event_hub_name}"
   key_vault_id = data.azurerm_key_vault.cqrs_region.id
 }
 
