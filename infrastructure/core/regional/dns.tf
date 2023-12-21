@@ -89,6 +89,6 @@ resource "azurerm_private_dns_a_record" "containerapps" {
   resource_group_name = azurerm_resource_group.cqrs_region.name
   ttl                 = 300
   records             = [ 
-    azurerm_container_app_environment.env.static_ip_address 
+    data.azurerm_container_app_environment.env.static_ip_address 
   ]
 }
