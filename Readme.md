@@ -95,6 +95,12 @@ $opts = @{
 * You need to manually enable TLS on the custom Front Door Uri. Use the Front Door provided certificate 
 
 # Testing
+## Test Container Apps 
+```powershell
+cd ./tests
+./validate.ps1 -DomainName bjd.demo -RG quetzal-8233_westus3_rg
+```
+
 ## Test Application Gateways Individually using PowerShell
 * Obtain your APIM subscription key from the APIM Service 
 ```powershell
@@ -161,4 +167,4 @@ az container logs --resource-group ${appName}_tests_rg --name utils-japaneast-ge
 - [x] GitHub Actions pipeline 
 - [x] Simplify deployment
 - [x] Move to Azure Container Apps
-- [ ] Move to dotnet8
+- [x] Move to dotnet8
