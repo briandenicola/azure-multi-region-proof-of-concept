@@ -5,7 +5,7 @@ resource "azurerm_container_app" "api" {
     ]
   }
 
-  name                         = "api"
+  name                         = "api-internal"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = data.azurerm_resource_group.cqrs_regional.name
   revision_mode                = "Multiple"
@@ -20,7 +20,7 @@ resource "azurerm_container_app" "api" {
 
   ingress {
     allow_insecure_connections = false
-    external_enabled           = false
+    external_enabled           = true #Allow traffic from outside the Container Apps Environment. Does not mean external traffic from the Internet. 
     target_port                = 8080
     transport                  = "auto"
 
