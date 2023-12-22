@@ -8,8 +8,9 @@ curl https://get.acme.sh | sh
   
 ## Required Certificates 
 ```bash
+export PfxPASSWORD=<pick a strong password to secure the pfx file>
 acme.sh --issue --dns dns_azure -d *.bjd.demo
-acme.sh --toPkcs -d *.bjd.demo --password $PASSWORD
+acme.sh --toPkcs -d *.bjd.demo --password $PfxPASSWORD
 ```
 
 ## Optional Certificates 
