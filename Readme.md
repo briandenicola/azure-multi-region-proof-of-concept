@@ -9,33 +9,18 @@ In other words, the world's most expensive random number generator....
 ## Prerequisite
 * PowerShell
 * Azure Cli
-* Azure Static Webapp cli, 
+* Azure Static Webapp cli
 * Terraform
 * A public domain that you can create DNS records
    * Will use bjd.demo for this documentation 
-   * The Public domain is used by Let's Encrypt to valiate domain ownership before granting tls certificates 
-      * [Configure DNS Zone with Let's Encrypt's acme.sh](https://github.com/acmesh-official/acme.sh/wiki/How-to-use-Azure-DNS)
+* Certificates
+   * Follow this [link](./letsencrypt.md) for required certificates 
 
 ### Public DNS Records: 
 _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
 * api.bjd.demo - CNAME to the Azure Front Door Name 
-* api.us.bjd.demo - Public IP Address of Azure Gateway US Region.This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
-* api.uk.bjd.demo - Public IP Address of Azure Gateway UK Region.This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
-
-### Let's Encrypt TLS Certificates
-* Installation
-    * curl https://get.acme.sh | sh
-* Required Certificates 
-    * acme.sh --issue --dns dns_azure -d api.ingress.bjd.demo
-    * acme.sh --toPkcs -d api.ingress.bjd.demo --password $PASSWORD
-* Optional Certificates 
-    * _Only required if deploying application externally with APIM/AppGateway/FrontDoor_
-    * APIM Certificate: 
-        * acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
-        * acme.sh --toPkcs -d portal.bjd.demo --password $PfxPASSWORD
-    * AppGateway Certificate: 
-        * acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.us.bjd.demo -d api.uk.bjd.demo
-        * acme.sh --toPkcs -d api.bjd.demo --password $PfxPASSWORD
+* api.us.bjd.demo - Public IP Address of Azure Gateway US Region. This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
+* api.uk.bjd.demo - Public IP Address of Azure Gateway UK Region. This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
     
 ## Infrastructure Steps
 ```powershell
