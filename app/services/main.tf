@@ -19,6 +19,7 @@ locals {
   event_hub_name                 = "events"
   redis_name                     = "${local.regional_name}-cache"
   storage_name                   = "${replace(var.app_name, "-", "")}${var.location}sa"
+  workload_profile_name          = "default"
   EVENTHUB_CONNECTIONSTRING      = "eventhub-connectionstring"
   COSMOSDB_CONNECTIONSTRING      = "cosmosdb-connectionstring"
   REDISCACHE_CONNECTIONSTRING    = "rediscache-connectionstring"

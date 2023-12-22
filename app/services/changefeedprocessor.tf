@@ -10,7 +10,7 @@ resource "azurerm_container_app" "changefeedprocessor" {
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = data.azurerm_resource_group.cqrs_regional.name
   revision_mode                = "Single"
-  workload_profile_name        = "default"
+  workload_profile_name        = local.workload_profile_name
 
   identity {
     type = "UserAssigned"
