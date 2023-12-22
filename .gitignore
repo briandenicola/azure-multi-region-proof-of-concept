@@ -4,6 +4,12 @@
 #Build directory
 build
 
+#VS Code
+.vscode/
+
+#Apple
+.DS_Store
+
 # Terraform 
 .terraform/
 .terraform.lock.hcl
