@@ -7,13 +7,16 @@ Version - 1.0.0
 This PowerShell Script will build and deploy the CQRS appplication.
 
 .EXAMPLE
-.\deploy_application.ps1 -AppName cheetah-37209 -Regions '["eastus2","ukwest"]' -DomainName bjd.demo
+.\deploy_application.ps1 -AppName cheetah-37209 -Regions '["eastus2","ukwest"]' -DomainName bjd.demo -SubscriptionName my_subscription
 
 .EXAMPLE
-.\deploy_application.ps1 -AppName cheetah-37209 -Regions '["eastus2"]' -DomainName bjd.demo -BuildOnly
+.\deploy_application.ps1 -AppName cheetah-37209 -Regions '["eastus2"]' -DomainName bjd.demo -BuildOnly -SubscriptionName my_subscription
 
 .PARAMETER AppNmame
-Specifies the Application Name as outputtee by the create_core_infrastructure.ps1 script
+Specifies the Application Name as outputed by the create_core_infrastructure.ps1 script
+
+.PARAMETER SubscriptionName
+The Subscription Name to deploy the Azure Resources. Mandatory parameter
 
 .PARAMETER Regions
 Specifies the Regions used 

@@ -4,13 +4,13 @@ This PowerShell Script will stand up core infrastructure for the CQRS appplicati
 
 .DESCRIPTION
 Version - 1.0.0
-This PowerShell Script will stand upis PowerShell Script will stand up core infrastructure for the CQRS appplication..
+This PowerShell Script will stand upis PowerShell Script will stand up the infrastructure for the CQRS appplication..
 
 .EXAMPLE
-.\create_core_infrastructure.ps1 -Regions '["eastus2","ukwest"]' -DomainName bjd.demo -SubscriptionId xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -IngressPfxFilePath ~/certs/apim.pfx -PFXPassword xyz
+.\create_core_infrastructure.ps1 -Regions '["eastus2","ukwest"]' -DomainName bjd.demo -SubscriptionName my_subscription -IngressPfxFilePath ~/certs/apim.pfx -PFXPassword xyz
 
 .EXAMPLE
-.\create_core_infrastructure.ps1 -Regions '["eastus2"]' -DomainName bjd.demo -SubscriptionId xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -IngressPfxFilePath ~/certs/apim.pfx -PFXPassword xyz
+.\create_core_infrastructure.ps1 -Regions '["eastus2"]' -DomainName bjd.demo -SubscriptionName my_subscription -IngressPfxFilePath ~/certs/apim.pfx -PFXPassword xyz
 
 .PARAMETER Regions
 Specifies the Regions used 
