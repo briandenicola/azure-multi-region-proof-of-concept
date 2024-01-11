@@ -167,3 +167,18 @@ function Build-DockerContainers
     Write-Log -Message "Pushing ${ContainerName}"
     docker push $ContainerName
 }
+
+function Remove-TerraformState
+{
+    $items = @(
+        '*.plan.*'
+        'terraform.tfstate'
+        'terraform.tfstate.backup'
+        '.terraform'
+        '.terraform.lock.hcl'
+        'terraform.tfstate.d'
+    )
+    $items | ForEach-Object {
+        Remove-Item -Path (Join-Path -Path $PWD.Path -ChildPath $_) -Recurse -Force -Confirm:$false -Verbose -ErrorAction SilentlyContinue
+    }
+}
