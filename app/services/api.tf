@@ -1,7 +1,8 @@
 resource "azurerm_container_app" "api" {
   lifecycle {
     ignore_changes = [
-      template[0].container[0].env
+      secret,
+      template[0].container[0].env,
     ]
   }
 
@@ -55,6 +56,11 @@ resource "azurerm_container_app" "api" {
         interval_seconds = 3
         transport        = "HTTP"
       }
+    }
+
+    http_scale_rule {
+      name                = "http"
+      concurrent_requests = 100
     }
   }
 }
