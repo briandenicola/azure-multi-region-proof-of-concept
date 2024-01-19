@@ -58,6 +58,9 @@ resource "azurerm_container_app" "api" {
       }
     }
 
+    max_replicas = 5
+    min_replicas = 1
+
     http_scale_rule {
       name                = "http"
       concurrent_requests = 100

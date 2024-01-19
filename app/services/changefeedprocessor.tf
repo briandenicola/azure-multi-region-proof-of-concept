@@ -31,6 +31,9 @@ resource "azurerm_container_app" "changefeedprocessor" {
       cpu    = 1
       memory = "0.5Gi"
     }
+    
+    max_replicas = 1
+    min_replicas = 1
   }
 }
 
