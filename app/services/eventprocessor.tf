@@ -33,6 +33,9 @@ resource "azurerm_container_app" "eventprocessor" {
       memory = "1Gi"
     }
 
+    max_replicas = 15
+    min_replicas = 0
+
     custom_scale_rule {
       name = "eventprocessor"
       custom_rule_type = "azure-eventhub"
