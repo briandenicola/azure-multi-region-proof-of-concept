@@ -10,7 +10,11 @@ data "azurerm_resource_group" "cqrs_global" {
 }
 
 data "azurerm_resource_group" "cqrs_regional" {
-  name = local.rg_name
+  name = local.infra_rg_name
+}
+
+data "azurerm_resource_group" "cqrs_apps" {
+  name = local.apps_rg_name
 }
 
 data "azurerm_container_app_environment" "this" {
@@ -35,20 +39,20 @@ data "azurerm_application_insights" "cqrs_region" {
 
 data "azurerm_redis_cache" "cqrs_region" {
   name                = local.redis_name
-  resource_group_name = data.azurerm_resource_group.cqrs_regional.name
+  resource_group_name = data.azurerm_resource_group.cqrs_apps.name
 }
 
 data "azurerm_eventhub_namespace" "cqrs_region" {
   name                = local.eventhub_namespace_name
-  resource_group_name = data.azurerm_resource_group.cqrs_regional.name
+  resource_group_name = data.azurerm_resource_group.cqrs_apps.name
 }
 
 data "azurerm_storage_account" "cqrs_region" {
   name                = local.storage_name
-  resource_group_name = data.azurerm_resource_group.cqrs_regional.name
+  resource_group_name = data.azurerm_resource_group.cqrs_apps.name
 }
 
 data "azurerm_key_vault" "cqrs_region" {
   name                = local.kv_name
-  resource_group_name = data.azurerm_resource_group.cqrs_regional.name
+  resource_group_name = data.azurerm_resource_group.cqrs_apps.name
 }

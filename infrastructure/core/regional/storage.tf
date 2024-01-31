@@ -1,7 +1,7 @@
 resource "azurerm_storage_account" "cqrs_region" {
   name                     = local.storage_name
-  resource_group_name      = azurerm_resource_group.cqrs_region.name
-  location                 = azurerm_resource_group.cqrs_region.location
+  resource_group_name      = azurerm_resource_group.cqrs_apps.name
+  location                 = azurerm_resource_group.cqrs_apps.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"

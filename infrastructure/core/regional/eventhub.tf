@@ -1,7 +1,7 @@
 resource azurerm_eventhub_namespace cqrs_region {
   name                     = local.eventhub_namespace_name
-  location                 = azurerm_resource_group.cqrs_region.location
-  resource_group_name      = azurerm_resource_group.cqrs_region.name
+  location                 = azurerm_resource_group.cqrs_apps.location
+  resource_group_name      = azurerm_resource_group.cqrs_apps.name
   sku                      = "Standard"
   maximum_throughput_units = 5
   auto_inflate_enabled     = true
@@ -32,7 +32,7 @@ resource azurerm_monitor_diagnostic_setting eventhub_namespace {
 resource azurerm_eventhub cqrs_region {
   name                = local.eventhub_name
   namespace_name      = azurerm_eventhub_namespace.cqrs_region.name
-  resource_group_name = azurerm_resource_group.cqrs_region.name
+  resource_group_name = azurerm_resource_group.cqrs_apps.name
   partition_count     = 15
   message_retention   = 7
 }
@@ -41,7 +41,7 @@ resource azurerm_eventhub_consumer_group cqrs_region {
   name                = local.azurerm_eventhub_consumer_group_name
   namespace_name      = azurerm_eventhub_namespace.cqrs_region.name
   eventhub_name       = azurerm_eventhub.cqrs_region.name
-  resource_group_name = azurerm_resource_group.cqrs_region.name
+  resource_group_name = azurerm_resource_group.cqrs_apps.name
 }
 
 resource azurerm_private_endpoint eventhub_namespace {

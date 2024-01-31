@@ -1,8 +1,8 @@
 
 resource "azurerm_key_vault" "cqrs_region" {
   name                        = local.kv_name
-  resource_group_name         = azurerm_resource_group.cqrs_region.name
-  location                    = azurerm_resource_group.cqrs_region.location
+  resource_group_name         = azurerm_resource_group.cqrs_apps.name
+  location                    = azurerm_resource_group.cqrs_apps.location
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = false

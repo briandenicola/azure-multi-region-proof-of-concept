@@ -1,7 +1,7 @@
 resource "azurerm_redis_cache" "cqrs_region" {
   name                = local.redis_name
-  resource_group_name = azurerm_resource_group.cqrs_region.name
-  location            = azurerm_resource_group.cqrs_region.location
+  resource_group_name = azurerm_resource_group.cqrs_apps.name
+  location            = azurerm_resource_group.cqrs_apps.location
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"

@@ -8,7 +8,8 @@ terraform {
 
 locals {
   regional_name                  = "${var.app_name}-${var.location}"
-  rg_name                        = "${var.app_name}_${var.location}_rg"
+  infra_rg_name                  = "${var.app_name}_${var.location}_infra_rg"
+  apps_rg_name                   = "${var.app_name}_${var.location}_apps_rg"
   global_rg_name                 = "${var.app_name}_global_rg"
   ai_name                        = "${var.app_name}-ai"
   acr_name                       = "${replace(var.app_name, "-", "")}acr.azurecr.io"

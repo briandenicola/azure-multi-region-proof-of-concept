@@ -12,7 +12,8 @@ resource "random_integer" "vnet_cidr" {
 }
 
 locals {
-  rg_name                              = "${var.app_name}_${var.location}_rg"
+  infra_rg_name                        = "${var.app_name}_${var.location}_infra_rg"
+  apps_rg_name                         = "${var.app_name}_${var.location}_apps_rg"
   global_rg_name                       = "${var.app_name}_global_rg"
   acr_name                             = "${replace(var.app_name, "-", "")}acr"
   db_name                              = "${var.app_name}-cosmosdb"

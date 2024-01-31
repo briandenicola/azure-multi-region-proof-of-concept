@@ -8,7 +8,7 @@ resource "azurerm_container_app" "api" {
 
   name                         = "api-internal"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
-  resource_group_name          = data.azurerm_resource_group.cqrs_regional.name
+  resource_group_name          = data.azurerm_resource_group.cqrs_apps.name
   revision_mode                = "Multiple"
   workload_profile_name        = local.workload_profile_name
 
