@@ -25,11 +25,11 @@ resource "azurerm_container_app" "api" {
     target_port                = 8080
     transport                  = "auto"
 
-    custom_domain {
-      certificate_binding_type = "SniEnabled"
-      certificate_id           = data.azurerm_container_app_environment_certificate.this.id
-      name                     = "api-internal.${var.custom_domain}"
-    }
+    # custom_domain {
+    #   certificate_binding_type = "SniEnabled"
+    #   certificate_id           = data.azurerm_container_app_environment_certificate.this.id
+    #   name                     = "api-internal.${var.custom_domain}"
+    # }
 
     traffic_weight {
       latest_revision = true
@@ -68,9 +68,19 @@ resource "azurerm_container_app" "api" {
   }
 }
 
+resource "azurerm_container_app_custom_domain" "api" {
+  depends_on = [
+    azurerm_container_app.api
+  ]
+  name                                       = "api-internal.${var.custom_domain}"
+  certificate_binding_type                   = "SniEnabled"
+  container_app_id                           = azurerm_container_app.api.id
+  container_app_environment_certificate_id = data.azurerm_container_app_environment_certificate.this.id
+}
+
 resource "azapi_update_resource" "api_secrets" {
   depends_on = [
-    azurerm_container_app.api,
+    azurerm_container_app_custom_domain.api,
     azurerm_key_vault_secret.eventhub_connection_string,
     azurerm_key_vault_secret.cosmosdb_connection_string,
     azurerm_key_vault_secret.redis_connection_string,
@@ -120,23 +130,23 @@ resource "azapi_update_resource" "api_secrets" {
               value = var.location
             },
             {
-              name = "EVENTHUB_CONNECTIONSTRING"
+              name      = "EVENTHUB_CONNECTIONSTRING"
               secretRef = local.EVENTHUB_CONNECTIONSTRING
             },
             {
-              name = "COSMOSDB_CONNECTIONSTRING"
+              name      = "COSMOSDB_CONNECTIONSTRING"
               secretRef = local.COSMOSDB_CONNECTIONSTRING
             },
             {
-              name = "REDISCACHE_CONNECTIONSTRING"
+              name      = "REDISCACHE_CONNECTIONSTRING"
               secretRef = local.REDISCACHE_CONNECTIONSTRING
             },
             {
-              name = "APPINSIGHTS_INSTRUMENTATIONKEY"
+              name      = "APPINSIGHTS_INSTRUMENTATIONKEY"
               secretRef = local.APPINSIGHTS_INSTRUMENTATIONKEY
             },
             {
-              name = "AzureWebJobsStorage"
+              name      = "AzureWebJobsStorage"
               secretRef = local.AzureWebJobsStorage
             }
           ]
