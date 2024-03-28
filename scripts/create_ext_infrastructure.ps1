@@ -80,7 +80,10 @@ param (
     [string[]]          $AppGatewayUrls,
 
     [Parameter(Mandatory = $true)]
-    [string]            $FrontDoorUrl
+    [string]            $FrontDoorUrl,
+
+    [Parameter(Mandatory = $true)]
+    [string]            $RootDomain
 )  
 
 . ./modules/functions.ps1
@@ -89,7 +92,7 @@ param (
 Connect-ToAzure -SubscriptionName $SubscriptionName
 
 Set-Location -Path $apim_directory 
-./Deploy.ps1 -ApplicationName $AppName -Regions $Regions -DeploymentType $DeploymentType -PFXPath $ApiManagementPfxFilePath  -PFXPassword $PFXPassword -ApimProxies $ApiManagementUrls
+./Deploy.ps1 -ApplicationName $AppName -Regions $Regions -DeploymentType $DeploymentType -PFXPath $ApiManagementPfxFilePath -PFXPassword $PFXPassword -ApimProxies $ApiManagementUrls -DNSZone $RootDomain
 
 Set-Location -Path $apim_product_directory
 ./Deploy.ps1 -ApplicationName $AppName -primaryBackendUrl ("https://{0}" -f $IngressUrl) -Verbose

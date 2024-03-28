@@ -1,6 +1,6 @@
 param (
     [Parameter(Mandatory = $true)]
-    [string]           $ApplicationName,
+    [string]    $ApplicationName,
 
     [Parameter(Mandatory = $true)]
     [ValidateScript( { [system.uri]::IsWellFormedUriString($_, [System.UriKind]::Absolute) })]
@@ -9,7 +9,7 @@ param (
 )  
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
-$ApiMgmtName = "apim-{0}" -f $ApplicationName
+$ApiMgmtName       = "{0}-apim" -f $ApplicationName
 
 $GlobalKeyPolicy = Get-Content -Raw -Path ".\policies\GlobalKeyPolicy.xml"
 $RateLimitPolicy = Get-Content -Raw -Path ".\policies\RateLimitPolicy.xml"

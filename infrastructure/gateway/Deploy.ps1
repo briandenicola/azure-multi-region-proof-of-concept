@@ -1,23 +1,23 @@
 param (
     [Parameter(Mandatory = $true)]
-    [string]           $ApplicationName,
+    [string]            $ApplicationName,
 
     [Parameter(Mandatory = $true)]
     [string[]]          $Regions,
 
     [Parameter(Mandatory = $true)]
     [ValidateSet("single", "multi")]
-    [string]          $DeploymentType,
+    [string]            $DeploymentType,
 
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Test-Path $_ })]
-    [string]          $PFXPath,
+    [string]            $PFXPath,
     
     [Parameter(Mandatory = $true)]
-    [securestring]    $PFXPassword,
+    [securestring]      $PFXPassword,
 
     [Parameter(Mandatory = $true)]
-    [string[]] $BackendHostNames
+    [string[]]          $BackendHostNames
 
 )  
 
@@ -37,7 +37,7 @@ $opts = @{
     primaryBackendEndFQDN           = $BackendHostNames[0]
     multiRegionDeployment           = $false
     primaryVnetName                 = ("{0}-{1}-vnet" -f $ApplicationName, $Regions[0])
-    primaryVnetResourceGroup        = ("{0}_{1}_rg" -f $ApplicationName, $Regions[0])
+    primaryVnetResourceGroup        = ("{0}_{1}_infra_rg" -f $ApplicationName, $Regions[0])
 }
 
 if ($DeploymentType -eq "multi") {
@@ -48,7 +48,7 @@ if ($DeploymentType -eq "multi") {
     $opts.secondaryBackendEndFQDN = $BackendHostNames[1]
     $opts.secondaryLocation  = $Regions[1]
     $opts.secondaryVnetName  = ("{0}-{1}-vnet" -f $ApplicationName, $Regions[1])
-    $opts.secondaryVnetResourceGroup = ("{0}_{1}_rg" -f $ApplicationName, $Regions[1])
+    $opts.secondaryVnetResourceGroup = ("{0}_{1}_infra_rg" -f $ApplicationName, $Regions[1])
     $opts.multiRegionDeployment = $true
 }
 New-AzResourceGroupDeployment @opts -verbose
