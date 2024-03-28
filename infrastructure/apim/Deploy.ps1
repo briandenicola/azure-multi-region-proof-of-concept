@@ -20,7 +20,7 @@ param (
     [string[]]          $ApimGatewayUrls,
 
     [Parameter(Mandatory = $true)]
-    [string]            $ApimRootDomainName
+    [string]            $ApimRootDomainName,
 
     [Parameter(Mandatory = $true)]
     [string]            $DNSZone
