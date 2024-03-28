@@ -74,7 +74,10 @@ param (
     [string]            $IngressUrl,
 
     [Parameter(Mandatory = $true)]
-    [string[]]          $ApiManagementUrls,
+    [string[]]          $ApimGatewayUrls,
+
+    [Parameter(Mandatory = $true)]
+    [string[]]          $ApimRootDomainName,
 
     [Parameter(Mandatory = $true)]
     [string[]]          $AppGatewayUrls,
@@ -83,7 +86,7 @@ param (
     [string]            $FrontDoorUrl,
 
     [Parameter(Mandatory = $true)]
-    [string]            $RootDomain
+    [string]            $DNSZone
 )  
 
 . ./modules/functions.ps1
@@ -91,21 +94,59 @@ param (
 
 Connect-ToAzure -SubscriptionName $SubscriptionName
 
-Set-Location -Path $apim_directory 
-./Deploy.ps1 -ApplicationName $AppName -Regions $Regions -DeploymentType $DeploymentType -PFXPath $ApiManagementPfxFilePath -PFXPassword $PFXPassword -ApimProxies $ApiManagementUrls -DNSZone $RootDomain
+Set-Location -Path $apim_directory
+$apim_opts = @{
+    ApplicationName     = $AppName 
+    Regions             = $Regions
+    DeploymentType      = $DeploymentType
+    PFXPath             = $ApiManagementPfxFilePath
+    PFXPassword         = $PFXPassword 
+    ApimGatewayUrls     = $ApimGatewayUrls
+    ApimRootDomainName  = $ApimRootDomainName
+    DNSZone             = $RootDomain
+} 
+./Deploy.ps1 @apim_opts -verbose
 
 Set-Location -Path $apim_product_directory
-./Deploy.ps1 -ApplicationName $AppName -primaryBackendUrl ("https://{0}" -f $IngressUrl) -Verbose
+$product_opts = @{
+    ApplicationName     = $AppName 
+    primaryBackendUrl   = ("https://{0}" -f $IngressUrl) 
+}
+./Deploy.ps1 @product_opts -verbose
 
 Set-Location -Path $appgw_directory
-./Deploy.ps1 -ApplicationName $AppName -Regions $Regions -DeploymentType $DeploymentType  -PFXPath $AppGatewayPfxFilePath -PFXPassword $PFXPassword -BackendHostNames $ApiManagementUrls
+$appgw_opts = @{
+    ApplicationName     = $AppName 
+    Regions             = $Regions 
+    DeploymentType      = $DeploymentType
+    PFXPath             = $AppGatewayPfxFilePath 
+    PFXPassword         = $PFXPassword 
+    BackendHostNames    = $ApimGatewayUrls
+}
+./Deploy.ps1 @appgw_opts -verbose
 
 Set-Location -Path $frontdoor_directory
-./Deploy.ps1 -ApplicationName $AppName -FrontDoorUri $FrontDoorUrl -BackendHostNames $AppGatewayUrls -DeployWAFPolicies -DeploymentType $DeploymentType -Regions $Regions
+$afd_opts = @{
+    ApplicationName     = $AppName 
+    DeploymentType      = $DeploymentType 
+    Regions             = $Regions
+    FrontDoorUri        = $FrontDoorUrl 
+    BackendHostNames    = $AppGatewayUrls 
+    DeployWAFPolicies   = $true 
+}
+./Deploy.ps1 @afd_opts -verbose 
 
 Set-Location -Path $ui_directory
 Start-UiBuild
-New-AzStaticWebApp -Name $APP_UI_NAME -ResourceGroupName $APP_UI_RG -Location $Regions[0] -SkuName Free -AppLocation "/src/ui" -AppArtifactLocation "wwwroot" 
+$ui_opts = @{
+    Name                = $APP_UI_NAME
+    ResourceGroupName   = $APP_UI_RG
+    Location            = $Regions[0] 
+    SkuName             = Free
+    AppLocation         = "/src/ui"
+    AppArtifactLocation = "wwwroot" 
+}
+New-AzStaticWebApp @ui_opts
 Deploy-toAzStaticWebApp -Name $APP_UI_NAME -LocalPath $local_path
 
 Set-Location -Path $cwd
