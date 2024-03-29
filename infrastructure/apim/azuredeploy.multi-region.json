@@ -64,40 +64,9 @@
     },
     "resources": [
         {
-            "type": "Microsoft.Network/publicIPAddresses",
-            "apiVersion": "2019-09-01",
-            "name": "[variables('apimEgressPrimaryPip')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "Standard"
-            },
-            "properties": {
-                "publicIPAddressVersion": "IPv4",
-                "publicIPAllocationMethod": "Static"
-            }
-        },
-        {
-            "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
-            "type": "Microsoft.Network/publicIPAddresses",
-            "apiVersion": "2019-09-01",
-            "name": "[variables('apimEgressSecondaryPip')]",
-            "location": "[parameters('secondaryLocation')]",
-            "sku": {
-                "name": "Standard"
-            },
-            "properties": {
-                "publicIPAddressVersion": "IPv4",
-                "publicIPAllocationMethod": "Static"
-            }
-        },
-        {
             "type": "Microsoft.ApiManagement/service",
             "apiVersion": "2023-05-01-preview",
             "name": "[parameters('apiManagementName')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressPrimaryPip'))]",
-                "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressSecondaryPip'))]"
-            ],
             "location": "[parameters('location')]",
             "sku": {
                 "name": "[variables('apimsku')]",
@@ -151,8 +120,7 @@
                     },
                     "virtualNetworkConfiguration": {
                         "subnetResourceId": "[variables('secondaryLocationSubnetId')]"
-                    },
-                    "publicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressPrimaryPip') )]"
+                    }
                 }],
                 "virtualNetworkConfiguration": {
                     "subnetResourceId": "[variables('primarySubnetId')]"
@@ -167,8 +135,7 @@
                     "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30": "False",
                     "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2": "True"
                 },
-                "virtualNetworkType": "Internal",
-                "publicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressPrimaryPip') )]",
+                "virtualNetworkType": "Internal"
             }
         }
     ]

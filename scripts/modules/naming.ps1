@@ -18,3 +18,5 @@ Set-Variable -Name apim_product_directory   -Value (Join-Path -Path $root -Child
 Set-Variable -Name appgw_directory          -Value (Join-Path -Path $root -ChildPath "infrastructure/gateway")
 Set-Variable -Name frontdoor_directory      -Value (Join-Path -Path $root -ChildPath "infrastructure/frontdoor")
 Set-Variable -Name local_path               -Value (Join-Path -Path $UI_SOURCE_DIR -ChildPath "build/wwwroot")
+
+Set-Variable -Name appgw_rg_name             -Value ("{0}_appgw_rg" -f $AppName)                 -Option Constant
