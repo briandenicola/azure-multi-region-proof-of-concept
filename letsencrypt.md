@@ -18,8 +18,8 @@ acme.sh --toPkcs -d *.bjd.demo --password $PfxPASSWORD
 
 ### APIM Certificate
 ```bash
-acme.sh --issue --dns dns_azure -d portal.bjd.demo -d management.bjd.demo -d developer.bjd.demo -d api.apim.us.bjd.demo -d api.apim.uk.bjd.demo -d management.scm.bjd.demo
-acme.sh --toPkcs -d portal.bjd.demo --password $PfxPASSWORD
+acme.sh --issue --dns dns_azure -d *.apim.bjd.demo 
+acme.sh --toPkcs -d *.apim.bjd.demo --password $PfxPASSWORD
 ```
 
 ### AppGateway Certificate

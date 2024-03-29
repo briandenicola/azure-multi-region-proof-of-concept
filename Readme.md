@@ -27,7 +27,7 @@ _Only required if deploying application externally with APIM/AppGateway/FrontDoo
 pwsh
 cd ./scripts
 $opts = @{
-    regions             = '["westus3", "eastus2"]'
+    regions             = '["westus3", "ukwest"]'
     SubscriptionName    = "my_subscription"
     DomainName          = "bjd.demo" 
     IngressPfxFilePath  = "~/certs/wildcard.bjd.demo.pfx"
@@ -43,7 +43,7 @@ $AppName = "quetzal-8233" #This will be the output from the create_core_infrastr
 cd ./scripts
 $opts = @{
     AppName             = $AppName
-    Regions             = '["westus3", "eastus2"]'
+    Regions             = '["westus3", "ukwest"]'
     SubscriptionName    = "my_subscription"
     DomainName          = "bjda.demo"
 }
@@ -59,13 +59,13 @@ pwsh
 cd ./scripts
 $opts = @{
 	AppName                   = $AppName
-	Regions                   = @("westus3","eastus2")
+	Regions                   = @("westus3","ukwest")
 	SubscriptionName          = "my_subscription"
 	DeploymentType            = "multi"
 	ApiManagementPfxFilePath  = "~/certs/apim.pfx"
 	AppGatewayPfxFilePath     = "~/certs/gw.pfx"
 	PfxPassword               = (ConvertTo-SecureString -String $PfxPASSWORD -AsPlainText -Force)
-	DNSZone				  	  = "bjd.demo"
+	DNSZone                   = "bjd.demo"
 	IngressUrl                = "api.ingress.bjd.demo"
 	ApimRootDomainName	  	  = "apim.bjd.demo"
 	ApimGatewayUrls           = @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") 
@@ -80,6 +80,7 @@ $opts = @{
 * You need to assoicate the APIM Product Key Service with the Key Service and Key Service v2 APIs
 * You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their regional WAF policy
 * You need to manually enable TLS on the custom Front Door Uri. Use the Front Door provided certificate 
+* You can create a custom domain for the Static Web App UI and use the provided certificate but this is not required.
 
 # Testing
 ## Test Container Apps 
@@ -110,22 +111,7 @@ Invoke-RestMethod -UseBasicParsing `
     -Headers $h
 ```
 
-## Test Azure Front Door globally with Azure ACI
-```powershell
-cd .\infrastructure\ACI
-New-AzResourceGroup -Name ${appName}_tests_rg -l eastus2
-New-AzResourceGroupDeployment -Name aci  `
-    -ResourceGroupName ${appName}_testing_rg `
-    -TemplateFile .\azuredeploy.json `
-    -apimSubscriptionKey ${apiSubscriptionKey} `
-    -frontDoorUrl https://api.bjd.demo 
-    -keyGuid ${keyId}
-az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-get
-az container logs --resource-group ${appName}_tests_rg --name utils-australiaeast-post
-az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-get
-az container logs --resource-group ${appName}_tests_rg --name utils-westeurope-post
-az container logs --resource-group ${appName}_tests_rg --name utils-japaneast-get
-```
+
 
 # To Do List 
 - [x] Infrastructure 
