@@ -77,7 +77,7 @@ param (
     [string[]]          $ApimGatewayUrls,
 
     [Parameter(Mandatory = $true)]
-    [string[]]          $ApimRootDomainName,
+    [string]            $ApimRootDomainName,
 
     [Parameter(Mandatory = $true)]
     [string[]]          $AppGatewayUrls,
@@ -103,7 +103,7 @@ $apim_opts = @{
     PFXPassword         = $PFXPassword 
     ApimGatewayUrls     = $ApimGatewayUrls
     ApimRootDomainName  = $ApimRootDomainName
-    DNSZone             = $RootDomain
+    DNSZone             = $DNSZone
 } 
 ./Deploy.ps1 @apim_opts -verbose
 
