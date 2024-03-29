@@ -142,7 +142,7 @@ $ui_opts = @{
     Name                = $APP_UI_NAME
     ResourceGroupName   = $APP_UI_RG
     Location            = $Regions[0] 
-    SkuName             = Free
+    SkuName             = "Free"
     AppLocation         = "/src/ui"
     AppArtifactLocation = "wwwroot" 
 }
