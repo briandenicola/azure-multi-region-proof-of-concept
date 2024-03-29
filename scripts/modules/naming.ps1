@@ -11,9 +11,10 @@ Set-Variable -Name APP_ACR_NAME             -Value ("{0}acr" -f $UriFriendlyAppN
 
 Set-Variable -Name UI_SOURCE_DIR            -Value (Join-Path -Path $root -ChildPath "src/ui")  -Option Constant
 Set-Variable -Name APP_SOURCE_DIR           -Value (Join-Path -Path $root -ChildPath "src")     -Option Constant
+Set-Variable -Name APP_UI_LOCATION          -Value ("centralus")                                -Option Constant
 
 Set-Variable -Name apim_directory           -Value (Join-Path -Path $root -ChildPath "infrastructure/apim")
 Set-Variable -Name apim_product_directory   -Value (Join-Path -Path $root -ChildPath "infrastructure/product")
 Set-Variable -Name appgw_directory          -Value (Join-Path -Path $root -ChildPath "infrastructure/gateway")
 Set-Variable -Name frontdoor_directory      -Value (Join-Path -Path $root -ChildPath "infrastructure/frontdoor")
-Set-Variable -Name local_path               -Value (Join-Path -Path $PWD.Path -ChildPath "build")
+Set-Variable -Name local_path               -Value (Join-Path -Path $UI_SOURCE_DIR -ChildPath "build/wwwroot")
