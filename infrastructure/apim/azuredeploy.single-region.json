@@ -41,12 +41,12 @@
         "publisherEmail": "brian@bjdazure.tech",
         "subnetName" : "/subnets/APIM",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
-        "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'True'),'Premium','StandardV2')]"
+        "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'True'),'Premium','Developer')]"
     },
     "resources": [
         {
             "type": "Microsoft.ApiManagement/service",
-            "apiVersion": "2023-03-01-preview",
+            "apiVersion": "2023-05-01-preview",
             "name": "[parameters('apiManagementName')]",
             "location": "[parameters('location')]",
             "sku": {
