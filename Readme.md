@@ -65,9 +65,11 @@ $opts = @{
 	ApiManagementPfxFilePath  = "~/certs/apim.pfx"
 	AppGatewayPfxFilePath     = "~/certs/gw.pfx"
 	PfxPassword               = (ConvertTo-SecureString -String $PfxPASSWORD -AsPlainText -Force)
-	IngressUrl                = "api-internal.bjd.demo"
-	ApiManagementUrls         = @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") 
-	AppGatewayUrls            = ("api.us.bjd.demo","api.uk.bjd.demo")
+	DNSZone				  	  = "bjd.demo"
+	IngressUrl                = "api.ingress.bjd.demo"
+	ApimRootDomainName	  	  = "apim.bjd.demo"
+	ApimGatewayUrls           = @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") 
+	AppGatewayUrls            = @("api.us.bjd.demo","api.uk.bjd.demo")
 	FrontDoorUrl              = "api.bjd.demo"
 }
 ./create_ext_infrastructure.ps1 @opts
