@@ -96,14 +96,14 @@ if ($?)
 
     foreach ( $uri in $ApimGatewayUrls ) 
     {
-        $h = Get-HostName -Uri $uri -RootDomain $RootDomain
+        $h = Get-HostName -Uri $uri -RootDomain $DNSZone
         $ip = New-AzPrivateDnsRecordConfig -IPv4Address $apim.PrivateIPAddresses[0]
         New-AzPrivateDnsRecordSet -Name $h -RecordType A -ZoneName $DNSZone  -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
     }
 
     foreach ( $uri in $ManagementUris ) 
     {
-        $h = Get-HostName -Uri ("{0}.{1}" -f $uri, $ApimRootDomainName) -RootDomain $RootDomain
+        $h = Get-HostName -Uri ("{0}.{1}" -f $uri, $ApimRootDomainName) -RootDomain $DNSZone
         $ip = New-AzPrivateDnsRecordConfig -IPv4Address $apim.PrivateIPAddresses[0]
         New-AzPrivateDnsRecordSet -Name $h -RecordType A -ZoneName $DNSZone -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
     }
@@ -113,7 +113,7 @@ if ($?)
         $secondaryResourceGroup = "{0}_{1}_infra_rg" -f $ApplicationName, (Get-AzureRegion -location $region.Location)        
         foreach ( $uri in $ApimGatewayUrls ) 
         {
-            $h = Get-HostName -Uri $uri -RootDomain $RootDomain
+            $h = Get-HostName -Uri $uri -RootDomain $DNSZone
             $ip = New-AzPrivateDnsRecordConfig -IPv4Address $region.PrivateIPAddresses[0]
             New-AzPrivateDnsRecordSet -Name $h -RecordType A -ZoneName $DNSZone -ResourceGroupName $secondaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip            
         }
