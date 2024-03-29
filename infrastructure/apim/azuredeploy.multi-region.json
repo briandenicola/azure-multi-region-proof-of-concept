@@ -136,7 +136,8 @@
                     "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30": "False",
                     "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2": "True"
                 },
-                "virtualNetworkType": "Internal"
+                "virtualNetworkType": "Internal",
+                "platformVersion": "stv2"
             }
         }
     ]
