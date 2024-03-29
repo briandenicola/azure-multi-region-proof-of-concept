@@ -56,27 +56,48 @@
         "publisherName": "bjdazuretech",
         "publisherEmail": "brian@bjdazure.tech",
         "subnetName" : "/subnets/APIM",
+        "apimEgressPrimaryPip": "[concat(parameters('apiManagementName'),'-egress-primary-pip')]",
+        "apimEgressSecondaryPip": "[concat(parameters('apiManagementName'),'-egress-secondary-pip')]",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
         "secondaryLocationSubnetId": "[concat(resourceId(parameters('secondaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('secondaryVnetName')), variables('subnetName'))]",
-        "secondaryLocationObject": [{
-            "location": "[parameters('secondaryLocation')]",
-            "sku": {
-                "name": "[variables('apimsku')]",
-                "capacity": "[variables('skuCount')]"
-            },
-            "virtualNetworkConfiguration": {
-                "subnetResourceId": "[variables('secondaryLocationSubnetId')]"
-            }
-        }],
-        "emptyArray": [],
-        "additionalLocationConfig": "[if(equals(parameters('multiRegionDeployment'),'True'),variables('secondaryLocationObject'),variables('emptyArray'))]",
         "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'True'),'Premium','Developer')]"
     },
     "resources": [
         {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('apimEgressPrimaryPip')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
+            "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('apimEgressSecondaryPip')]",
+            "location": "[parameters('secondaryLocation')]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
             "type": "Microsoft.ApiManagement/service",
             "apiVersion": "2023-05-01-preview",
             "name": "[parameters('apiManagementName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressPrimaryPip'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressSecondaryPip'))]"
+            ],
             "location": "[parameters('location')]",
             "sku": {
                 "name": "[variables('apimsku')]",
@@ -122,7 +143,17 @@
                         "defaultSslBinding": true
                     }
                 ],
-                "additionalLocations": "[variables('additionalLocationConfig')]",
+                "additionalLocations": [{
+                    "location": "[parameters('secondaryLocation')]",
+                    "sku": {
+                        "name": "[variables('apimsku')]",
+                        "capacity": "[variables('skuCount')]"
+                    },
+                    "virtualNetworkConfiguration": {
+                        "subnetResourceId": "[variables('secondaryLocationSubnetId')]"
+                    },
+                    "publicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressPrimaryPip') )]"
+                }],
                 "virtualNetworkConfiguration": {
                     "subnetResourceId": "[variables('primarySubnetId')]"
                 },
@@ -137,7 +168,7 @@
                     "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2": "True"
                 },
                 "virtualNetworkType": "Internal",
-                "platformVersion": "stv2"
+                "publicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressPrimaryPip') )]",
             }
         }
     ]

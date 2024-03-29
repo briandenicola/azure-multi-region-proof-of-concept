@@ -40,13 +40,30 @@
         "publisherName": "bjdazuretech",
         "publisherEmail": "brian@bjdazure.tech",
         "subnetName" : "/subnets/APIM",
+        "apimEgressPrimaryPip": "[concat(parameters('apiManagementName'),'-egress-primary-pip')]",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
         "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'True'),'Premium','Developer')]"
     },
     "resources": [
         {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('apimEgressPrimaryPip')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
             "type": "Microsoft.ApiManagement/service",
             "apiVersion": "2023-05-01-preview",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressPrimaryPip'))]"
+            ],
             "name": "[parameters('apiManagementName')]",
             "location": "[parameters('location')]",
             "sku": {
@@ -99,7 +116,7 @@
                     "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2": "True"
                 },
                 "virtualNetworkType": "Internal",
-                "platformVersion": "stv2"
+                "publicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', variables('apimEgressPrimaryPip') )]",
             }
         }
     ]
