@@ -136,12 +136,12 @@ $afd_opts = @{
 }
 ./Deploy.ps1 @afd_opts -verbose 
 
-Set-Location -Path $ui_directory
+Set-Location -Path $UI_SOURCE_DIR
 Start-UiBuild
 $ui_opts = @{
     Name                = $APP_UI_NAME
     ResourceGroupName   = $APP_UI_RG
-    Location            = $Regions[0] 
+    Location            = $APP_UI_LOCATION
     SkuName             = "Free"
     AppLocation         = "/src/ui"
     AppArtifactLocation = "wwwroot" 
