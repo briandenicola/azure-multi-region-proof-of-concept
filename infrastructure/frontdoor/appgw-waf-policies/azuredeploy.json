@@ -5,6 +5,9 @@
         "AzureFrontDoorID": {
             "type": "string"
         },
+        "appGatewayName": {
+            "type": "string"
+        },
         "location": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]"
@@ -12,11 +15,15 @@
         "secondaryLocation": {
             "type": "string",
             "defaultValue": "ukwest"
+        },
+        "multiRegionDeployment": {
+            "type": "string",
+            "defaultValue": "false"
         }
     },
     "variables": {
-        "ApplicationGatewayWebApplicationFirewallPolicyPrimaryName": "[concat('appgatewaywafpolicy-', parameters('location'))]",
-        "ApplicationGatewayWebApplicationFirewallPolicySecondaryName": "[concat('appgatewaywafpolicy-', parameters('secondaryLocation'))]"
+        "ApplicationGatewayWebApplicationFirewallPolicyPrimaryName": "[concat( parameters('appGatewayName'), '-', parameters('location'), '-wafpolicy' )]",
+        "ApplicationGatewayWebApplicationFirewallPolicySecondaryName": "[concat( parameters('appGatewayName'), '-', parameters('secondaryLocation'), '-wafpolicy' )]"
     },
     "resources": [
         {
@@ -67,6 +74,7 @@
             }
         },
         {
+            "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
             "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
             "apiVersion": "2020-05-01",
             "name": "[variables('ApplicationGatewayWebApplicationFirewallPolicySecondaryName')]",

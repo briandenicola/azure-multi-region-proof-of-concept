@@ -84,7 +84,6 @@ function Deploy-toAzStaticWebApp
 {
     param(
         [string] $Name,
-        [string] $ResourceGroup,
         [string] $LocalPath
     )
 

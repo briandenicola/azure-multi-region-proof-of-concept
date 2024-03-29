@@ -24,8 +24,8 @@ param (
 Import-Module -Name bjd.Azure.Functions
 $pfxEncoded = Convert-CertificatetoBase64 -CertPath $PFXPath
 
-$ResourceGroupName = "{0}_global_rg" -f $ApplicationName
-$AppGatewayName = "{0}-gw" -f $ApplicationName
+$ResourceGroupName = "{0}_appgw_rg" -f $ApplicationName
+$AppGatewayName    = "{0}-gw"       -f $ApplicationName
 
 $opts = @{
     Name                            = ("AppGateway-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))

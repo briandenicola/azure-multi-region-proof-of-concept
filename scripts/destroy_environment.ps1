@@ -27,7 +27,7 @@ param(
 . ./modules/naming.ps1 -AppName $AppName
 
 Connect-ToAzure -SubscriptionName $SubscriptionName
-az group list --tag Version="${AppName}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --verbose --no-wait -n 
+az group list --tag AppName="${AppName}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --verbose --no-wait -n 
 
 $current = $PWD.Path
 $infra = Join-Path -Path ((Get-Item $PWD.Path).Parent).FullName -ChildPath "infrastructure/core"

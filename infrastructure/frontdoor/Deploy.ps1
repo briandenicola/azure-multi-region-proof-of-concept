@@ -20,7 +20,8 @@ param (
 )  
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
-$FrontDoorName = "afd-{0}" -f $ApplicationName 
+$AppGwRGName       = "{0}_appgw_rg" -f $ApplicationName
+$FrontDoorName     = "afd-{0}" -f $ApplicationName 
 
 Read-Host -Prompt ("Ensure that a CNAME DNS record exists that maps {0} to {1}.z01.azurefd.net..." -f $FrontDoorUri, $FrontDoorName)
 
@@ -42,18 +43,21 @@ $opts.secondaryBackendEndFQDN = $BackendHostNames[1]
 $result = New-AzResourceGroupDeployment @opts -verbose
 
 if ($DeployWAFPolicies) {
-    #$frontDoorId = Read-Host -Prompt "Enter the Front Door ID that was output above"
-    $frontdoorId = $result.Outputs["front Door ID"].Value
+    
+    $frontdoorId        = $result.Outputs["front Door ID"].Value
+    $AppGatewayName     = "{0}-gw" -f $ApplicationName
 
     $opts = @{
-        Name              = ("WAF-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
-        ResourceGroupName = $ResourceGroupName
+        Name              = ("WAF-Deployment-{0}-{1}" -f $AppGwRGName, $(Get-Date).ToString("yyyyMMddhhmmss"))
+        ResourceGroupName = $AppGwRGName
         TemplateFile      = (Join-Path -Path $PWD.Path -ChildPath ".\appgw-waf-policies\azuredeploy.json")
         AzureFrontDoorID  = $frontDoorId
+        AppGatewayName    = $AppGatewayName
     }
 
     if ($DeploymentType -eq "multi") {
-        $opts.secondaryLocation  = $Regions[1]
+        $opts.secondaryLocation     = $Regions[1]
+        $opts.multiRegionDeployment = $true
     }
 
     New-AzResourceGroupDeployment @opts -verbose   
