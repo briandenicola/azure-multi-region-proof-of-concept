@@ -1,5 +1,5 @@
 
-resource azurerm_log_analytics_workspace cqrs_logs {
+resource "azurerm_log_analytics_workspace" "cqrs_logs" {
   name                          = local.la_name
   resource_group_name           = azurerm_resource_group.cqrs_global.name
   location                      = azurerm_resource_group.cqrs_global.location
@@ -8,7 +8,7 @@ resource azurerm_log_analytics_workspace cqrs_logs {
   daily_quota_gb                = 10
 }
 
-resource azurerm_application_insights cqrs_ai {
+resource "azurerm_application_insights" "cqrs_ai" {
   name                          = local.ai_name
   resource_group_name           = azurerm_resource_group.cqrs_global.name
   location                      = azurerm_resource_group.cqrs_global.location
