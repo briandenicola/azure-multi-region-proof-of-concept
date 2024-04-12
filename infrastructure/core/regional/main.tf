@@ -41,7 +41,7 @@ locals {
   appgw_subnet_cidr                    = cidrsubnet(local.vnet_cidr, 8, 5)
   databricks_private_subnet_cidr       = cidrsubnet(local.vnet_cidr, 8, 6)
   databricks_public_subnet_cidr        = cidrsubnet(local.vnet_cidr, 8, 7)
-  nodes_subnet_cidir                   = cidrsubnet(local.vnet_cidr, 4, 1)
+  nodes_subnet_cidir                   = cidrsubnet(local.vnet_cidr, 8, 8)
 }
 
 data "azurerm_client_config" "current" {}
