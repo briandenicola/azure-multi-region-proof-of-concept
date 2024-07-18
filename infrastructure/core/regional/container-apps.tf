@@ -40,6 +40,26 @@ resource "azapi_resource" "azurerm_container_app_environment" {
       infrastructureResourceGroup = "${local.aca_name}_nodes_rg"
       zoneRedundant               = true
 
+      appInsightsConfiguration = {
+        connectionString          = data.azurerm_application_insights.cqrs_app_insights.connection_string
+      }
+
+      openTelemetryConfiguration = {
+        includeSystemTelemetry    = false
+        destinationsConfiguration = null
+        tracesConfiguration = {
+          destinations = [
+            "appInsights"
+          ]
+        }
+        logsConfiguration = {
+          destinations = [
+            "appInsights"
+          ]
+        }
+        metricsConfiguration = null
+      }
+
       peerAuthentication = {
         mtls = {
           enabled = true 
