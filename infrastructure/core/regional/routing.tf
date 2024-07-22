@@ -2,7 +2,6 @@ resource azurerm_route_table cqrs_region {
   name                          = local.route_table_name
   resource_group_name           = azurerm_resource_group.cqrs_region.name
   location                      = azurerm_resource_group.cqrs_region.location
-  disable_bgp_route_propagation = true
 
   route {
     name                   = "DefaultRoute"

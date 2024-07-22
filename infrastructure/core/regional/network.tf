@@ -47,7 +47,7 @@ resource azurerm_subnet private_endpoints {
   virtual_network_name = azurerm_virtual_network.cqrs_region.name
   address_prefixes     = [ local.pe_subnet_cidir ]
 
-  private_endpoint_network_policies_enabled = true
+  private_endpoint_network_policies = "Enabled"
 }
 
 resource azurerm_subnet nodes {
