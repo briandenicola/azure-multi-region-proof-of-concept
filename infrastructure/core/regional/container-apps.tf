@@ -21,22 +21,21 @@
 
 resource "azapi_resource" "azurerm_container_app_environment" {
 
-  type      = "Microsoft.App/managedEnvironments@2023-05-01"
+  type      = "Microsoft.App/managedEnvironments@2024-02-02-preview"
   name      = local.aca_name
   location  = azurerm_resource_group.cqrs_region.location
   parent_id = azurerm_resource_group.cqrs_region.id
 
   body = jsonencode({
     properties = {
-      appLogsConfiguration = {
+      appLogsConfiguration  = {
         destination = "log-analytics"
         logAnalyticsConfiguration = {
           customerId = data.azurerm_log_analytics_workspace.cqrs_logs.workspace_id
           sharedKey  = data.azurerm_log_analytics_workspace.cqrs_logs.primary_shared_key
         }
       }
-      daprAIInstrumentationKey    = data.azurerm_application_insights.cqrs_app_insights.instrumentation_key
-      daprAIConnectionString      = data.azurerm_application_insights.cqrs_app_insights.connection_string
+
       infrastructureResourceGroup = "${local.aca_name}_nodes_rg"
       zoneRedundant               = true
 
@@ -45,7 +44,6 @@ resource "azapi_resource" "azurerm_container_app_environment" {
       }
 
       openTelemetryConfiguration = {
-        includeSystemTelemetry    = false
         destinationsConfiguration = null
         tracesConfiguration = {
           destinations = [
@@ -90,6 +88,10 @@ data "azurerm_container_app_environment" "env" {
 }
 
 resource "azurerm_container_app_environment_certificate" "custom" {
+  depends_on = [
+    azapi_resource.azurerm_container_app_environment
+  ]
+  
   name                         = replace(var.custom_domain, ".", "-")
   container_app_environment_id = data.azurerm_container_app_environment.env.id
   certificate_blob_base64      = filebase64(var.certificate_file_path)

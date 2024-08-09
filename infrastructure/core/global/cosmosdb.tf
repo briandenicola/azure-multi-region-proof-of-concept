@@ -67,8 +67,4 @@ resource "azurerm_monitor_diagnostic_setting" "cosmosdb" {
   enabled_log {
     category = "ControlPlaneRequests"
   }
-
-  metric {
-    category = "Requests"
-  }
 }
