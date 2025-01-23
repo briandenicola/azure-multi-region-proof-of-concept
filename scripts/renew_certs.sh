@@ -10,10 +10,10 @@ URLs=(\*.apim.bjdazure.tech \*.bjdazure.tech api.bjdazure.tech api.ingress.bjdaz
 for url in "${URLs[@]}"; 
 do 
     echo "[`date`] - Requesting Certificate for ${url} from Let's Encrypt" | tee -a ${LOG_FILE}
-    #${ACME_HOME}/acme.sh --renew -d ${url} --force
+    ${ACME_HOME}/acme.sh --renew -d ${url} --force
 
     echo "[`date`] - Exporting Certificate ${url} to pfx format" | tee -a ${LOG_FILE}
-    #${ACME_HOME}/acme.sh --toPkcs -d ${url} --password ${PASSWORD}
+    ${ACME_HOME}/acme.sh --toPkcs -d ${url} --password ${PASSWORD}
 
     if [ ! -d ${EXPORT_DIR}/${url} ]
     then
