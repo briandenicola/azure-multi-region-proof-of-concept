@@ -16,5 +16,4 @@ resource azurerm_role_assignment administrator {
   scope                            = data.azurerm_key_vault.cqrs_region.id
   role_definition_name             = "Key Vault Administrator"
   principal_id                     = data.azurerm_client_config.current.object_id
-  skip_service_principal_aad_check = true
 }

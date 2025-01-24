@@ -37,7 +37,7 @@ resource "azapi_resource" "azurerm_container_app_environment" {
       }
 
       infrastructureResourceGroup = "${local.aca_name}_nodes_rg"
-      zoneRedundant               = true
+      zoneRedundant               = false
 
       appInsightsConfiguration = {
         connectionString          = data.azurerm_application_insights.cqrs_app_insights.connection_string
