@@ -64,8 +64,7 @@ tasks:
         sh: terraform -chdir=../infrastructure output -raw APP_NAME
 
   deploy:
-    desc: Deploys application via Helm
-    dir: ./scripts
+    desc: Creates and deploys application to Container Apps
     cmds:
     - cmd: echo
       silent: true
@@ -77,8 +76,7 @@ tasks:
         sh: az account show --query name -o tsv                  
 
   dns:
-    desc: Gets the IP Address of the App Gateway
-    dir: ./scripts
+    desc: Gets the IP Addresses of the App Gateways 
     cmds:
     - cmd: echo
       silent: true
