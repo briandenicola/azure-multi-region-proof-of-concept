@@ -21,7 +21,7 @@ terraform.tfstate.d/
 
 # Project Files
 wrapper.ps1
-rnew_certs.sh
+scripts/renew_certs.sh
 dynamic.tfvars
 
 # Azure Functions localsettings file
@@ -286,3 +286,4 @@ paket-files/
 __pycache__/
 *.pyc
 .venv/*
+
