@@ -20,6 +20,7 @@ terraform.tfstate.d/
 *.plan*
 
 # Project Files
+.env
 wrapper.ps1
 scripts/renew_certs.sh
 dynamic.tfvars

@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-This PowerShell Script will stand up Azure API Management, Azure App Gateway, and Azure Front Door servies to extend the CQRS appplication externally.
+This PowerShell Script will stand up Azure API Management, Azure App Gateway, and Azure Front Door services to extend the CQRS application externally.
 
 .DESCRIPTION
 Version - 0.5.1
-This PowerShell Script will stand up Azure API Management, Azure App Gateway, and Azure Front Door servies to extend the CQRS appplication externally.
+This PowerShell Script will stand up Azure API Management, Azure App Gateway, and Azure Front Door services to extend the CQRS application externally.
 
 .EXAMPLE
 .\create_external_infrastructure.ps1 -AppName example123 -Regions @("eastus2","ukwest") -SubscriptionId xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -DeploymentType multi -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo","api.uk.bjd.demo") -FrontDoorUrl api.bjd.demo
@@ -12,8 +12,8 @@ This PowerShell Script will stand up Azure API Management, Azure App Gateway, an
 .EXAMPLE
 .\create_external_infrastructure.ps1 -AppName example123 -Regions @("eastus2") -SubscriptionId xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx -DeploymentType single -ApiManagementPfxFilePath ~/certs/apim.pfx -AppGatewayPfxFilePath ~/certs/gw.pfx -PFXPassword xyz -AksIngressUrl api.ingress.bjd.demo -ApiManagementUrls @("api.apim.us.bjd.demo") -AppGatewayUrls @("api.us.bjd.demo") -FrontDoorUrl api.bjd.demo
 
-.PARAMETER AppNmame
-Specifies the Application Name as outputtee by the create_core_infrastructure.ps1 script
+.PARAMETER AppName
+Specifies the Application Name as output by the create_core_infrastructure.ps1 script
 
 .PARAMETER Regions
 Specifies the Regions used 

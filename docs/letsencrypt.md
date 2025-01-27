@@ -15,6 +15,9 @@ curl https://get.acme.sh | sh
 * Follow this [link](https://www.robokiwi.com/wiki/azure/dns/lets-encrypt/) to setup Let's Encrypt with Azure DNS
 
 ## Certificates Requests 
+> * **Note:** Set ACA_INGRESS_PFX_CERT_PASSWORD in the  ~/.env file to the $PfxPASSWORD value
+> * **Note:** Set ACA_INGRESS_PFX_CERT_PATH in the ~/.env file to the path where the pfx file is be stored
+
 ```bash
 export PfxPASSWORD=<pick a strong password to secure the pfx file>
 acme.sh --issue --dns dns_azure -d *.bjd.demo

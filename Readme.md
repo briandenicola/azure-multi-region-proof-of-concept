@@ -18,18 +18,19 @@ In other words, the world's most expensive random number generator....
 * [Taskfile](https://taskfile.dev/#/) - A task runner for the shell
 * [Terraform](https://www.terraform.io/) - A tool for building Azure infrastructure and infrastructure as code
 * If exposing application externally then a public domain that you can create DNS records
-   * Will use bjd.demo for this documentation 
-* [Certificates](./letsencrypt.md)
 
+* [Required Certificates](./docs/letsencrypt.md)
+
+> * **Note:** The documentation will use bjd.demo throughout as the root domain.  This can be replaced with your own domain
 > * **Note:** The Github Codespaces environment has all the tools pre-installed and configured.  You can use the following link to open the project in Github Codespaces: [Open in Github Codespaces](https://codespaces.new/briandenicola/azure-multi-region-proof-of-concept?quickstart=1)
 
 ## Public DNS Records: 
 * The following DNS records are required for the application to work correctly.  These are used for the application to be accessed externally.  The following records are required: 
-    Name | Usage | DNS Record Type | IP Address
-    ------ | ---- | ---- | ----
-    api.bjd.demo | Azure Front Door  |  CNAME | <Front Door URL>
-    api.westus.bjd.demo | App Gateway | A | <App Gateway IP Address in West US>
-    api.eastus.bjd.demo | App Gateway | A | <App Gateway IP Address in East US>
+Name | Usage | DNS Record Type | IP Address
+------ | ---- | ---- | ----
+api.bjd.demo | Azure Front Door  |  CNAME | <Front Door URL>
+api.westus.bjd.demo | App Gateway | A | <App Gateway IP Address in West US>
+api.eastus.bjd.demo | App Gateway | A | <App Gateway IP Address in East US>
 
 ## Task
 * The deployment of this application has been automated using [Taskfile](https://taskfile.dev/#/).  This was done instead of using a CI/CD pipeline to make it easier to understand the deployment process.  
@@ -37,18 +38,18 @@ In other words, the world's most expensive random number generator....
 * The Taskfile is a simple way to run commands and scripts in a consistent manner.  
 * The [Taskfile](../Taskfile.yaml) definition is located in the root of the repository
 * The Task file declares the default values that can be updated to suit specific requirements: 
-    Name | Usage | Default Value
-    ------ | ------ | ------
-    TITLE | Value used in Azure Tags | CQRS Multi-region Pattern in Azure
-    DEFAULT_REGION | Default region to deploy to | westus3
-    DOMAIN_ROOT | Default root domain used for all URLs & certs | bjd.demo
+Name | Usage | Default Value
+------ | ------ | ------
+TITLE | Value used in Azure Tags | CQRS Multi-region Pattern in Azure
+DEFAULT_REGIONS | Default region to deploy to | westus3
+DOMAIN_ROOT | Default root domain used for all URLs & certs | bjd.demo
 
 * Running the `task` command without any options will run the default command. This will list all the available tasks.
     * `task up`                 : Builds complete environment
     * `task down`               : Destroys all Azure resources and cleans up Terraform
     * `task build`              : Builds containers and pushes to Azure Container Registry
     * `task deploy`             : Deploys application via Helm
-    * `task dns`                : Gets the IP Addresss of the Istio Gateway
+    * `task dns`                : Gets the IP Address of the Application Gateways
     * `task init`               : Initialized Terraform modules
     * `task apply`              : Creates Azure infrastructure and deploys application code
 
@@ -67,8 +68,8 @@ In other words, the world's most expensive random number generator....
 # Testing
 
 # Backlog
-- [] Moved to Taskfile for deployments instead of script
-- [] Code updates to Managed Identities
+- [x] Moved to Taskfile for deployments instead of script
+- [] Code and infrastructure updates to Managed Identities
 - [] General rev updates of TF resources
 - [] Update naming standards
 - [] Moved to Managed Redis instead of Azure Cache for Redis
