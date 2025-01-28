@@ -1,13 +1,17 @@
 variable "location" {
   description = "The location for this application deployment"
 }
-
 variable "primary_location" {
   description = "The primary location for this application deployment"
 }
 
 variable "app_name" {
   description = "The root name for this application deployment"
+}
+
+variable "tags" {
+  description = "The tags for this application deployment"
+  type        = string
 }
 
 variable "custom_domain" {
@@ -23,5 +27,5 @@ variable "certificate_password" {
 }
 
 variable "authorized_ip_ranges" {
-    description = "The IP ranges that are allowed to access the Azure resources"
+  description = "The IP ranges that are allowed to access the Azure resources"
 }

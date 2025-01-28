@@ -43,25 +43,41 @@ Name | Usage | Default Value
 TITLE | Value used in Azure Tags | CQRS Multi-region Pattern in Azure
 DEFAULT_REGIONS | Default region to deploy to | westus3
 DOMAIN_ROOT | Default root domain used for all URLs & certs | bjd.demo
+EXTERNAL_DEPLOYMENT:    false
+DEPLOYMENT_TYPE:        "single"
 
 * Running the `task` command without any options will run the default command. This will list all the available tasks.
+    * `task init`               : Initialized Terraform modules
     * `task up`                 : Builds complete environment
     * `task down`               : Destroys all Azure resources and cleans up Terraform
+    * `task apply`              : Applies the Terraform configuration for the core components
+    * `task external`           : Applies ARM templates for external components
+    * `task apim`               : Deploys Azure API Management
+    * `task appgw`              : Deploys Azure Application Gateway
+    * `task frontdoor`          : Deploys Azure Front Door
     * `task build`              : Builds containers and pushes to Azure Container Registry
-    * `task deploy`             : Deploys application via Helm
-    * `task dns`                : Gets the IP Address of the Application Gateways
-    * `task init`               : Initialized Terraform modules
-    * `task apply`              : Creates Azure infrastructure and deploys application code
+    * `task deploy`             : Creates application components and deploy the application code
 
 # Setup
 
 ## Infrastructure
+ACA_INGRESS_PFX_CERT_PATH
+ACA_INGRESS_PFX_CERT_PASSWORD
 ## Application Build  
 ## Application Deployment 
 ## Manual Steps
 
 # External Access
 ## Infrastructure
+
+APIM_PFX_CERT_PATH
+APIM_PFX_CERT_PASSWORD
+APP_GW_PFX_CERT_PATH
+APP_GW_PFX_CERT_PASSWORD
+FRONTDOOR_URL=api.bjdazure.tech
+APP_GW_URLS=("api.westus.bjdazure.tech", "api.eastus.bjdazure.tech")
+APIM_URLS=("apim.westus.bjdazure.tech", "apim.eastus.bjdazure.tech")
+
 ## UI Deployment 
 ## Manual Steps
 
@@ -69,11 +85,11 @@ DOMAIN_ROOT | Default root domain used for all URLs & certs | bjd.demo
 
 # Backlog
 - [x] Moved to Taskfile for deployments instead of script
-- [] Validate certificates naming standards
-- [] General rev updates of TF resources
+- [x] Validate certificates naming standards
+- [x] General rev updates of TF resources
 - [x] General rev updates of ARM template resources
-- [] Update naming standards
-- [] Moved to Managed Redis instead of Azure Cache for Redis
+- [x] Update naming standards
+- [x] Moved to Managed Redis instead of Azure Cache for Redis
 - [] Adopt new APIM v2 features and platform
 - [] Review AppGateway and Front Door configurations
 - [] Code (and modules) updated to C# 8.0 and Go 1.24

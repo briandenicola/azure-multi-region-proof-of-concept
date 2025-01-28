@@ -16,6 +16,7 @@ locals {
   aca_name                       = "${local.regional_name}-env"
   kv_name                        = "${replace(var.app_name, "-", "")}${var.location}kv"
   storage_name                   = "${replace(var.app_name, "-", "")}${var.location}sa"
+  app_identity                   = "${local.regional_name}-app-identity"
   db_name                        = "${var.app_name}-cosmosdb"
   eventhub_namespace_name        = "${local.regional_name}-ehns"
   event_hub_name                 = "events"
@@ -27,8 +28,8 @@ locals {
   APPINSIGHTS_INSTRUMENTATIONKEY = "appinsights-instrumentationkey"
   AzureWebJobsStorage            = "azurewebjobsstorage"
 
-  api_image                      = "${local.acr_name}/cqrs/api:${var.commit_version}"
-  eventprocessor_image           = "${local.acr_name}/cqrs/eventprocessor:${var.commit_version}"
-  changefeedprocessor_image      = "${local.acr_name}/cqrs/changefeedprocessor:${var.commit_version}"
-  utils_image                    = "bjd145/utils:3.15"
+  api_image                 = "${local.acr_name}/cqrs/api:${var.commit_version}"
+  eventprocessor_image      = "${local.acr_name}/cqrs/eventprocessor:${var.commit_version}"
+  changefeedprocessor_image = "${local.acr_name}/cqrs/changefeedprocessor:${var.commit_version}"
+  utils_image               = "bjd145/utils:3.15"
 }

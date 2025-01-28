@@ -1,14 +1,10 @@
-terraform {
-  required_providers {
-    azapi = {
-      source  = "azure/azapi"
-    }
-  }
-}
-
 resource "random_integer" "vnet_cidr" {
   min = 10
   max = 250
+}
+
+resource "random_id" "unique_id" {
+  byte_length = 1
 }
 
 locals {
@@ -20,10 +16,10 @@ locals {
   la_name                              = "${var.app_name}-logs"
   ai_name                              = "${var.app_name}-ai"
   regional_name                        = "${var.app_name}-${var.location}"
-  storage_name                         = "${replace(var.app_name, "-", "")}${var.location}sa"
-  kv_name                              = "${replace(var.app_name, "-", "")}${var.location}kv"
+  storage_name                         = "${replace(var.app_name, "-", "")}${random_id.unique_id.dec}sa"
+  kv_name                              = "${replace(var.app_name, "-", "")}${random_id.unique_id.dec}kv"
   redis_name                           = "${local.regional_name}-cache"
-  eventhub_namespace_name              = "${local.regional_name}-ehns"
+  eventhub_namespace_name              = "${local.regional_name}-eventhubs"
   aca_name                             = "${local.regional_name}-env"
   vnet_name                            = "${local.regional_name}-vnet"
   nsg_name                             = "${local.regional_name}-nsg"
@@ -43,6 +39,3 @@ locals {
   databricks_public_subnet_cidr        = cidrsubnet(local.vnet_cidr, 8, 7)
   nodes_subnet_cidir                   = cidrsubnet(local.vnet_cidr, 8, 8)
 }
-
-data "azurerm_client_config" "current" {}
-data "azurerm_subscription" "current" {}

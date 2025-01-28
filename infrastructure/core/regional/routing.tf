@@ -1,7 +1,7 @@
-resource azurerm_route_table cqrs_region {
-  name                          = local.route_table_name
-  resource_group_name           = azurerm_resource_group.cqrs_region.name
-  location                      = azurerm_resource_group.cqrs_region.location
+resource "azurerm_route_table" "cqrs_region" {
+  name                = local.route_table_name
+  resource_group_name = azurerm_resource_group.cqrs_region.name
+  location            = azurerm_resource_group.cqrs_region.location
 
   route {
     name                   = "DefaultRoute"
@@ -17,7 +17,7 @@ resource azurerm_route_table cqrs_region {
   }
 }
 
-resource azurerm_subnet_route_table_association cqrs_region {
+resource "azurerm_subnet_route_table_association" "cqrs_region" {
   subnet_id      = azurerm_subnet.nodes.id
   route_table_id = azurerm_route_table.cqrs_region.id
 }

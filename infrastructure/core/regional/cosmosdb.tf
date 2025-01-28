@@ -1,6 +1,6 @@
-data azurerm_cosmosdb_account cqrs_db {
-  name                     = local.db_name
-  resource_group_name      = local.global_rg_name
+data "azurerm_cosmosdb_account" "cqrs_db" {
+  name                = local.db_name
+  resource_group_name = local.global_rg_name
 }
 
 resource "azurerm_private_endpoint" "cosmos_db" {

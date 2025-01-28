@@ -1,9 +1,9 @@
-data azurerm_container_registry cqrs_acr {
-  name                     = local.acr_name
-  resource_group_name      = local.global_rg_name
+data "azurerm_container_registry" "cqrs_acr" {
+  name                = local.acr_name
+  resource_group_name = local.global_rg_name
 }
 
-resource azurerm_private_endpoint acr_account {
+resource "azurerm_private_endpoint" "acr_account" {
   name                = "${local.acr_name}-ep"
   resource_group_name = azurerm_resource_group.cqrs_region.name
   location            = azurerm_resource_group.cqrs_region.location

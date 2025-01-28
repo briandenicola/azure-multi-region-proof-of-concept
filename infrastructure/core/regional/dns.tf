@@ -47,14 +47,14 @@ resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_servicebus
   virtual_network_id    = azurerm_virtual_network.cqrs_region.id
 }
 
-resource "azurerm_private_dns_zone" "privatelink_redis_cache_windows_net" {
-  name                = "privatelink.redis.cache.windows.net"
+resource "azurerm_private_dns_zone" "privatelink_redisenterprise_cache_azure_net" {
+  name                = "privatelink.redisenterprise.cache.azure.net"
   resource_group_name = azurerm_resource_group.cqrs_region.name
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_redis_cache_windows_net" {
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_redisenterprise_cache_azure_net" {
   name                  = "${azurerm_virtual_network.cqrs_region.name}-link"
-  private_dns_zone_name = azurerm_private_dns_zone.privatelink_redis_cache_windows_net.name
+  private_dns_zone_name = azurerm_private_dns_zone.privatelink_redisenterprise_cache_azure_net.name
   resource_group_name   = azurerm_resource_group.cqrs_region.name
   virtual_network_id    = azurerm_virtual_network.cqrs_region.id
 }
@@ -88,7 +88,7 @@ resource "azurerm_private_dns_a_record" "containerapps" {
   zone_name           = azurerm_private_dns_zone.custom_domain.name
   resource_group_name = azurerm_resource_group.cqrs_region.name
   ttl                 = 300
-  records             = [ 
-    data.azurerm_container_app_environment.env.static_ip_address 
+  records = [
+    azurerm_container_app_environment.env.static_ip_address
   ]
 }

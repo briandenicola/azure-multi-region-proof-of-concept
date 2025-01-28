@@ -1,5 +1,5 @@
 resource azurerm_user_assigned_identity app_identity {
-  name                = local.workload_identity
+  name                = local.app_identity
   resource_group_name = data.azurerm_resource_group.cqrs_global.name
   location            = data.azurerm_resource_group.cqrs_global.location
 }

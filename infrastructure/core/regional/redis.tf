@@ -1,54 +1,30 @@
-resource "azapi_resource" "cache" {
-  schema_validation_enabled = false
-  type                      = "Microsoft.Cache/redisEnterprise@2024-09-01-preview"
-  name                      = local.cache_name
-  parent_id                 = azurerm_resource_group.this.id
-  identity {
-    type = "SystemAssigned, UserAssigned"
-    identity_ids =  [
-      azurerm_user_assigned_identity.this.id
-    ]
-  }
-  location = azurerm_resource_group.this.location
-
-  body = {
-    sku = {
-      name = local.cache_sku
-    }    
-    properties = {
-      encryption = {
-        customerManagedKeyEncryption = {
-          keyEncryptionKeyIdentity = {
-            identityType = "userAssignedIdentity"
-            userAssignedIdentityResourceId = azurerm_user_assigned_identity.this.id
-          }
-          keyEncryptionKeyUrl = azurerm_key_vault_key.this.id
-        }
-      }      
-      highAvailability = "Enabled"
-    }
-  }
+resource "azurerm_redis_enterprise_cluster" "instance" {
+  name                = local.redis_name
+  resource_group_name = azurerm_resource_group.cqrs_region.name
+  location            = var.location
+  zones               = [1, 2, 3]
+  sku_name            = "Enterprise_E20-4" #Will migrate to Balanced_B250 once available in azurerm
 }
 
-resource "azurerm_monitor_diagnostic_setting" "this" {
-  name                       = "${local.cache_name}-diag"
-  target_resource_id         = azapi_resource.cache.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+resource "azurerm_monitor_diagnostic_setting" "cache" {
+  name                       = "${local.redis_name}-diag"
+  target_resource_id         = azurerm_redis_enterprise_cluster.instance.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.cqrs_logs.id
 
   metric {
     category = "AllMetrics"
   }
 }
 
-resource "azurerm_private_endpoint" "redis" {
-  name                = "${local.cache_name}-endpoint"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_id           = azurerm_subnet.private-endpoints.id
+resource "azurerm_private_endpoint" "cache" {
+  name                = "${local.redis_name}-endpoint"
+  resource_group_name = azurerm_resource_group.cqrs_region.name
+  location            = azurerm_resource_group.cqrs_region.location
+  subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {
-    name                           = "${local.cache_name}-endpoint"
-    private_connection_resource_id = azapi_resource.cache.id
+    name                           = "${local.redis_name}-endpoint"
+    private_connection_resource_id = azurerm_redis_enterprise_cluster.instance.id
     subresource_names              = ["redisEnterprise"]
     is_manual_connection           = false
   }
@@ -56,26 +32,5 @@ resource "azurerm_private_endpoint" "redis" {
   private_dns_zone_group {
     name                 = azurerm_private_dns_zone.privatelink_redisenterprise_cache_azure_net.name
     private_dns_zone_ids = [azurerm_private_dns_zone.privatelink_redisenterprise_cache_azure_net.id]
-  }
-}
-
-resource "azapi_resource" "database" {
-  schema_validation_enabled = false
-  type                      = "Microsoft.Cache/redisEnterprise/databases@2024-09-01-preview"
-  name                      = local.redis_database_name
-  parent_id                 = azapi_resource.cache.id
-  body = {
-    properties = {
-      accessKeysAuthentication = "Disabled"
-      clientProtocol           = "Encrypted"
-      clusteringPolicy         = "EnterpriseCluster"
-      deferUpgrade             = "NotDeferred"
-      evictionPolicy           = "VolatileLRU"
-      modules = [
-        {
-          name = "RedisTimeSeries"
-        }
-      ]
-    }
   }
 }
