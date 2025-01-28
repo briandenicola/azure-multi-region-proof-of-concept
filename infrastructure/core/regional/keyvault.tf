@@ -1,5 +1,5 @@
 
-resource "azurerm_key_vault" "cqrs_region" {
+resource "azurerm_key_vault" "cqrs" {
   name                       = local.kv_name
   resource_group_name        = azurerm_resource_group.cqrs_apps.name
   location                   = azurerm_resource_group.cqrs_apps.location
@@ -25,7 +25,7 @@ resource "azurerm_private_endpoint" "key_vault" {
 
   private_service_connection {
     name                           = "${local.kv_name}-ep"
-    private_connection_resource_id = azurerm_key_vault.cqrs_region.id
+    private_connection_resource_id = azurerm_key_vault.cqrs.id
     subresource_names              = ["vault"]
     is_manual_connection           = false
   }

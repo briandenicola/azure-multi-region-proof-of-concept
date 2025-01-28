@@ -6,11 +6,11 @@ resource "azurerm_public_ip" "firewall" {
   sku                 = "Standard"
 }
 
-resource "azurerm_firewall" "cqrs_region" {
+resource "azurerm_firewall" "cqrs" {
   name                = local.firewall_name
   resource_group_name = azurerm_resource_group.cqrs_region.name
   location            = azurerm_resource_group.cqrs_region.location
-  firewall_policy_id  = azurerm_firewall_policy.cqrs_region.id
+  firewall_policy_id  = azurerm_firewall_policy.cqrs.id
   sku_tier            = "Standard"
   sku_name            = "AZFW_VNet"
 
@@ -23,8 +23,8 @@ resource "azurerm_firewall" "cqrs_region" {
 
 resource "azurerm_monitor_diagnostic_setting" "firewall" {
   name                       = "diag"
-  target_resource_id         = azurerm_firewall.cqrs_region.id
-  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.cqrs_logs.id
+  target_resource_id         = azurerm_firewall.cqrs.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.cqrs.id
 
   enabled_log {
     category = "AzureFirewallApplicationRule"

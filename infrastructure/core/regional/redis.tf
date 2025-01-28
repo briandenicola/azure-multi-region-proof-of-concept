@@ -1,4 +1,4 @@
-resource "azurerm_redis_enterprise_cluster" "instance" {
+resource "azurerm_redis_enterprise_cluster" "cqrs" {
   name                = local.redis_name
   resource_group_name = azurerm_resource_group.cqrs_region.name
   location            = var.location
@@ -8,8 +8,8 @@ resource "azurerm_redis_enterprise_cluster" "instance" {
 
 resource "azurerm_monitor_diagnostic_setting" "cache" {
   name                       = "${local.redis_name}-diag"
-  target_resource_id         = azurerm_redis_enterprise_cluster.instance.id
-  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.cqrs_logs.id
+  target_resource_id         = azurerm_redis_enterprise_cluster.cqrs.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.cqrs.id
 
   metric {
     category = "AllMetrics"
@@ -17,14 +17,14 @@ resource "azurerm_monitor_diagnostic_setting" "cache" {
 }
 
 resource "azurerm_private_endpoint" "cache" {
-  name                = "${local.redis_name}-endpoint"
+  name                = "${local.redis_name}-ep"
   resource_group_name = azurerm_resource_group.cqrs_region.name
   location            = azurerm_resource_group.cqrs_region.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {
-    name                           = "${local.redis_name}-endpoint"
-    private_connection_resource_id = azurerm_redis_enterprise_cluster.instance.id
+    name                           = "${local.redis_name}-ep"
+    private_connection_resource_id = azurerm_redis_enterprise_cluster.cqrs.id
     subresource_names              = ["redisEnterprise"]
     is_manual_connection           = false
   }

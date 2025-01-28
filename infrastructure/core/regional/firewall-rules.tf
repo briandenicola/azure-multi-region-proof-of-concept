@@ -1,4 +1,4 @@
-resource "azurerm_firewall_policy" "cqrs_region" {
+resource "azurerm_firewall_policy" "cqrs" {
   name                = "${local.firewall_name}-policies"
   resource_group_name = azurerm_resource_group.cqrs_region.name
   location            = azurerm_resource_group.cqrs_region.location
@@ -9,9 +9,9 @@ resource "azurerm_firewall_policy" "cqrs_region" {
   }
 }
 
-resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
+resource "azurerm_firewall_policy_rule_collection_group" "cqrs" {
   name               = "${local.firewall_name}_rules_collection"
-  firewall_policy_id = azurerm_firewall_policy.cqrs_region.id
+  firewall_policy_id = azurerm_firewall_policy.cqrs.id
 
   priority = 200
 
@@ -115,7 +115,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "cqrs_region" {
       }
 
       destination_fqdns = [
-        data.azurerm_container_registry.cqrs_acr.login_server,
+        data.azurerm_container_registry.cqrs.login_server,
         "${local.acr_name}.${azurerm_resource_group.cqrs_region.location}.data.azurecr.io",
         "*.blob.core.windows.net"
       ]

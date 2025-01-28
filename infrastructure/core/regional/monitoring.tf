@@ -1,9 +1,9 @@
-data "azurerm_log_analytics_workspace" "cqrs_logs" {
+data "azurerm_log_analytics_workspace" "cqrs" {
   name                = local.la_name
   resource_group_name = local.global_rg_name
 }
 
-data "azurerm_application_insights" "cqrs_app_insights" {
+data "azurerm_application_insights" "cqrs" {
   name                = local.ai_name
   resource_group_name = local.global_rg_name
 }

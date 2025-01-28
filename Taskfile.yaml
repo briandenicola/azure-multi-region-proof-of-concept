@@ -4,8 +4,8 @@ dotenv: [".env"]
 
 env:
   TITLE:                  "CQRS Multi-region Pattern in Azure"
-  PRIMARY_REGION:         "canadacentral"
-  ALL_REGIONS:            '["canadacentral"]' #'["westus3", "eastus2"]'
+  PRIMARY_REGION:         "westus3"
+  ALL_REGIONS:            '["westus3"]' #'["westus3", "eastus2"]'
   DOMAIN_ROOT:            "bjdazure.tech"
   EXTERNAL_DEPLOYMENT:    false
   DEPLOYMENT_TYPE:        "single"

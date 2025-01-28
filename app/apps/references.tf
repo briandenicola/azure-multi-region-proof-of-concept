@@ -15,37 +15,37 @@ data "azurerm_container_app_environment_certificate" "this" {
   container_app_environment_id = data.azurerm_container_app_environment.this.id
 }
 
-data "azurerm_cosmosdb_account" "cqrs_global" {
+data "azurerm_cosmosdb_account" "cqrs" {
   name                = local.db_name
   resource_group_name = local.global_rg_name
 }
 
-data "azurerm_application_insights" "cqrs_region" {
+data "azurerm_application_insights" "cqrs" {
   name                = local.ai_name
   resource_group_name = local.global_rg_name
 }
 
-data "azurerm_container_registry" "cqrs_acr" {
+data "azurerm_container_registry" "cqrs" {
   name                = local.acr_name
   resource_group_name = local.global_rg_name
 }
 
-data "azurerm_redis_cache" "cqrs_region" {
+data "azurerm_redis_cache" "cqrs" {
   name                = local.redis_name
   resource_group_name = local.apps_rg_name
 }
 
-data "azurerm_eventhub_namespace" "cqrs_region" {
+data "azurerm_eventhub_namespace" "cqrs" {
   name                = local.eventhub_namespace_name
   resource_group_name = local.apps_rg_name
 }
 
-data "azurerm_storage_account" "cqrs_region" {
+data "azurerm_storage_account" "cqrs" {
   name                = local.storage_name
   resource_group_name = local.apps_rg_name
 }
 
-data "azurerm_key_vault" "cqrs_region" {
+data "azurerm_key_vault" "cqrs" {
   name                = local.kv_name
   resource_group_name = local.apps_rg_name
 }

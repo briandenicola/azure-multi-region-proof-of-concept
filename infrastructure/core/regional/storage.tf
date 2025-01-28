@@ -1,4 +1,4 @@
-resource "azurerm_storage_account" "cqrs_region" {
+resource "azurerm_storage_account" "cqrs" {
   name                     = local.storage_name
   resource_group_name      = azurerm_resource_group.cqrs_apps.name
   location                 = azurerm_resource_group.cqrs_apps.location
@@ -15,7 +15,7 @@ resource "azurerm_private_endpoint" "storage_account" {
 
   private_service_connection {
     name                           = "${local.storage_name}-ep"
-    private_connection_resource_id = azurerm_storage_account.cqrs_region.id
+    private_connection_resource_id = azurerm_storage_account.cqrs.id
     subresource_names              = ["blob"]
     is_manual_connection           = false
   }
