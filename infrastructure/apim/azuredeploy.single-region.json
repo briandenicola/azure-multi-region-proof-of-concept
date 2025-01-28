@@ -40,14 +40,13 @@
         "publisherName": "bjdazuretech",
         "publisherEmail": "brian@bjdazure.tech",
         "subnetName" : "/subnets/APIM",
-        "apimEgressPrimaryPip": "[concat(parameters('apiManagementName'),'-egress-primary-pip')]",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
         "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'True'),'Premium','Developer')]"
     },
     "resources": [
         {
             "type": "Microsoft.ApiManagement/service",
-            "apiVersion": "2023-05-01-preview",
+            "apiVersion": "2024-06-01-preview",
             "name": "[parameters('apiManagementName')]",
             "location": "[parameters('location')]",
             "sku": {

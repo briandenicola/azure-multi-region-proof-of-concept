@@ -69,12 +69,14 @@ DOMAIN_ROOT | Default root domain used for all URLs & certs | bjd.demo
 
 # Backlog
 - [x] Moved to Taskfile for deployments instead of script
-- [] Code and infrastructure updates to Managed Identities
+- [] Validate certificates naming standards
 - [] General rev updates of TF resources
+- [x] General rev updates of ARM template resources
 - [] Update naming standards
 - [] Moved to Managed Redis instead of Azure Cache for Redis
 - [] Adopt new APIM v2 features and platform
 - [] Review AppGateway and Front Door configurations
-- [] Code Updates for code and all modules to C# 9.0, Go 1.24, and Node 14
+- [] Code (and modules) updated to C# 8.0 and Go 1.24
+- [] Code updated to Managed Identities
 - [] Gracefully handle issues on startup
 - [] Update documentation 

@@ -28,7 +28,7 @@
     "resources": [
         {
             "type": "Microsoft.Cdn/profiles",
-            "apiVersion": "2020-09-01",
+            "apiVersion": "2024-09-01",
             "name": "[parameters('frontDoorName')]",
             "location": "global",
             "sku": {
@@ -37,7 +37,7 @@
         },
         {
             "type": "Microsoft.Cdn/profiles/afdEndpoints",
-            "apiVersion": "2020-09-01",
+            "apiVersion": "2024-09-01",
             "name": "[format('{0}/{1}', parameters('frontDoorName'), variables('endpointName'))]",
             "location": "global",
             "properties": {
@@ -50,7 +50,7 @@
         },
         {
             "type": "Microsoft.Cdn/profiles/originGroups",
-            "apiVersion": "2020-09-01",
+            "apiVersion": "2024-09-01",
             "name": "[format('{0}/{1}', parameters('frontDoorName'), variables('originGroupName'))]",
             "properties": {
                 "loadBalancingSettings": {
@@ -70,7 +70,7 @@
         },
         {
             "type": "Microsoft.Cdn/profiles/originGroups/origins",
-            "apiVersion": "2020-09-01",
+            "apiVersion": "2024-09-01",
             "name": "[format('{0}/{1}/{2}', parameters('frontDoorName'), variables('originGroupName'), variables('primaryOriginName'))]",
             "properties": {
                 "hostName": "[parameters('primaryBackendEndFQDN')]",
@@ -87,7 +87,7 @@
         },
         {
             "type": "Microsoft.Cdn/profiles/originGroups/origins",
-            "apiVersion": "2020-09-01",
+            "apiVersion": "2024-09-01",
             "name": "[format('{0}/{1}/{2}', parameters('frontDoorName'), variables('originGroupName'), variables('secondaryOriginName'))]",
             "properties": {
                 "hostName": "[parameters('secondaryBackendEndFQDN')]",
@@ -104,7 +104,7 @@
         },
         {
             "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
-            "apiVersion": "2020-09-01",
+            "apiVersion": "2024-09-01",
             "name": "[format('{0}/{1}/{2}', parameters('frontDoorName'), variables('endpointName'), variables('routeName'))]",
             "properties": {
                 "customDomains": [
@@ -138,14 +138,14 @@
         },
         {
             "type": "Microsoft.Cdn/profiles/customDomains",
-            "apiVersion": "2020-09-01",
+            "apiVersion": "2024-09-01",
             "name": "[format('{0}/{1}', parameters('frontDoorName'), variables('customDomainResourceName'))]",
             "properties": {
-              "hostName": "[parameters('frontDoorUrl')]",
-              "tlsSettings": {
-                "certificateType": "ManagedCertificate",
-                "minimumTlsVersion": "TLS12"
-              }
+                "hostName": "[parameters('frontDoorUrl')]",
+                "tlsSettings": {
+                    "certificateType": "ManagedCertificate",
+                    "minimumTlsVersion": "TLS12"
+                }
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName'))]"
@@ -153,8 +153,8 @@
         }
     ],
     "outputs": {
-        "Front Door ID" : {
-            "type" : "string",
+        "Front Door ID": {
+            "type": "string",
             "value": "[reference(resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName')), '2020-09-01', 'Full').properties.frontDoorId]"
         }
     }

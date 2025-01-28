@@ -31,10 +31,10 @@
             "type": "String",
             "defaultValue": "[parameters('primaryVnetResourceGroup')]"
         },
-        "domainCertificateData":{
+        "domainCertificateData": {
             "type": "string"
         },
-        "domainCertificatePassword":{
+        "domainCertificatePassword": {
             "type": "securestring"
         },
         "primaryBackendEndFQDN": {
@@ -52,14 +52,14 @@
         "appGatewaySecondaryPip": "[concat(variables('appGatewaySecondaryName'),'-','pip')]",
         "appGatewayPrimaryNSG": "[concat(variables('appGatewayName'),'-nsg')]",
         "appGatewaySecondaryNSG": "[concat(variables('appGatewaySecondaryName'),'-nsg')]",
-        "subnetName" : "/subnets/AppGateway",
+        "subnetName": "/subnets/AppGateway",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
         "secondarySubnetId": "[concat(resourceId(parameters('secondaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('secondaryVnetName')), variables('subnetName'))]"
     },
     "resources": [
         {
             "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2020-05-01",
+            "apiVersion": "2024-05-01",
             "name": "[variables('appGatewayPrimaryNSG')]",
             "location": "[parameters('location')]",
             "properties": {
@@ -126,14 +126,14 @@
                             "destinationAddressPrefix": "*",
                             "access": "Deny",
                             "priority": 130,
-                            "direction": "Inbound" 
+                            "direction": "Inbound"
                         }
                     }
                 ]
             }
         },
         {
-            "apiVersion": "2017-08-01",
+            "apiVersion": "2024-07-01",
             "name": "apply-nsg-to-subnet-primary",
             "type": "Microsoft.Resources/deployments",
             "resourceGroup": "[parameters('primaryVnetResourceGroup')]",
@@ -143,27 +143,29 @@
             "properties": {
                 "mode": "Incremental",
                 "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
-                    "resources": [{
-                        "apiVersion": "2018-03-01",
-                        "type": "Microsoft.Network/virtualNetworks/subnets",
-                        "name": "[concat(parameters('primaryVnetName'), '/AppGateway')]",
-                        "location": "[parameters('location')]",
-                        "properties": {
-                            "addressPrefix": "[reference(concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName')), '2018-03-01').addressPrefix]",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appGatewayPrimaryNSG'))]"
+                    "resources": [
+                        {
+                            "apiVersion": "2024-05-01",
+                            "type": "Microsoft.Network/virtualNetworks/subnets",
+                            "name": "[concat(parameters('primaryVnetName'), '/AppGateway')]",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "addressPrefix": "[reference(concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName')), '2018-03-01').addressPrefix]",
+                                "networkSecurityGroup": {
+                                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appGatewayPrimaryNSG'))]"
+                                }
                             }
                         }
-                    }]
+                    ]
                 }
             }
         },
         {
             "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
             "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2020-05-01",
+            "apiVersion": "2024-05-01",
             "name": "[variables('appGatewaySecondaryNSG')]",
             "location": "[parameters('secondaryLocation')]",
             "properties": {
@@ -230,7 +232,7 @@
                             "destinationAddressPrefix": "*",
                             "access": "Deny",
                             "priority": 130,
-                            "direction": "Inbound" 
+                            "direction": "Inbound"
                         }
                     }
                 ]
@@ -238,7 +240,7 @@
         },
         {
             "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
-            "apiVersion": "2017-08-01",
+            "apiVersion": "2024-07-01",
             "name": "apply-nsg-to-subnet-secondary",
             "type": "Microsoft.Resources/deployments",
             "resourceGroup": "[parameters('secondaryVnetResourceGroup')]",
@@ -250,24 +252,26 @@
                 "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
-                    "resources": [{
-                        "apiVersion": "2018-03-01",
-                        "type": "Microsoft.Network/virtualNetworks/subnets",
-                        "name": "[concat(parameters('secondaryVnetName'),'/AppGateway')]",
-                        "location": "[parameters('secondaryLocation')]",
-                        "properties": {
-                            "addressPrefix": "[reference(concat(resourceId(parameters('secondaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('secondaryVnetName')), variables('subnetName')), '2018-03-01').addressPrefix]",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appGatewaySecondaryNSG'))]"
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks/subnets",
+                            "apiVersion": "2024-05-01",
+                            "name": "[concat(parameters('secondaryVnetName'),'/AppGateway')]",
+                            "location": "[parameters('secondaryLocation')]",
+                            "properties": {
+                                "addressPrefix": "[reference(concat(resourceId(parameters('secondaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('secondaryVnetName')), variables('subnetName')), '2018-03-01').addressPrefix]",
+                                "networkSecurityGroup": {
+                                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appGatewaySecondaryNSG'))]"
+                                }
                             }
                         }
-                    }]
+                    ]
                 }
             }
         },
         {
             "type": "Microsoft.Network/publicIPAddresses",
-            "apiVersion": "2019-09-01",
+            "apiVersion": "2024-05-01",
             "name": "[variables('appGatewayPrimaryPip')]",
             "location": "[parameters('location')]",
             "sku": {
@@ -281,7 +285,7 @@
         {
             "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
             "type": "Microsoft.Network/publicIPAddresses",
-            "apiVersion": "2019-09-01",
+            "apiVersion": "2024-05-01",
             "name": "[variables('appGatewaySecondaryPip')]",
             "location": "[parameters('secondaryLocation')]",
             "sku": {
@@ -294,7 +298,7 @@
         },
         {
             "type": "Microsoft.Network/applicationGateways",
-            "apiVersion": "2019-09-01",
+            "apiVersion": "2024-05-01",
             "name": "[variables('appGatewayName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -483,7 +487,7 @@
         {
             "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
             "type": "Microsoft.Network/applicationGateways",
-            "apiVersion": "2019-09-01",
+            "apiVersion": "2024-05-01",
             "name": "[variables('appGatewaySecondaryName')]",
             "location": "[parameters('secondaryLocation')]",
             "dependsOn": [
@@ -671,13 +675,13 @@
         }
     ],
     "outputs": {
-        "Primary IP Address" : {
-            "type" : "string",
-            "value" : "[reference(variables('appGatewayPrimaryPip')).ipAddress]"
+        "Primary IP Address": {
+            "type": "string",
+            "value": "[reference(variables('appGatewayPrimaryPip')).ipAddress]"
         },
-        "Secondary IP Address" : {
-            "type" : "string",
-            "value" : "[if(equals(parameters('multiRegionDeployment'),'True'), reference(variables('appGatewaySecondaryPip')).ipAddress,'')]"
+        "Secondary IP Address": {
+            "type": "string",
+            "value": "[if(equals(parameters('multiRegionDeployment'),'True'), reference(variables('appGatewaySecondaryPip')).ipAddress,'')]"
         }
     }
 }
