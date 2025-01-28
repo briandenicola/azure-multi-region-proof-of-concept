@@ -3,7 +3,7 @@
 Name | Usage | Required | SAN Urls
 ------ | ---- | ---- | ----
 api.internal.bjd.demo | Ingress for the Azure Container Apps | Yes 
-*.apim.bjd.demo | APIM | No | *.scm.apim.bjd.demo, *.westus.apim.bjd.demo, *.eastus.apim.bjd.demo
+*.apim.bjd.demo | APIM | No | *.scm.apim.bjd.demo, *.apim.westus.bjd.demo, *.apim.eastus.bjd.demo
 api.bjd.demo | Azure Front Door and App Gateway | No |  api.westus.bjd.demo, api.eastus.bjd.demo
 
 
@@ -28,8 +28,8 @@ acme.sh --toPkcs -d api.ingres.bjd.demo --password $PfxPASSWORD
 
 ### APIM Certificate Certificate Request
 ```bash
-acme.sh --issue --dns dns_azure -d *.apim.bjd.demo -d *.scm.apim.bjd.demo apim.westus.bjd.demo apim.eastus.bjd.demo
-acme.sh --toPkcs -d *.apim.bjd.demo --password $PfxPASSWORD
+acme.sh --issue --dns dns_azure -d \*.apim.bjd.demo -d \*.scm.apim.bjd.demo -d \*.apim.westus.bjd.demo -d \*.apim.eastus.bjd.demo
+acme.sh --toPkcs -d \*.apim.bjd.demo --password $PfxPASSWORD
 ```
 
 > * **Note:** Set APIM_PFX_CERT_PATH in the  ~/.env file to the $PfxPASSWORD value
