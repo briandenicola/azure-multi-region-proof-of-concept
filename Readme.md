@@ -26,11 +26,11 @@ In other words, the world's most expensive random number generator....
 
 ## Public DNS Records: 
 * The following DNS records are required for the application to work correctly.  These are used for the application to be accessed externally.  The following records are required: 
-Name | Usage | DNS Record Type | IP Address
------- | ---- | ---- | ----
-api.bjd.demo | Azure Front Door  |  CNAME | <Front Door URL>
-api.westus.bjd.demo | App Gateway | A | <App Gateway IP Address in West US>
-api.eastus.bjd.demo | App Gateway | A | <App Gateway IP Address in East US>
+    Name | Usage | DNS Record Type | IP Address
+    ------ | ---- | ---- | ----
+    api.bjd.demo | Azure Front Door  |  CNAME | Front Door URL>
+    api.westus.bjd.demo | App Gateway | A | App Gateway IP Address in West US
+    api.eastus.bjd.demo | App Gateway | A | App Gateway IP Address in East US
 
 ## Task
 * The deployment of this application has been automated using [Taskfile](https://taskfile.dev/#/).  This was done instead of using a CI/CD pipeline to make it easier to understand the deployment process.  
@@ -38,13 +38,21 @@ api.eastus.bjd.demo | App Gateway | A | <App Gateway IP Address in East US>
 * The Taskfile is a simple way to run commands and scripts in a consistent manner.  
 * The [Taskfile](../Taskfile.yaml) definition is located in the root of the repository
 * The Task file declares the default values that can be updated to suit specific requirements: 
-Name | Usage | Default Value
------- | ------ | ------
-TITLE | Value used in Azure Tags | CQRS Multi-region Pattern in Azure
-DEFAULT_REGIONS | Default region to deploy to | westus3
-DOMAIN_ROOT | Default root domain used for all URLs & certs | bjd.demo
-EXTERNAL_DEPLOYMENT:    false
-DEPLOYMENT_TYPE:        "single"
+
+    Name | Usage | Location | Required | Default or Example Value
+    ------ | ------ | ------ | ------ | ------
+    TITLE | Value used in Azure Tags | taskfile.yaml | Yes | CQRS Multi-region Pattern in Azure
+    DEFAULT_REGIONS | Default region to deploy to | taskfile.yaml | Yes | ["westus3"]
+    DOMAIN_ROOT | Default root domain used for all URLs & certs | taskfile.yaml | Yes | bjd.demo
+    EXTERNAL_DEPLOYMENT | Will this deployment deploy external components | taskfile.yaml | Yes | false
+    DEPLOYMENT_TYPE | Will this deployment deploy to multiple regions | taskfile.yaml | Yes | single (multi or single are valid options)
+    APIM_PFX_CERT_PATH | Path to the APIM PFX certificate | .env | External Only | ./certs/apim.pfx
+    APIM_PFX_CERT_PASSWORD | Password for the APIM PFX certificate | .env | External Only | <password for the pfx file>
+    APP_GW_PFX_CERT_PATH | Path to the App Gateway PFX certificate | .env | External Only | ./certs/appgw.pfx
+    APP_GW_PFX_CERT_PASSWORD | Password for the App Gateway PFX certificate | .env | External Only | <password for the pfx file>
+    FRONTDOOR_URL | The Custom URL for the Azure Front Door | .env | External Only | api.bjd.demo
+    APP_GW_URLS | The URLs for the App Gateways | .env | External Only | ["api.westus.bjd.demo"] 
+    APIM_URLS | The Urls for the APIM Gateways | .env | External Only | ["apim.westus.bjd.demo"]
 
 * Running the `task` command without any options will run the default command. This will list all the available tasks.
     * `task init`               : Initialized Terraform modules
@@ -61,22 +69,14 @@ DEPLOYMENT_TYPE:        "single"
 # Setup
 
 ## Infrastructure
-ACA_INGRESS_PFX_CERT_PATH
-ACA_INGRESS_PFX_CERT_PASSWORD
+> * **Note:** Before starting ensure that  ACA_INGRESS_PFX_CERT_PASSWORD and ACA_INGRESS_PFX_CERT_PATH are set in the .env file at the project root
 ## Application Build  
 ## Application Deployment 
 ## Manual Steps
 
 # External Access
 ## Infrastructure
-
-APIM_PFX_CERT_PATH
-APIM_PFX_CERT_PASSWORD
-APP_GW_PFX_CERT_PATH
-APP_GW_PFX_CERT_PASSWORD
-FRONTDOOR_URL=api.bjdazure.tech
-APP_GW_URLS=("api.westus.bjdazure.tech", "api.eastus.bjdazure.tech")
-APIM_URLS=("apim.westus.bjdazure.tech", "apim.eastus.bjdazure.tech")
+> * **Note:** Before starting ensure that the required external values are set in the .env file at the project root
 
 ## UI Deployment 
 ## Manual Steps

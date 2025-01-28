@@ -1,29 +1,29 @@
 param (
     [Parameter(Mandatory = $true)]
-    [string]            $ApplicationName,
+    [String]            $ApplicationName,
 
     [Parameter(Mandatory = $true)]
-    [string[]]          $Regions,
+    [String]            $Regions,
 
     [Parameter(Mandatory = $true)]
     [ValidateSet("single", "multi")]
-    [string]            $DeploymentType,
+    [String]            $DeploymentType,
 
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Test-Path $_ })]
-    [string]            $PFXPath,
+    [String]            $PFXPath,
     
     [Parameter(Mandatory = $true)]
-    [securestring]      $PFXPassword,
+    [SecureString]      $PFXPassword,
 
     [Parameter(Mandatory = $true)]
-    [string[]]          $ApimGatewayUrls,
+    [String]            $ApimGatewayUrls,
 
     [Parameter(Mandatory = $true)]
-    [string]            $ApimRootDomainName,
+    [String]            $ApimRootDomainName,
 
     [Parameter(Mandatory = $true)]
-    [string]            $DNSZone
+    [String]            $DNSZone
 )  
 
 function Get-HostName
@@ -51,12 +51,13 @@ function Get-AzureRegion
     return ($location -replace " ", "").ToLower()
 }
 
-Import-Module -Name bjd.Azure.Functions
+$Regions           = $Regions | ConvertFrom-Json
+$ApimGatewayUrls    = $ApimGatewayUrls | ConvertFrom-Json
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $ApiMgmtName       = "{0}-apim" -f $ApplicationName
 $ManagementUris    = @("management", "portal", "developer", "management.scm")
-$pfxEncoded        = Convert-CertificatetoBase64 -CertPath $PFXPath
+$pfxEncoded        = [convert]::ToBase64String( (Get-Content -AsByteStream -Path $PFXPath) ) 
 
 $opts = @{
     Name                            = ("ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))

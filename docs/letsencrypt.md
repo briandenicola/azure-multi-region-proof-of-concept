@@ -17,8 +17,8 @@ curl https://get.acme.sh | sh
 ## Container Apps Ingress Certificate Request
 ```bash
 export PfxPASSWORD=<pick a strong password to secure the pfx file>
-acme.sh --issue --dns dns_azure -d *.bjd.demo
-acme.sh --toPkcs -d *.bjd.demo --password $PfxPASSWORD
+acme.sh --issue --dns dns_azure -d api.bjd.demo
+acme.sh --toPkcs -d api.ingres.bjd.demo --password $PfxPASSWORD
 ```
 > * **Note:** Set ACA_INGRESS_PFX_CERT_PASSWORD in the  ~/.env file to the $PfxPASSWORD value
 > * **Note:** Set ACA_INGRESS_PFX_CERT_PATH in the ~/.env file to the path where the pfx file is be stored
@@ -28,7 +28,7 @@ acme.sh --toPkcs -d *.bjd.demo --password $PfxPASSWORD
 
 ### APIM Certificate Certificate Request
 ```bash
-acme.sh --issue --dns dns_azure -d *.apim.bjd.demo -d *.scm.apim.bjd.demo *.westus.apim.bjd.demo *.eastus.apim.bjd.demo
+acme.sh --issue --dns dns_azure -d *.apim.bjd.demo -d *.scm.apim.bjd.demo apim.westus.bjd.demo apim.eastus.bjd.demo
 acme.sh --toPkcs -d *.apim.bjd.demo --password $PfxPASSWORD
 ```
 
@@ -37,7 +37,7 @@ acme.sh --toPkcs -d *.apim.bjd.demo --password $PfxPASSWORD
 
 ### AppGateway Certificate Request
 ```bash
-acme.sh --issue --dns dns_azure -d api.bjd.demo -d api.westus.bjd.demo -d api.eastus.bjd.demo
+acme.sh --issue --dns dns_azure -d api.bjd.demo -d westus.api.bjd.demo -d eastus.api.bjd.demo
 acme.sh --toPkcs -d api.bjd.demo --password $PfxPASSWORD
 ```
 

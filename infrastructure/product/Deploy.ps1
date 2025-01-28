@@ -13,8 +13,7 @@ $ApiMgmtName       = "{0}-apim" -f $ApplicationName
 
 $GlobalKeyPolicy = Get-Content -Raw -Path ".\policies\GlobalKeyPolicy.xml"
 $RateLimitPolicy = Get-Content -Raw -Path ".\policies\RateLimitPolicy.xml"
-$MockPolicy = Get-Content -Raw -Path ".\policies\MockPolicy.xml"
-
+$MockPolicy      = Get-Content -Raw -Path ".\policies\MockPolicy.xml"
 $CreateKeyPolicy = Get-Content -Raw -Path ".\policies\CreateKeyPolicy.xml"
     
 $opts = @{

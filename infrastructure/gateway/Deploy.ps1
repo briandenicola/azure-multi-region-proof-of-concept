@@ -1,29 +1,30 @@
 param (
     [Parameter(Mandatory = $true)]
-    [string]            $ApplicationName,
+    [String]                $ApplicationName,
 
     [Parameter(Mandatory = $true)]
-    [string[]]          $Regions,
+    [String]                $Regions,
 
     [Parameter(Mandatory = $true)]
     [ValidateSet("single", "multi")]
-    [string]            $DeploymentType,
+    [String]                $DeploymentType,
 
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Test-Path $_ })]
-    [string]            $PFXPath,
+    [String]                $PFXPath,
     
     [Parameter(Mandatory = $true)]
-    [securestring]      $PFXPassword,
+    [SecureString]          $PFXPassword,
 
     [Parameter(Mandatory = $true)]
-    [string[]]          $BackendHostNames
+    [String]                $BackendHostNames
 
 )  
 
-Import-Module -Name bjd.Azure.Functions
-$pfxEncoded = Convert-CertificatetoBase64 -CertPath $PFXPath
+$Regions           = $Regions | ConvertFrom-Json
+$BackendHostNames  = $BackendHostNames | ConvertFrom-Json
 
+$pfxEncoded        = [convert]::ToBase64String( (Get-Content -AsByteStream -Path $PFXPath) )
 $ResourceGroupName = "{0}_appgw_rg" -f $ApplicationName
 $AppGatewayName    = "{0}-gw"       -f $ApplicationName
 

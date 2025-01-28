@@ -111,18 +111,21 @@ tasks:
       APP_NAME: 
         sh: terraform -chdir=./infrastructure/core output -raw APP_NAME
 
-  # build:
-  #   desc: Builds and pushes the containers
-  #   dir: ./scripts
-  #   cmds:
-  #     - cmd: az acr login -n $ACRName
-  #       silent: true
-  #  Build-DockerContainers -ContainerName "${AcrName}.azurecr.io/cqrs/api:${Version}" -DockerFile "${Source}/api/dockerfile" -SourcePath "${Source}/api"
-  #  Build-DockerContainers -ContainerName "${AcrName}.azurecr.io/cqrs/eventprocessor:${Version}" -DockerFile "${Source}/eventprocessor/dockerfile" -SourcePath "${Source}/eventprocessor"
-  #  Build-DockerContainers -ContainerName "${AcrName}.azurecr.io/cqrs/changefeedprocessor:${Version}" -DockerFile "${Source}/changefeedprocessor/dockerfile" -SourcePath "${Source}/changefeedprocessor"  
-  #   vars:
-  #     APP_NAME:
-  #       sh: terraform -chdir=../infrastructure output -raw APP_NAME
+  build:
+    desc: Builds and pushes the containers to Azure Container Registry
+    cmds:
+    - pwsh ./build-containers.ps1 
+      -AppName {{.APP_NAME}}
+      -ACRName {{.ACR_NAME}}
+      -CommitVersion {{.COMMIT_VERSION}}
+      -SourceRootPath "./src"
+    vars:
+      APP_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw APP_NAME
+      ACR_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw ACR_NAME        
+      COMMIT_VERSION:
+        sh: git rev-parse HEAD | cut -c 1-8
 
   deploy:
     desc: Applies the Terraform configuration for the application components
@@ -140,15 +143,19 @@ tasks:
       APP_NAME:
         sh: terraform -chdir=./infrastructure/core output -raw APP_NAME
 
-  # ui:
-  #   desc: Deploys the UI code to Azure Static Web Apps
-  #   cmds:
-  #     - cmd: echo
-  #       silent: true
-  #   vars:
-  #     APP_NAME:
-  #       sh: terraform -chdir=../infrastructure/core output -raw APP_NAME
-
+  ui:
+    desc: Deploys the UI code to Azure Static Web Apps
+    cmds:
+    - cmd: swa deploy --env production --app-location "./src/ui" --deployment-token {{.DEPLOY_TOKEN}}
+      silent: true 
+    vars:
+      APP_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw APP_NAME
+      SWA:
+        sh: terraform -chdir=../infrastructure/core output -raw AZURE_STATIC_WEBAPP_NAME
+      DEPLOY_TOKEN:
+        sh: az staticwebapp secrets list --name {{.SWA}} --query "properties.apiKey" -o tsv
+        
   down:
     desc: Destroys all Azure resources and cleans up Terraform
     cmds:

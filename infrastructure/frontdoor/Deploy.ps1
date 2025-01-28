@@ -6,18 +6,21 @@ param (
     [string]    $FrontDoorUri,
 
     [Parameter(Mandatory = $true)]
-    [string[]]  $BackendHostNames,
+    [string]    $BackendHostNames,
 
     [Parameter(Mandatory = $false)]
     [switch]    $DeployWAFPolicies,
 
     [Parameter(Mandatory = $true)]
-    [string[]]  $Regions,
+    [string]    $Regions,
 
     [Parameter(Mandatory = $true)]
     [ValidateSet("single", "multi")]
     [string]    $DeploymentType
 )  
+
+$Regions           = $Regions | ConvertFrom-Json
+$BackendHostNames  = $BackendHostNames | ConvertFrom-Json
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $AppGwRGName       = "{0}_appgw_rg" -f $ApplicationName
