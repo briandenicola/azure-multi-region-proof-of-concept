@@ -13,9 +13,10 @@ locals {
   global_rg_name                 = "${var.app_name}_global_rg"
   ai_name                        = "${var.app_name}-ai"
   acr_name                       = "${replace(var.app_name, "-", "")}acr.azurecr.io"
+  safe_name                      = substr( "${replace(var.app_name, "-", "")}${var.location}", 0, 20)
   aca_name                       = "${local.regional_name}-env"
-  kv_name                        = "${replace(var.app_name, "-", "")}${var.location}kv"
-  storage_name                   = "${replace(var.app_name, "-", "")}${var.location}sa"
+  storage_name                   = "${local.safe_name}sa"
+  kv_name                        = "${local.safe_name}kv"
   app_identity                   = "${local.regional_name}-app-identity"
   db_name                        = "${var.app_name}-cosmosdb"
   eventhub_namespace_name        = "${local.regional_name}-ehns"
