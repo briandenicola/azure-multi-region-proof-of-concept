@@ -29,8 +29,8 @@ In other words, the world's most expensive random number generator....
     Name | Usage | DNS Record Type | IP Address
     ------ | ---- | ---- | ----
     api.bjd.demo | Azure Front Door  |  CNAME | Front Door URL>
-    api.westus.bjd.demo | App Gateway | A | App Gateway IP Address in West US
-    api.eastus.bjd.demo | App Gateway | A | App Gateway IP Address in East US
+    westus.api.bjd.demo | App Gateway | A | App Gateway IP Address in West US
+    eastus.api.bjd.demo | App Gateway | A | App Gateway IP Address in East US
 
 ## Task
 * The deployment of this application has been automated using [Taskfile](https://taskfile.dev/#/).  This was done instead of using a CI/CD pipeline to make it easier to understand the deployment process.  
@@ -45,14 +45,14 @@ In other words, the world's most expensive random number generator....
     DEFAULT_REGIONS | Default region to deploy to | taskfile.yaml | Yes | ["westus3"]
     DOMAIN_ROOT | Default root domain used for all URLs & certs | taskfile.yaml | Yes | bjd.demo
     EXTERNAL_DEPLOYMENT | Will this deployment deploy external components | taskfile.yaml | Yes | false
-    DEPLOYMENT_TYPE | Will this deployment deploy to multiple regions | taskfile.yaml | Yes | single (multi or single are valid options)
+    DEPLOYMENT_TYPE | Will this deployment deploy to multiple regions | taskfile.yaml | Yes | single (`multiregion` or `single` are valid options)
     APIM_PFX_CERT_PATH | Path to the APIM PFX certificate | .env | External Only | ./certs/apim.pfx
     APIM_PFX_CERT_PASSWORD | Password for the APIM PFX certificate | .env | External Only | <password for the pfx file>
     APP_GW_PFX_CERT_PATH | Path to the App Gateway PFX certificate | .env | External Only | ./certs/appgw.pfx
     APP_GW_PFX_CERT_PASSWORD | Password for the App Gateway PFX certificate | .env | External Only | <password for the pfx file>
     FRONTDOOR_URL | The Custom URL for the Azure Front Door | .env | External Only | api.bjd.demo
-    APP_GW_URLS | The URLs for the App Gateways | .env | External Only | ["api.westus.bjd.demo"] 
-    APIM_URLS | The Urls for the APIM Gateways | .env | External Only | ["apim.westus.bjd.demo"]
+    APP_GW_URLS | The URLs for the App Gateways | .env | External Only | ["westus.api.bjd.demo"] 
+    APIM_URLS | The Urls for the APIM Gateways | .env | External Only | ["westus.apim.bjd.demo"]
 
 * Running the `task` command without any options will run the default command. This will list all the available tasks.
     * `task init`               : Initialized Terraform modules
@@ -90,9 +90,11 @@ In other words, the world's most expensive random number generator....
 - [x] General rev updates of ARM template resources
 - [x] Update naming standards
 - [x] Moved to Managed Redis instead of Azure Cache for Redis
-- [] Adopt new APIM v2 features and platform
-- [] Review AppGateway and Front Door configurations
-- [] Code (and modules) updated to C# 8.0 and Go 1.24
-- [] Code updated to Managed Identities
-- [] Gracefully handle issues on startup
+- [] Code (and modules) updated to latest versions
+- [] Event Processor Function Code updated to Managed Identities for Event Hubs, Functions Runtime/Storage and Redis
+- [] Change Feed Processor Function Code updated to Managed Identities for Event Hubs, Functions Runtime/Storage 
+- [] API updated to Managed Identities for Event Hubs, App Insights and Redis
+- [] Gracefully handle connection issues on API startup - non-persistent mode
+- [] Review new APIM v2 features and platform for additional updates
+- [] Review AppGateway and Front Door configurations for additional updates
 - [] Update documentation 

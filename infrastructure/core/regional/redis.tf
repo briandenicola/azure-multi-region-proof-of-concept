@@ -28,6 +28,9 @@ resource "azurerm_monitor_diagnostic_setting" "cache" {
   }
 }
 
+# 1/29/2025 - 
+# Issue with provisioning private endpoint for Managed Redis so disabling for now.
+#
 # resource "azurerm_private_endpoint" "cache" {
 #   name                = "${local.redis_name}-ep"
 #   resource_group_name = azurerm_resource_group.cqrs_region.name

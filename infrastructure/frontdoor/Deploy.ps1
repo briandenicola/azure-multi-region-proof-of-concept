@@ -15,7 +15,7 @@ param (
     [string]    $Regions,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet("single", "multi")]
+    [ValidateSet("single", "multiregion")]
     [string]    $DeploymentType
 )  
 
@@ -58,7 +58,7 @@ if ($DeployWAFPolicies) {
         AppGatewayName    = $AppGatewayName
     }
 
-    if ($DeploymentType -eq "multi") {
+    if ($DeploymentType -eq "multiregion") {
         $opts.secondaryLocation     = $Regions[1]
         $opts.multiRegionDeployment = $true
     }

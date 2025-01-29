@@ -17,6 +17,7 @@ terraform.tfstate
 terraform.tfstate.bak
 terraform.tfstate.d/
 .terraform.tfstate.lock.info
+terraform.tfstate.backup
 *.plan*
 
 # Project Files

@@ -3,8 +3,8 @@
 Name | Usage | Required | SAN Urls
 ------ | ---- | ---- | ----
 api.internal.bjd.demo | Ingress for the Azure Container Apps | Yes 
-*.apim.bjd.demo | APIM | No | *.scm.apim.bjd.demo, *.apim.westus.bjd.demo, *.apim.eastus.bjd.demo
-api.bjd.demo | Azure Front Door and App Gateway | No |  api.westus.bjd.demo, api.eastus.bjd.demo
+*.apim.bjd.demo | APIM | No | *.scm.apim.bjd.demo, westus.apim.bjd.demo, eastus.apim.bjd.demo
+api.bjd.demo | Azure Front Door and App Gateway | No |  westus.api.bjd.demo, eastus.api.bjd.demo
 
 
 ## Installation

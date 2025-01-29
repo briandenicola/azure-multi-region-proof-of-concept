@@ -8,7 +8,7 @@ resource "azurerm_container_app" "api" {
 
   name                         = "api-internal"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
-  resource_group_name          = data.azurerm_resource_group.cqrs_apps.name
+  resource_group_name          = local.apps_rg_name
   revision_mode                = "Multiple"
   workload_profile_name        = local.workload_profile_name
 
@@ -32,7 +32,7 @@ resource "azurerm_container_app" "api" {
   }
 
   registry {
-    server   = local.acr_name
+    server   = local.acr_fqdn
     identity = azurerm_user_assigned_identity.app_identity.id
   }
 
@@ -56,24 +56,12 @@ resource "azurerm_container_app" "api" {
         value = var.location
       }
       env {
-        name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
-        secret_name = local.APPINSIGHTS_INSTRUMENTATIONKEY
+        name        = "APPINSIGHTS_CONNECTION_STRING"
+        secret_name = local.APPINSIGHTS_CONNECTION_STRING
       }
       env {
         name        = "COSMOSDB_CONNECTIONSTRING"
         secret_name = local.COSMOSDB_CONNECTIONSTRING
-      }
-      env {
-        name        = "REDISCACHE_CONNECTIONSTRING"
-        secret_name = local.REDISCACHE_CONNECTIONSTRING
-      }
-      env {
-        name        = "EVENTHUB_CONNECTIONSTRING"
-        secret_name = local.EVENTHUB_CONNECTIONSTRING
-      }
-      env {
-        name        = "AzureWebJobsStorage"
-        secret_name = local.AzureWebJobsStorage
       }
     }
 
@@ -87,28 +75,14 @@ resource "azurerm_container_app" "api" {
   }
 
   secret {
-    key_vault_secret_id = azurerm_key_vault_secret.eventhub_connection_string.id
-    name                = local.EVENTHUB_CONNECTIONSTRING
-    identity            = azurerm_user_assigned_identity.app_identity.id
-  }
-  secret {
     key_vault_secret_id = azurerm_key_vault_secret.cosmosdb_connection_string.id
     name                = local.COSMOSDB_CONNECTIONSTRING
     identity            = azurerm_user_assigned_identity.app_identity.id
   }
   secret {
-    key_vault_secret_id = azurerm_key_vault_secret.redis_connection_string.id
-    name                = local.REDISCACHE_CONNECTIONSTRING
-    identity            = azurerm_user_assigned_identity.app_identity.id
-  }
-  secret {
-    key_vault_secret_id = azurerm_key_vault_secret.storage_connection_string.id
-    name                = local.AzureWebJobsStorage
-    identity            = azurerm_user_assigned_identity.app_identity.id
-  }
-  secret {
     key_vault_secret_id = azurerm_key_vault_secret.app_insights_connection_string.id
-    name                = local.APPINSIGHTS_INSTRUMENTATIONKEY
+    name                = local.APPINSIGHTS_CONNECTION_STRING
+    identity            = azurerm_user_assigned_identity.app_identity.id
   }
 }
 

@@ -6,7 +6,7 @@ param (
     [String]                $Regions,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet("single", "multi")]
+    [ValidateSet("single", "multiregion")]
     [String]                $DeploymentType,
 
     [Parameter(Mandatory = $true)]
@@ -41,7 +41,7 @@ $opts = @{
     primaryVnetResourceGroup        = ("{0}_{1}_infra_rg" -f $ApplicationName, $Regions[0])
 }
 
-if ($DeploymentType -eq "multi") {
+if ($DeploymentType -eq "multiregion") {
     if ($BackendHostNames.Length -eq 1 ) {
         throw "Need to provide two Backend Host Names if using multiple regions..."
         exit -1

@@ -113,12 +113,13 @@ tasks:
 
   build:
     desc: Builds and pushes the containers to Azure Container Registry
+    dir: ./scripts
     cmds:
     - pwsh ./build-containers.ps1 
       -AppName {{.APP_NAME}}
       -ACRName {{.ACR_NAME}}
       -CommitVersion {{.COMMIT_VERSION}}
-      -SourceRootPath "./src"
+      -SourceRootPath "../src"
     vars:
       APP_NAME:
         sh: terraform -chdir=../infrastructure/core output -raw APP_NAME
@@ -130,6 +131,7 @@ tasks:
   deploy:
     desc: Applies the Terraform configuration for the application components
     cmds:
+      - task: appinit
       - terraform -chdir=./app apply -auto-approve
         -var 'locations={{.ALL_REGIONS}}'
         -var "app_name={{.APP_NAME}}"
@@ -142,6 +144,12 @@ tasks:
         sh: git rev-parse HEAD | cut -c 1-8
       APP_NAME:
         sh: terraform -chdir=./infrastructure/core output -raw APP_NAME
+
+  appinit:
+    internal: true
+    desc: Initializes Terraform and deploys the internal Azure infrastructure components
+    cmds:
+      - terraform -chdir=./app init
 
   ui:
     desc: Deploys the UI code to Azure Static Web Apps

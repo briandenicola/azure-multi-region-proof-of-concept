@@ -6,7 +6,7 @@ param (
     [String]            $Regions,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet("single", "multi")]
+    [ValidateSet("single", "multiregion")]
     [String]            $DeploymentType,
 
     [Parameter(Mandatory = $true)]
@@ -51,7 +51,7 @@ function Get-AzureRegion
     return ($location -replace " ", "").ToLower()
 }
 
-$Regions           = $Regions | ConvertFrom-Json
+$Regions            = $Regions | ConvertFrom-Json
 $ApimGatewayUrls    = $ApimGatewayUrls | ConvertFrom-Json
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
@@ -73,7 +73,7 @@ $opts = @{
     primaryVnetResourceGroup        = ("{0}_{1}_infra_rg" -f $ApplicationName, $Regions[0])
 }
 
-if ($DeploymentType -eq "multi")
+if ($DeploymentType -eq "multiregion")
 {
     if ($ApimProxies.Length -eq 1 ) 
     {

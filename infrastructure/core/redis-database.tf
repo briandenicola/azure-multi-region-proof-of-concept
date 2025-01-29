@@ -6,7 +6,7 @@ resource "azurerm_redis_enterprise_database" "cqrs" {
   name              = "default"
   cluster_id        = module.regional_resources[element(var.locations, 0)].AZURE_REDIS_CLUSTER_DATABASE_ID
   client_protocol   = "Encrypted"
-  clustering_policy = "EnterpriseCluster" #RedisSearch does not support OSS Clustering Policy
+  clustering_policy = "EnterpriseCluster"
   eviction_policy   = "NoEviction"
   port              = 10000
 
