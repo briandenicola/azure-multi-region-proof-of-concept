@@ -14,31 +14,31 @@ param (
     [String]                $PFXPath,
     
     [Parameter(Mandatory = $true)]
-    [SecureString]          $PFXPassword,
+    [String]          $PFXPassword,
 
     [Parameter(Mandatory = $true)]
     [String]                $BackendHostNames
 
 )  
 
-$Regions           = $Regions | ConvertFrom-Json
-$BackendHostNames  = $BackendHostNames | ConvertFrom-Json
+$AllRegions           = @($Regions | ConvertFrom-Json)
+$AllBackendHostNames  = @($BackendHostNames | ConvertFrom-Json)
 
-$pfxEncoded        = [convert]::ToBase64String( (Get-Content -AsByteStream -Path $PFXPath) )
-$ResourceGroupName = "{0}_appgw_rg" -f $ApplicationName
-$AppGatewayName    = "{0}-gw"       -f $ApplicationName
-
+$pfxEncoded         = [convert]::ToBase64String( (Get-Content -AsByteStream -Path $PFXPath) )
+$ResourceGroupName  = "{0}_appgw_rg" -f $ApplicationName
+$AppGatewayName     = "{0}-gw"       -f $ApplicationName
+$PFXEncodedPassword = ConvertTo-SecureString -String $PFXPassword -AsPlainText -Force
 $opts = @{
     Name                            = ("AppGateway-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
     ResourceGroupName               = $ResourceGroupName
     TemplateFile                    = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
     appGatewayName                  = $AppGatewayName
     domainCertificateData           = $pfxEncoded
-    domainCertificatePassword       = $PFXPassword
-    primaryBackendEndFQDN           = $BackendHostNames[0]
+    domainCertificatePassword       = $PFXEncodedPassword
+    primaryBackendEndFQDN           = $AllBackendHostNames[0]
     multiRegionDeployment           = $false
-    primaryVnetName                 = ("{0}-{1}-vnet" -f $ApplicationName, $Regions[0])
-    primaryVnetResourceGroup        = ("{0}_{1}_infra_rg" -f $ApplicationName, $Regions[0])
+    primaryVnetName                 = ("{0}-{1}-vnet" -f $ApplicationName, $AllRegions[0])
+    primaryVnetResourceGroup        = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[0])
 }
 
 if ($DeploymentType -eq "multiregion") {
@@ -46,10 +46,10 @@ if ($DeploymentType -eq "multiregion") {
         throw "Need to provide two Backend Host Names if using multiple regions..."
         exit -1
     }
-    $opts.secondaryBackendEndFQDN = $BackendHostNames[1]
+    $opts.secondaryBackendEndFQDN = $AllBackendHostNames[1]
     $opts.secondaryLocation  = $Regions[1]
-    $opts.secondaryVnetName  = ("{0}-{1}-vnet" -f $ApplicationName, $Regions[1])
-    $opts.secondaryVnetResourceGroup = ("{0}_{1}_infra_rg" -f $ApplicationName, $Regions[1])
+    $opts.secondaryVnetName  = ("{0}-{1}-vnet" -f $ApplicationName, $AllRegions[1])
+    $opts.secondaryVnetResourceGroup = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[1])
     $opts.multiRegionDeployment = $true
 }
 New-AzResourceGroupDeployment @opts -verbose

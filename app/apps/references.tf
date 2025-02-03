@@ -35,11 +35,6 @@ data "azurerm_container_registry" "cqrs" {
   resource_group_name = local.global_rg_name
 }
 
-# data "azurerm_redis_enterprise_cluster" "cqrs" {
-#   name                = local.redis_name
-#   resource_group_name = local.infra_rg_name
-# }
-
 data "azurerm_eventhub_namespace" "cqrs" {
   name                = local.eventhub_namespace_name
   resource_group_name = local.apps_rg_name

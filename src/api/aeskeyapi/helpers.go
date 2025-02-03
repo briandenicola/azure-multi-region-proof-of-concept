@@ -2,47 +2,60 @@ package aeskeyapi
 
 import (
 	"crypto/rand"
+	"context"	
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"strings"	
 	"os"
-	"regexp"
 	"time"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 )
 
 func parseEventHubConnectionString(constr string) string {
 	return constr
 }
 
-func parseRedisConnectionString(constr string) (string, string) {
-	var (
-		server   string
-		password string
-		re       *regexp.Regexp
-	)
-
-	re = regexp.MustCompile(`(.*):(\d{4})`)
-	server = re.FindString(constr)
-
-	re = regexp.MustCompile(`(password=)(.*=),`)
-	password = string(re.FindSubmatch([]byte(constr))[2])
-
-	return server, password
+func handleRedisAuthentication() func(context.Context) (string, string, error) {
+	credential, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		return nil
+	}
+	return redisCredentialProvider(credential)
 }
 
-func parseCosmosConnectionString(constr string) (string, string) {
-	var (
-		account   string
-		masterKey string
-		re        *regexp.Regexp
-	)
-
-	re = regexp.MustCompile(`(AccountEndpoint=)(.*:\d{3})`)
-	account = string(re.FindSubmatch([]byte(constr))[2])
-
-	re = regexp.MustCompile(`(AccountKey=)(.*);`)
-	masterKey = string(re.FindSubmatch([]byte(constr))[2])
-
-	return account, masterKey
+func redisCredentialProvider(credential azcore.TokenCredential) func(context.Context) (string, string, error) {
+	return func(ctx context.Context) (string, string, error) {
+		tk, err := credential.GetToken(ctx, policy.TokenRequestOptions{
+			Scopes: []string{"https://redis.azure.com/.default"},
+		})
+		if err != nil {
+			return "", "", err
+		}
+		// the token is a JWT; get the principal's object ID from its payload
+		parts := strings.Split(tk.Token, ".")
+		if len(parts) != 3 {
+			return "", "", errors.New("token must have 3 parts")
+		}
+		payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+		if err != nil {
+			return "", "", fmt.Errorf("couldn't decode payload: %s", err)
+		}
+		claims := struct {
+			OID string `json:"oid"`
+		}{}
+		err = json.Unmarshal(payload, &claims)
+		if err != nil {
+			return "", "", fmt.Errorf("couldn't unmarshal payload: %s", err)
+		}
+		if claims.OID == "" {
+			return "", "", errors.New("missing object ID claim")
+		}
+		return claims.OID, tk.Token, nil
+	}
 }
 
 func createUUID() string {

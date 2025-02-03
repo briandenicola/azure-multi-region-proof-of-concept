@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bjd145/cqrs/aeskeyapi"
+	"github.com/briandenicola/azure-multi-region-proof-of-concept/aeskeyapi"
 	"log"
 	"os"
 )

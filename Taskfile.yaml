@@ -5,9 +5,9 @@ dotenv: [".env"]
 env:
   TITLE:                  "CQRS Multi-region Pattern in Azure"
   PRIMARY_REGION:         "canadacentral"
-  ALL_REGIONS:            '["canadacentral"]' #'["westus3", "eastus2"]'
+  ALL_REGIONS:            '["canadacentral"]' #,"westus3", "eastus2"]'
   DOMAIN_ROOT:            "bjdazure.tech"
-  EXTERNAL_DEPLOYMENT:    false
+  EXTERNAL_DEPLOYMENT:    true
   DEPLOYMENT_TYPE:        "single"
 
 tasks:
@@ -57,17 +57,17 @@ tasks:
     cmds:
     - pwsh ./Deploy.ps1 -verbose
         -ApplicationName {{.APP_NAME}}
-        -Regions {{.ALL_REGIONS}}
+        -Regions '{{.ALL_REGIONS}}'
         -DeploymentType {{.DEPLOYMENT_TYPE}}
         -PFXPath {{.APIM_PFX_CERT_PATH}}
         -PFXPassword {{.APIM_PFX_CERT_PASSWORD}}
-        -ApimGatewayUrls {{.APP_GW_URLS}}
+        -ApimGatewayUrls '{{.APIM_URLS}}'
         -ApimRootDomainName "apim.{{.DOMAIN_ROOT}}"
         -DNSZone {{.DOMAIN_ROOT}}
     - task: product        
     vars:
       APP_NAME: 
-        sh: terraform -chdir=./infrastructure/core output -raw APP_NAME
+        sh: terraform -chdir=../core output -raw APP_NAME
       
   product:
     internal: true
@@ -79,7 +79,7 @@ tasks:
         -primaryBackendUrl "https://{{.APP_URL}}"
     vars:
       APP_NAME: 
-        sh: terraform -chdir=./infrastructure/core output -raw APP_NAME
+        sh: terraform -chdir=../core output -raw APP_NAME
 
   appgateway:
     desc:  Deploys Azure App Gateway
@@ -87,14 +87,14 @@ tasks:
     cmds:
     - pwsh ./Deploy.ps1 -verbose
         -ApplicationName {{.APP_NAME}}
-        -Regions {{.ALL_REGIONS}}
+        -Regions '{{.ALL_REGIONS}}'
         -DeploymentType {{.DEPLOYMENT_TYPE}}
         -PFXPath {{.APP_GW_PFX_CERT_PATH}}
         -PFXPassword {{.APP_GW_PFX_CERT_PASSWORD}}
-        -BackendHostNames {{.APIM_URLS}}
+        -BackendHostNames '{{.APIM_URLS}}'
     vars:
       APP_NAME: 
-        sh: terraform -chdir=./infrastructure/core output -raw APP_NAME
+        sh: terraform -chdir=../core output -raw APP_NAME
 
   frontdoor:
     desc:  Deploys Azure Front Door
@@ -102,14 +102,14 @@ tasks:
     cmds:
     - pwsh ./Deploy.ps1 -verbose
         -ApplicationName {{.APP_NAME}}
-        -Regions {{.ALL_REGIONS}}
+        -Regions '{{.ALL_REGIONS}}'
         -DeploymentType {{.DEPLOYMENT_TYPE}}
         -FrontDoorUri {{.FRONTDOOR_URL}}
-        -BackendHostNames {{.APP_GW_URLS}}
+        -BackendHostNames '{{.APP_GW_URLS}}'
         -DeployWAFPolicies true
     vars:
       APP_NAME: 
-        sh: terraform -chdir=./infrastructure/core output -raw APP_NAME
+        sh: terraform -chdir=../core output -raw APP_NAME
 
   build:
     desc: Builds and pushes the containers to Azure Container Registry

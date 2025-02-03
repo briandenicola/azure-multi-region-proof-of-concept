@@ -19,8 +19,8 @@ param (
     [string]    $DeploymentType
 )  
 
-$Regions           = $Regions | ConvertFrom-Json
-$BackendHostNames  = $BackendHostNames | ConvertFrom-Json
+$Regions           = @($Regions | ConvertFrom-Json)
+$BackendHostNames  = @($BackendHostNames | ConvertFrom-Json)
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $AppGwRGName       = "{0}_appgw_rg" -f $ApplicationName

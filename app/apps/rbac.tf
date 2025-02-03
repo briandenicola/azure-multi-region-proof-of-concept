@@ -47,6 +47,27 @@ resource "azurerm_role_assignment" "metrics_publisher_log_analytics" {
   skip_service_principal_aad_check = true
 }
 
+resource "azurerm_role_assignment" "storage_blob_contributor" {
+  scope                            = data.azurerm_storage_account.cqrs.id
+  role_definition_name             = "Storage Blob Data Contributor"
+  principal_id                     = azurerm_user_assigned_identity.app_identity.principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "storage_account_contributor" {
+  scope                            = data.azurerm_storage_account.cqrs.id
+  role_definition_name             = "Storage Account Contributor"
+  principal_id                     = azurerm_user_assigned_identity.app_identity.principal_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "azurerm_queue_account" {
+  scope                            = data.azurerm_storage_account.cqrs.id
+  role_definition_name             = "Storage Queue Data Contributor"
+  principal_id                     = azurerm_user_assigned_identity.app_identity.principal_id
+  skip_service_principal_aad_check = true
+}
+
 resource "azurerm_role_assignment" "administrator" {
   scope                = data.azurerm_key_vault.cqrs.id
   role_definition_name = "Key Vault Administrator"

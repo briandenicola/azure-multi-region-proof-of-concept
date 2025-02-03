@@ -33,6 +33,15 @@ resource "azurerm_container_app" "eventprocessor" {
       memory = "1Gi"
 
       env {
+        name        = "COSMOSDB_CONNECTIONSTRING"
+        secret_name = local.COSMOSDB_CONNECTIONSTRING
+      }
+      env {
+        name        = "APPINSIGHTS_CONNECTION_STRING"
+        secret_name = local.APPINSIGHTS_CONNECTION_STRING
+      }
+
+      env {
         name  = "AzureFunctionsJobHost__functions__0"
         value = "CommandProcessing"
       }
@@ -44,14 +53,44 @@ resource "azurerm_container_app" "eventprocessor" {
         name  = "LEASE_COLLECTION_PREFIX"
         value = var.location
       }
+
       env {
-        name        = "COSMOSDB_CONNECTIONSTRING"
-        secret_name = local.COSMOSDB_CONNECTIONSTRING
+        name  = "EVENTHUB_CONNECTION__credential"
+        value = "managedidentity"
+      }
+
+      env {
+        name  = "EVENTHUB_CONNECTION__clientId"
+        value = azurerm_user_assigned_identity.app_identity.client_id
+      }
+
+      env {
+        name  = "EVENTHUB_CONNECTION__fullyQualifiedNamespace"
+        value = "${local.eventhub_namespace_name}.servicebus.windows.net" 
+      }
+
+      env {
+        name  = "AzureWebJobsStorage__credential"
+        value = "workloadidentity"
       }
       env {
-        name        = "APPINSIGHTS_CONNECTION_STRING"
-        secret_name = local.APPINSIGHTS_CONNECTION_STRING
+        name  = "AzureWebJobsStorage__clientId"
+        value = azurerm_user_assigned_identity.app_identity.client_id
       }
+      env {
+        name  = "AzureWebJobsStorage__queueServiceUri"
+        value = data.azurerm_storage_account.cqrs.primary_queue_endpoint
+      }
+
+      env {
+        name  = "AzureWebJobsStorage__tableServiceUri"
+        value = data.azurerm_storage_account.cqrs.primary_table_endpoint
+      }
+
+      env {
+        name  = "AzureWebJobsStorage__blobServiceUri"
+        value = data.azurerm_storage_account.cqrs.primary_blob_endpoint
+      }      
     }
 
     max_replicas = 15

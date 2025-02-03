@@ -32,6 +32,15 @@ resource "azurerm_container_app" "changefeedprocessor" {
       memory = "0.5Gi"
 
       env {
+        name        = "COSMOSDB_CONNECTIONSTRING"
+        secret_name = local.COSMOSDB_CONNECTIONSTRING
+      }
+      env {
+        name        = "APPINSIGHTS_CONNECTION_STRING"
+        secret_name = local.APPINSIGHTS_CONNECTION_STRING
+      }
+
+      env {
         name  = "AzureFunctionsJobHost__functions__0"
         value = "CosmosChangeFeedProcessor"
       }
@@ -40,12 +49,41 @@ resource "azurerm_container_app" "changefeedprocessor" {
         value = "dotnet"
       }
       env {
-        name        = "COSMOSDB_CONNECTIONSTRING"
-        secret_name = local.COSMOSDB_CONNECTIONSTRING
+        name  = "redisConnectionString__redisHostName"
+        value = "${local.redis_name}.${var.location}.redis.azure.net"
+      }
+
+      env {
+        name  = "redisConnectionString__principalId"
+        value = azurerm_user_assigned_identity.app_identity.principal_id
+      }
+
+      env {
+        name  = "redisConnectionString__clientId"
+        value = azurerm_user_assigned_identity.app_identity.client_id
+      }
+
+      env {
+        name  = "AzureWebJobsStorage__credential"
+        value = "workloadidentity"
       }
       env {
-        name        = "APPINSIGHTS_CONNECTION_STRING"
-        secret_name = local.APPINSIGHTS_CONNECTION_STRING      
+        name  = "AzureWebJobsStorage__clientId"
+        value = azurerm_user_assigned_identity.app_identity.client_id
+      }
+      env {
+        name  = "AzureWebJobsStorage__queueServiceUri"
+        value = data.azurerm_storage_account.cqrs.primary_queue_endpoint
+      }
+
+      env {
+        name  = "AzureWebJobsStorage__tableServiceUri"
+        value = data.azurerm_storage_account.cqrs.primary_table_endpoint
+      }
+
+      env {
+        name  = "AzureWebJobsStorage__blobServiceUri"
+        value = data.azurerm_storage_account.cqrs.primary_blob_endpoint
       }
     }
 

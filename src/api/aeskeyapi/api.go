@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"strconv"
 )
 
 //API Interface
@@ -37,7 +38,11 @@ func NewKeyAPI() *AESApi {
 	api.aiClient = appinsights.NewTelemetryClient(os.Getenv("APPINSIGHTS_INSTRUMENTATIONKEY"))
 	api.aiClient.Track(appinsights.NewTraceTelemetry("Setup of AI client complete...", appinsights.Information))
 
-	api.keydb, _ = NewKeysDB()
+	c, err := strconv.ParseBool(os.Getenv("CACHE_ENABLED"))
+	if err != nil {
+		c = false
+	}
+	api.keydb, _ = NewKeysDB(c)
 	api.aiClient.Track(appinsights.NewTraceTelemetry("Setup of Database Connections complete...", appinsights.Information))
 
 	return api
