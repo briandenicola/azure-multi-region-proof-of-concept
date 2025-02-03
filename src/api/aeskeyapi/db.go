@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	azcosmos "github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	azeventhubs "github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs"
 	"github.com/redis/go-redis/v9"
@@ -49,7 +49,8 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	db.EventHub = EVENT_HUB_NAME
 
 	defaultAzureCred, err := azidentity.NewDefaultAzureCredential(nil)
-	db.kafkaClient, _ := azeventhubs.NewProducerClient(os.Getenv("EVENTHUB_CONNECTIONSTRING"), db.EventHub, defaultAzureCred, nil)
+	db.kafkaClient, _ = azeventhubs.NewProducerClient(os.Getenv("EVENTHUB_CONNECTIONSTRING"), db.EventHub, defaultAzureCred, nil)
+	defer db.kafkaClient.Close(context.TODO())
 
 	db.CacheEnabled = useCache
 	if(db.CacheEnabled == true) {
@@ -67,15 +68,17 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	clientOptions := azcosmos.ClientOptions{
 		EnableContentResponseOnWrite: true,
 	}
+
+	log.Print("Cosmos:" + os.Getenv("COSMOSDB_CONNECTIONSTRING"))
 	db.cosmosPartitionKey = azcosmos.NewPartitionKeyString("keyId")
-	db.cosmosClient, err = azcosmos.NewClientFromConnectionString(os.Getenv("COSMOS_CONNECTIONSTRING"), &clientOptions)
+	db.cosmosClient, err = azcosmos.NewClientFromConnectionString(os.Getenv("COSMOSDB_CONNECTIONSTRING"), &clientOptions)
 	if err != nil {
-		panic("Error Connecting to Cosmos")
+		panic(err)
 	}
 
 	db.cosmosDatabase, err = db.cosmosClient.NewDatabase(db.DatabaseName)
 	if err != nil {
-		panic("Error Connecting to Cosmos Database")
+		panic(err)
 	}
 	db.cosmosContainer, err = db.cosmosDatabase.NewContainer(db.ContainerName)
 
@@ -87,19 +90,33 @@ func (k *AESKeyDB) Save() ([]*AesKey, error) {
 
 	var (
 		err    error
-		events []*eventhub.Event
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
+	batchOptions := &azeventhubs.EventDataBatchOptions{}
+	batch, err := k.kafkaClient.NewEventDataBatch(ctx, batchOptions)
+
 	for index := range k.keys {
-		encodedAesKey, _ := json.Marshal(k.keys[index])
-		events = append(events, eventhub.NewEvent(encodedAesKey))
+		encodedAesKey := encodeForEventHub(k.keys[index])
+		err = batch.AddEventData(&encodedAesKey, nil)
+		
 	}
 
-	err = k.kafkaClient.SendBatch(ctx, eventhub.NewEventBatchIterator(events...))
+	if batch.NumEvents() > 0 {
+		if err := k.kafkaClient.SendEventDataBatch(ctx, batch, nil); err != nil {
+			panic(err)
+		}
+	}
 	return k.keys, err
+}
+
+func encodeForEventHub(data *AesKey) azeventhubs.EventData {
+	encoded, _ := json.Marshal(data)
+	return azeventhubs.EventData{
+		Body: encoded,
+	}
 }
 
 //Get - Retrieve AES Key object from Redis cache or Cosmos DB
