@@ -432,6 +432,7 @@
                     {
                         "name": "apim",
                         "properties": {
+                            "priority": 1,
                             "ruleType": "Basic",
                             "httpListener": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('appGatewayName')), '/httpListeners/https')]"

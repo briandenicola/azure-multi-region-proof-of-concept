@@ -12,7 +12,8 @@
             "type": "string"
         },
         "secondaryBackendEndFQDN": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "secondary-placeholder.contoso.com"
         }
     },
     "variables": {
@@ -41,7 +42,6 @@
             "name": "[format('{0}/{1}', parameters('frontDoorName'), variables('endpointName'))]",
             "location": "global",
             "properties": {
-                "originResponseTimeoutSeconds": 240,
                 "enabledState": "Enabled"
             },
             "dependsOn": [
@@ -122,7 +122,9 @@
                 "patternsToMatch": [
                     "/*"
                 ],
-                "queryStringCachingBehavior": "IgnoreQueryString",
+                 "cacheConfiguration": {
+                    "queryStringCachingBehavior": "IgnoreQueryString"
+                },
                 "forwardingProtocol": "HttpsOnly",
                 "linkToDefaultDomain": "Enabled",
                 "httpsRedirect": "Enabled"

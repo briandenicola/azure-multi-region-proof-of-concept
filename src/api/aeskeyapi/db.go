@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-event-hubs-go/v3"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	azcosmos "github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	azeventhubs "github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -29,7 +29,7 @@ type AESKeyDB struct {
 	EventHub   		string
 	CacheEnabled 	bool
 
-	kafkaClient  		*eventhub.Hub
+	kafkaClient  		*azeventhubs.ProducerClient
 	redisClient  		*redis.Client
 	cosmosClient 		*azcosmos.Client
 
@@ -48,8 +48,8 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	db.ContainerName = COSMOS_COLLECTION_NAME
 	db.EventHub = EVENT_HUB_NAME
 
-	kafkaConStr := parseEventHubConnectionString(os.Getenv("EVENTHUB_CONNECTIONSTRING"))
-	db.kafkaClient, _ = eventhub.NewHubFromConnectionString(kafkaConStr)
+	defaultAzureCred, err := azidentity.NewDefaultAzureCredential(nil)
+	db.kafkaClient, _ := azeventhubs.NewProducerClient(os.Getenv("EVENTHUB_CONNECTIONSTRING"), db.EventHub, defaultAzureCred, nil)
 
 	db.CacheEnabled = useCache
 	if(db.CacheEnabled == true) {
@@ -121,19 +121,14 @@ func (k *AESKeyDB) Get(id string) (*AesKey, error) {
 		}
 	}
 	
-	// itemResponse, _ := k.cosmosContainer.ReadItem(context, k.cosmosPartitionKey, id, nil)
-	// var itemResponseBody map[string]string
-	// err = json.Unmarshal(itemResponse.Value, &itemResponseBody)
-
-	//query := documentdb.NewQuery("SELECT * FROM c WHERE c.keyId=@keyId", documentdb.P{Name: "@keyId", Value: id})
-	//_, err = k.cosmosClient.QueryDocuments(k.collection.Self, query, &keys)
+	itemResponse, _ := k.cosmosContainer.ReadItem(ctx, k.cosmosPartitionKey, id, nil)
+	err = json.Unmarshal(itemResponse.Value, &keys)
 
 	if err == nil && len(keys) != 0 {
 		return keys[0], nil
 	}
 
 	return nil, err
-
 }
 
 //Add - Add key to local cache of AESKeys
@@ -144,30 +139,4 @@ func (k *AESKeyDB) Add(key *AesKey) {
 //Flush - Reset stored AESKeys
 func (k *AESKeyDB) Flush() {
 	k.keys = nil
-}
-
-//findCollection Finds Collection in CosmosDB Account
-func (k *AESKeyDB) findCollection(name string) (err error) {
-
-	//query := documentdb.NewQuery("SELECT * FROM ROOT r WHERE r.id=@name", documentdb.P{Name: "@name", Value: name})
-	//colls, err := k.cosmosClient.QueryCollections(k.db.Self, query)
-	//if err != nil {
-	//	return err
-	//}
-
-	//k.collection = &colls[0]
-	return
-}
-
-//findDatabase - Finds Database in CosmosDB Account
-func (k *AESKeyDB) findDatabase(name string) (err error) {
-
-	//query := documentdb.NewQuery("SELECT * FROM ROOT r WHERE r.id=@name", documentdb.P{Name: "@name", Value: name})
-	//dbs, err := k.cosmosClient.QueryDatabases(query)
-	//if err != nil {
-	//	return err
-	//}
-
-	//k.db = &dbs[0]
-	return
 }

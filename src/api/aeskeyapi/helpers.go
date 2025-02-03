@@ -15,10 +15,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 )
 
-func parseEventHubConnectionString(constr string) string {
-	return constr
-}
-
 func handleRedisAuthentication() func(context.Context) (string, string, error) {
 	credential, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {

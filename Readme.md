@@ -90,11 +90,11 @@ In other words, the world's most expensive random number generator....
 - [x] General rev updates of ARM template resources
 - [x] Update naming standards
 - [x] Moved to Managed Redis instead of Azure Cache for Redis
-- [] Code (and modules) updated to latest versions
-- [] Event Processor Function Code updated to Managed Identities for Event Hubs, Functions Runtime/Storage and Redis
-- [] Change Feed Processor Function Code updated to Managed Identities for Event Hubs, Functions Runtime/Storage 
-- [] API updated to Managed Identities for Event Hubs, App Insights and Redis
-- [] Gracefully handle connection issues on API startup - non-persistent mode
+- [x] Code (and modules) updated to latest versions
+- [x] Event Processor Function Code updated to Managed Identities for Event Hubs, Functions Runtime/Storage and Redis
+- [x] Change Feed Processor Function Code updated to Managed Identities for Event Hubs, Functions Runtime/Storage 
+- [x] API updated to Managed Identities for Event Hubs, App Insights and Redis
+- [x] Gracefully handle connection issues on API startup - non-persistent mode
 - [] Review new APIM v2 features and platform for additional updates
 - [] Review AppGateway and Front Door configurations for additional updates
 - [] Update documentation 

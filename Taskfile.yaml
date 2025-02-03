@@ -91,6 +91,7 @@ tasks:
         -DeploymentType {{.DEPLOYMENT_TYPE}}
         -PFXPath {{.APP_GW_PFX_CERT_PATH}}
         -PFXPassword {{.APP_GW_PFX_CERT_PASSWORD}}
+        -AppGatewayUrls '{{.APP_GW_URLS}}'
         -BackendHostNames '{{.APIM_URLS}}'
     vars:
       APP_NAME: 
@@ -106,7 +107,7 @@ tasks:
         -DeploymentType {{.DEPLOYMENT_TYPE}}
         -FrontDoorUri {{.FRONTDOOR_URL}}
         -BackendHostNames '{{.APP_GW_URLS}}'
-        -DeployWAFPolicies true
+        -DeployWAFPolicies $true
     vars:
       APP_NAME: 
         sh: terraform -chdir=../core output -raw APP_NAME
