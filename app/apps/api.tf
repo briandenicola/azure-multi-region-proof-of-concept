@@ -63,6 +63,17 @@ resource "azurerm_container_app" "api" {
         name        = "COSMOSDB_CONNECTIONSTRING"
         secret_name = local.COSMOSDB_CONNECTIONSTRING
       }
+
+      env {
+        name  = "REDISCACHE_CONNECTIONSTRING"
+        value = "${local.redis_name}.${var.location}.redis.azure.net:10000"
+      }
+
+      env {
+        name  = "EVENTHUB_CONNECTIONSTRING"
+        value = "${local.eventhub_namespace_name}.servicebus.windows.net" 
+      }
+
     }
 
     max_replicas = 5

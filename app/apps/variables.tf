@@ -13,3 +13,8 @@ variable "commit_version" {
 variable "custom_domain" {
   description = "The custom domain for this application deployment"
 }
+
+variable "deploy_utils" {
+  description = "Whether to deploy the utils container"
+  default     = false
+}

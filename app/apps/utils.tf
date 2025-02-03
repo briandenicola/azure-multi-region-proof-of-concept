@@ -1,12 +1,12 @@
 resource "azurerm_container_app" "utils" {
-  
+
   lifecycle {
     ignore_changes = [
       secret,
       template[0].container[0].env
     ]
   }
-
+  count                        = var.deploy_utils ? 1 : 0
   name                         = "utils"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = local.apps_rg_name

@@ -49,4 +49,3 @@ data "azurerm_key_vault" "cqrs" {
   name                = local.kv_name
   resource_group_name = local.apps_rg_name
 }
-

@@ -50,7 +50,7 @@ resource "azurerm_container_app" "changefeedprocessor" {
       }
       env {
         name  = "redisConnectionString__redisHostName"
-        value = "${local.redis_name}.${var.location}.redis.azure.net"
+        value = "${local.redis_name}.${var.location}.redis.azure.net:10000"
       }
 
       env {
