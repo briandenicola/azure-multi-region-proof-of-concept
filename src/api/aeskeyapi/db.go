@@ -50,8 +50,8 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 
 	defaultAzureCred, err := azidentity.NewDefaultAzureCredential(nil)
 	db.kafkaClient, _ = azeventhubs.NewProducerClient(os.Getenv("EVENTHUB_CONNECTIONSTRING"), db.EventHub, defaultAzureCred, nil)
-	defer db.kafkaClient.Close(context.TODO())
-
+	//db.kafkaClient, _ = azeventhubs.NewProducerClientFromConnectionString(os.Getenv("EVENTHUB_CONNECTIONSTRING"), db.EventHub, nil)
+	
 	db.CacheEnabled = useCache
 	if(db.CacheEnabled == true) {
 		db.redisClient = redis.NewClient(&redis.Options{
@@ -91,21 +91,19 @@ func (k *AESKeyDB) Save() ([]*AesKey, error) {
 	var (
 		err    error
 	)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	_, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	batchOptions := &azeventhubs.EventDataBatchOptions{}
-	batch, err := k.kafkaClient.NewEventDataBatch(ctx, batchOptions)
+	batch, err := k.kafkaClient.NewEventDataBatch(context.TODO(), batchOptions)
 
 	for index := range k.keys {
 		encodedAesKey := encodeForEventHub(k.keys[index])
 		err = batch.AddEventData(&encodedAesKey, nil)
-		
 	}
 
 	if batch.NumEvents() > 0 {
-		if err := k.kafkaClient.SendEventDataBatch(ctx, batch, nil); err != nil {
+		if err := k.kafkaClient.SendEventDataBatch(context.TODO(), batch, nil); err != nil {
 			panic(err)
 		}
 	}
@@ -156,4 +154,17 @@ func (k *AESKeyDB) Add(key *AesKey) {
 //Flush - Reset stored AESKeys
 func (k *AESKeyDB) Flush() {
 	k.keys = nil
+}
+
+
+
+func createEventsForSample() []*azeventhubs.EventData {
+	return []*azeventhubs.EventData{
+		{
+			Body: []byte("hello"),
+		},
+		{
+			Body: []byte("world"),
+		},
+	}
 }
