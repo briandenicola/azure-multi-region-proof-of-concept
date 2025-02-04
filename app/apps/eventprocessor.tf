@@ -97,8 +97,8 @@ resource "azurerm_container_app" "eventprocessor" {
     min_replicas = 0
 
     custom_scale_rule {
-      name             = "eventprocessor"
-      custom_rule_type = "azure-eventhub"
+      name              = "eventprocessor"
+      custom_rule_type  = "azure-eventhub"
       metadata = {
         minReplica         = 0
         maxReplica         = 15

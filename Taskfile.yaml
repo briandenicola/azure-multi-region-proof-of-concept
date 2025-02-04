@@ -7,7 +7,7 @@ env:
   PRIMARY_REGION:         "canadacentral"
   ALL_REGIONS:            '["canadacentral"]' #,"westus3", "eastus2"]'
   DOMAIN_ROOT:            "bjdazure.tech"
-  EXTERNAL_DEPLOYMENT:    true
+  EXTERNAL_DEPLOYMENT:    false
   DEPLOYMENT_TYPE:        "single"
 
 tasks:
