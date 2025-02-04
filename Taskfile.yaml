@@ -152,6 +152,20 @@ tasks:
     cmds:
       - terraform -chdir=./app init
 
+  validate:
+    desc: Executes a script to validate the deployment from within Container Apps Environment
+    dir: ./scripts
+    cmds:
+    - pwsh ./validate.ps1 
+      -DomainName {{.DOMAIN_ROOT}}
+      -ResoureGroupName "{{.APP_NAME}}_{{.REGION}}_apps_rg"
+    vars: 
+      APP_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw APP_NAME
+      ACR_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw ACR_NAME        
+      REGION: "{{default .PRIMARY_REGION .CLI_ARGS}}"
+
   ui:
     desc: Deploys the UI code to Azure Static Web Apps
     cmds:

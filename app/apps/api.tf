@@ -6,7 +6,7 @@ resource "azurerm_container_app" "api" {
     ]
   }
 
-  name                         = "api-internal"
+  name                         = "api"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = local.apps_rg_name
   revision_mode                = "Multiple"
@@ -101,7 +101,7 @@ resource "azurerm_container_app_custom_domain" "api" {
   depends_on = [
     azurerm_container_app.api
   ]
-  name                                     = "api-internal.${var.custom_domain}"
+  name                                     = "api.ingress.${var.custom_domain}"
   certificate_binding_type                 = "SniEnabled"
   container_app_id                         = azurerm_container_app.api.id
   container_app_environment_certificate_id = data.azurerm_container_app_environment_certificate.this.id
