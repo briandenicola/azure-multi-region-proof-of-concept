@@ -20,11 +20,6 @@ resource "azurerm_container_app" "utils" {
     ]
   }
 
-  registry {
-    server   = local.acr_name
-    identity = azurerm_user_assigned_identity.app_identity.id
-  }
-
   template {
     container {
       name   = "utils"
@@ -32,5 +27,8 @@ resource "azurerm_container_app" "utils" {
       cpu    = 1
       memory = "2Gi"
     }
+
+    max_replicas = 1
+    min_replicas = 1
   }
 }

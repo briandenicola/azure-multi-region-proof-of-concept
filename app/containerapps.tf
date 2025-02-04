@@ -5,4 +5,5 @@ module "container_apps" {
   app_name       = var.app_name
   commit_version = var.commit_version
   custom_domain  = var.custom_domain
+  deploy_utils   = true
 }

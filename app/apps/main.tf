@@ -31,5 +31,5 @@ locals {
   api_image                     = "${local.acr_fqdn}/cqrs/api:${var.commit_version}"
   eventprocessor_image          = "${local.acr_fqdn}/cqrs/eventprocessor:${var.commit_version}"
   changefeedprocessor_image     = "${local.acr_fqdn}/cqrs/changefeedprocessor:${var.commit_version}"
-  utils_image                   = "bjd145/utils:3.15"
+  utils_image                   = "bjd145/utils:3.20"
 }
