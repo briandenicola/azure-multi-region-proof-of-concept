@@ -16,11 +16,14 @@ import (
 )
 
 func handleRedisAuthentication() func(context.Context) (string, string, error) {
-	credential, err := azidentity.NewDefaultAzureCredential(nil)
+	managed, _ := azidentity.NewManagedIdentityCredential(nil)
+	azCLI, _ := azidentity.NewAzureCLICredential(nil)
+	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{managed, azCLI}, nil)
+	
 	if err != nil {
 		return nil
 	}
-	return redisCredentialProvider(credential)
+	return redisCredentialProvider(credChain)
 }
 
 func redisCredentialProvider(credential azcore.TokenCredential) func(context.Context) (string, string, error) {
