@@ -30,11 +30,12 @@ type AESKeyDB struct {
 	ContainerName 		string
 	EventHub   			string
 	EventHubNamespace 	string
+	ClientID   			string
 	CacheEnabled 		bool
 
 	slogger  		    *slog.Logger
 
-	kafkaClient  		*azeventhubs.ProducerClient
+	producerClient  	*azeventhubs.ProducerClient
 	redisClient  		*redis.Client
 	cosmosClient 		*azcosmos.Client
 
@@ -53,16 +54,36 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	db.ContainerName = COSMOS_COLLECTION_NAME
 	db.EventHub = EVENT_HUB_NAME
 	db.EventHubNamespace = os.Getenv("EVENTHUB_CONNECTIONSTRING")
+	db.ClientID = os.Getenv("APPLICATION_CLIENT_ID")
 
 	jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
 	db.slogger = slog.New(jsonHandler)
 
-	managed, _ := azidentity.NewManagedIdentityCredential(nil)
-	azCLI, _ := azidentity.NewAzureCLICredential(nil)
-	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{managed, azCLI}, nil)
-	db.kafkaClient, _ = azeventhubs.NewProducerClient(db.EventHubNamespace, db.EventHub, credChain, nil)
-	
-	db.slogger.Info("Event Hub Setup", "Namespace", db.EventHubNamespace, "Event Hub", db.EventHub, "Credential", credChain)
+	managed, err := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
+		ID: azidentity.ClientID(db.ClientID),
+	})
+	if err != nil {
+		db.slogger.Error("NewManagedIdentityCredential", "Error", err)
+	}
+
+	workload, err := azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
+		ClientID: db.ClientID,
+	})
+	if err != nil {
+		db.slogger.Error("WorkloadIdentityCredential", "Error", err)
+	}
+
+	azCLI, err := azidentity.NewAzureCLICredential(nil)
+	if	err != nil {
+		db.slogger.Error("NewAzureCLICredential", "Error", err)
+	}
+	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{azCLI, workload, managed}, nil)
+
+	db.producerClient, err = azeventhubs.NewProducerClient(db.EventHubNamespace, db.EventHub, credChain, nil)
+	if err != nil {
+		panic(err)
+	}	
+	db.slogger.Info("Event Hub Setup", "Namespace", db.EventHubNamespace, "Event Hub", db.EventHub)
 
 	db.CacheEnabled = useCache
 	if(db.CacheEnabled == true) {
@@ -105,9 +126,9 @@ func (k *AESKeyDB) Save() ([]*AesKey, error) {
 	)
 	_, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-
+	
 	batchOptions := &azeventhubs.EventDataBatchOptions{}
-	batch, err := k.kafkaClient.NewEventDataBatch(context.TODO(), batchOptions)
+	batch, err := k.producerClient.NewEventDataBatch(context.TODO(), batchOptions)
 
 	for index := range k.keys {
 		encodedAesKey := encodeForEventHub(k.keys[index])
@@ -116,7 +137,7 @@ func (k *AESKeyDB) Save() ([]*AesKey, error) {
 	}
 
 	if batch.NumEvents() > 0 {
-		if err := k.kafkaClient.SendEventDataBatch(context.TODO(), batch, nil); err != nil {
+		if err := k.producerClient.SendEventDataBatch(context.TODO(), batch, nil); err != nil {
 			k.slogger.Error("Event Hub SendBatch Issue", "Error", err)
 			panic(err)
 		}
