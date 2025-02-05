@@ -1,11 +1,4 @@
 resource "azurerm_container_app" "api" {
-  lifecycle {
-    ignore_changes = [
-      secret,
-      template[0].container[0].env,
-    ]
-  }
-
   name                         = "api"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = local.apps_rg_name
@@ -62,6 +55,11 @@ resource "azurerm_container_app" "api" {
       env {
         name        = "COSMOSDB_CONNECTIONSTRING"
         secret_name = local.COSMOSDB_CONNECTIONSTRING
+      }
+
+      env {
+        name  = "APPLICATION_CLIENT_ID"
+        value = azurerm_user_assigned_identity.app_identity.client_id
       }
 
       env {

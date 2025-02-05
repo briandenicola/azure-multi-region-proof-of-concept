@@ -93,7 +93,7 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 			TLSConfig:                  &tls.Config{MinVersion: tls.VersionTLS12},
 		})
 		if( db.redisClient == nil) {
-			log.Print("Error Connecting to Redis Cache")
+			db.slogger.Error("Redis Cache", "Error", "Error Connecting to Redis Cache")
 			db.CacheEnabled = false
 		}
 	}

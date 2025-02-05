@@ -35,6 +35,42 @@ resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_blob_core_
   virtual_network_id    = azurerm_virtual_network.cqrs.id
 }
 
+resource "azurerm_private_dns_zone" "privatelink_queue_core_windows_net" {
+  name                = "privatelink.queue.core.windows.net"
+  resource_group_name = azurerm_resource_group.cqrs_region.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_queue_core_windows_net" {
+  name                  = "${azurerm_virtual_network.cqrs.name}-link"
+  private_dns_zone_name = azurerm_private_dns_zone.privatelink_queue_core_windows_net.name
+  resource_group_name   = azurerm_resource_group.cqrs_region.name
+  virtual_network_id    = azurerm_virtual_network.cqrs.id
+}
+
+resource "azurerm_private_dns_zone" "privatelink_file_core_windows_net" {
+  name                = "privatelink.file.core.windows.net"
+  resource_group_name = azurerm_resource_group.cqrs_region.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_file_core_windows_net" {
+  name                  = "${azurerm_virtual_network.cqrs.name}-link"
+  private_dns_zone_name = azurerm_private_dns_zone.privatelink_file_core_windows_net.name
+  resource_group_name   = azurerm_resource_group.cqrs_region.name
+  virtual_network_id    = azurerm_virtual_network.cqrs.id
+}
+
+resource "azurerm_private_dns_zone" "privatelink_table_core_windows_net" {
+  name                = "privatelink.table.core.windows.net"
+  resource_group_name = azurerm_resource_group.cqrs_region.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "privatelink_table_core_windows_net" {
+  name                  = "${azurerm_virtual_network.cqrs.name}-link"
+  private_dns_zone_name = azurerm_private_dns_zone.privatelink_table_core_windows_net.name
+  resource_group_name   = azurerm_resource_group.cqrs_region.name
+  virtual_network_id    = azurerm_virtual_network.cqrs.id
+}
+
 resource "azurerm_private_dns_zone" "privatelink_servicebus_windows_net" {
   name                = "privatelink.servicebus.windows.net"
   resource_group_name = azurerm_resource_group.cqrs_region.name
