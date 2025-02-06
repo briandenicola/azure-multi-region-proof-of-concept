@@ -11,7 +11,7 @@ namespace Eventing
     {
         [FunctionName("CosmosChangeFeedProcessor")]
         [RedisOutput("redisConnectionString", "SET")]   
-        public static AesKey Run (
+        public static string Run (
             [CosmosDBTrigger(
                 databaseName: "AesKeys", 
                 containerName: "Items", 
@@ -32,7 +32,7 @@ namespace Eventing
                             keyId = key.keyId,
                             key = JsonConvert.SerializeObject(key)
                         };
-                       return redisItem;
+                       return JsonConvert.SerializeObject(redisItem);
                     }
                 }
                 catch( Exception e ) {
