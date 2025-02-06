@@ -4,4 +4,3 @@ data "azurerm_subscription" "current" {}
 data "http" "myip" {
   url = "http://checkip.amazonaws.com/"
 }
-

@@ -12,7 +12,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-//DB Interface
+// DB Interface
 type DB interface {
 	Get(id string) (*AesKey, error)
 	Add(k *AesKey)
@@ -20,27 +20,27 @@ type DB interface {
 	Flush()
 }
 
-//AESKeyDB Structure
+// AESKeyDB Structure
 type AESKeyDB struct {
-	DatabaseName   		string
-	ContainerName 		string
-	EventHub 			string
-	ClientID   			string
-	CacheEnabled 		bool
+	DatabaseName  string
+	ContainerName string
+	EventHub      string
+	ClientID      string
+	CacheEnabled  bool
 
-	slogger  		    *slog.Logger
+	slogger *slog.Logger
 
-	producerClient  	*azeventhubs.ProducerClient
-	redisClient  		*redis.Client
-	cosmosClient 		*azcosmos.Client
+	producerClient *azeventhubs.ProducerClient
+	redisClient    *redis.Client
+	cosmosClient   *azcosmos.Client
 
-	cosmosContainer 	*azcosmos.ContainerClient
-	cosmosDatabase 		*azcosmos.DatabaseClient
-	cosmosPartitionKey 	azcosmos.PartitionKey
-	keys 				[]*AesKey
+	cosmosContainer    *azcosmos.ContainerClient
+	cosmosDatabase     *azcosmos.DatabaseClient
+	cosmosPartitionKey azcosmos.PartitionKey
+	keys               []*AesKey
 }
 
-//NewKeysDB - Initialize connections to Event Hub, Cosmos and Redis
+// NewKeysDB - Initialize connections to Event Hub, Cosmos and Redis
 func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	var err error
 
@@ -48,9 +48,9 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	db.DatabaseName = COSMOS_DATABASE_NAME
 	db.ContainerName = COSMOS_COLLECTION_NAME
 	db.EventHub = EVENT_HUB_NAME
-	
+
 	db.ClientID = os.Getenv("APPLICATION_CLIENT_ID")
-	EventHubNsConnectionString := os.Getenv("EVENTHUB_CONNECTIONSTRING")
+	EventHubNsConnectionString := os.Getenv("EVENTHUB_CONNECTIONSTRING")										     
 	RedisConnectionString := os.Getenv("REDISCACHE_CONNECTIONSTRING")
 	CosmosConnectionString := os.Getenv("COSMOSDB_CONNECTIONSTRING")
 
@@ -60,9 +60,9 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	//Event Hub Setup
 	db.slogger.Info("DB Setup and Authentication", "EventHub Connection String", EventHubNsConnectionString, "ClientID", db.ClientID, "EventHub", db.EventHub)
 	db.producerClient, err = handleEventHubAuthentication(EventHubNsConnectionString, db.EventHub, db.ClientID, db.slogger)
-	
+
 	//Redis Cache Setup
-	if(useCache) { 
+	if useCache {
 		db.slogger.Info("DB Setup and Authentication", "Redis Connection String", RedisConnectionString, "ClientID", db.ClientID)
 		db.redisClient, db.CacheEnabled = handleRedisAuthentication(RedisConnectionString, db.ClientID, db.slogger)
 	} else {
@@ -90,15 +90,15 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	return db, nil
 }
 
-//Save - Write AES Key object to Azure Event Hub
+// Save - Write AES Key object to Azure Event Hub
 func (k *AESKeyDB) Save() ([]*AesKey, error) {
 
 	var (
-		err    error
+		err error
 	)
 	_, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	
+
 	batchOptions := &azeventhubs.EventDataBatchOptions{}
 	batch, err := k.producerClient.NewEventDataBatch(context.TODO(), batchOptions)
 
@@ -124,7 +124,7 @@ func encodeForEventHub(data *AesKey) azeventhubs.EventData {
 	}
 }
 
-//Get - Retrieve AES Key object from Redis cache or Cosmos DB
+// Get - Retrieve AES Key object from Redis cache or Cosmos DB
 func (k *AESKeyDB) Get(id string) (*AesKey, error) {
 	var keys []*AesKey
 	var key *AesKey
@@ -133,7 +133,7 @@ func (k *AESKeyDB) Get(id string) (*AesKey, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	if( k.CacheEnabled == true) {
+	if k.CacheEnabled == true {
 		k.slogger.Info("Redis Cache", "UseCached", k.CacheEnabled)
 		result, err := k.redisClient.Get(ctx, id).Result()
 
@@ -144,7 +144,7 @@ func (k *AESKeyDB) Get(id string) (*AesKey, error) {
 			return key, nil
 		}
 	}
-	
+
 	itemResponse, _ := k.cosmosContainer.ReadItem(ctx, k.cosmosPartitionKey, id, nil)
 	err = json.Unmarshal(itemResponse.Value, &keys)
 
@@ -157,13 +157,13 @@ func (k *AESKeyDB) Get(id string) (*AesKey, error) {
 	return nil, err
 }
 
-//Add - Add key to local cache of AESKeys
+// Add - Add key to local cache of AESKeys
 func (k *AESKeyDB) Add(key *AesKey) {
 	k.slogger.Info("Add Key to local cache of keys", "Key Details", key)
 	k.keys = append(k.keys, key)
 }
 
-//Flush - Reset stored AESKeys
+// Flush - Reset stored AESKeys
 func (k *AESKeyDB) Flush() {
 	k.slogger.Info("Flush local cache of keys")
 	k.keys = nil

@@ -1,11 +1,4 @@
 resource "azurerm_container_app" "changefeedprocessor" {
-  lifecycle {
-    ignore_changes = [
-      secret,
-      template[0].container[0].env
-    ]
-  }
-
   name                         = "changefeedprocessor"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = local.apps_rg_name
@@ -64,8 +57,13 @@ resource "azurerm_container_app" "changefeedprocessor" {
       }
 
       env {
+        name  = "AzureWebJobsStorage__accountName"
+        value = data.azurerm_storage_account.cqrs.name
+      }
+
+      env {
         name  = "AzureWebJobsStorage__credential"
-        value = "workloadidentity"
+        value = "managedidentity"
       }
       env {
         name  = "AzureWebJobsStorage__clientId"

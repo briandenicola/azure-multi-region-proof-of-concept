@@ -7,7 +7,7 @@ locals {
   apps_rg_name                         = "${var.app_name}_${var.location}_apps_rg"
   global_rg_name                       = "${var.app_name}_global_rg"
   acr_name                             = "${replace(var.app_name, "-", "")}acr"
-  safe_name                            = substr( "${replace(var.app_name, "-", "")}${var.location}", 0, 20)
+  safe_name                            = substr("${replace(var.app_name, "-", "")}${var.location}", 0, 20)
   db_name                              = "${var.app_name}-cosmosdb"
   la_name                              = "${var.app_name}-logs"
   ai_name                              = "${var.app_name}-ai"
@@ -20,6 +20,7 @@ locals {
   vnet_name                            = "${local.regional_name}-vnet"
   nsg_name                             = "${local.regional_name}-nsg"
   route_table_name                     = "${local.regional_name}-routetable"
+  bastion_name                         = "${local.regional_name}-bastion"
   firewall_name                        = "${local.regional_name}-fw"
   eventhub_name                        = "events"
   azurerm_eventhub_consumer_group_name = "eventsfunction"

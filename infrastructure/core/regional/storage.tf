@@ -46,13 +46,13 @@ resource "azurerm_private_endpoint" "file_endpoint" {
 }
 
 resource "azurerm_private_endpoint" "table_endpoint" {
-  name                = "${local.storage_name}-ep"
+  name                = "${local.storage_name}-table-ep"
   resource_group_name = azurerm_resource_group.cqrs_region.name
   location            = azurerm_resource_group.cqrs_region.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {
-    name                           = "${local.storage_name}-ep"
+    name                           = "${local.storage_name}-table-ep"
     private_connection_resource_id = azurerm_storage_account.cqrs.id
     subresource_names              = ["table"]
     is_manual_connection           = false
@@ -65,13 +65,13 @@ resource "azurerm_private_endpoint" "table_endpoint" {
 }
 
 resource "azurerm_private_endpoint" "queue_endpoint" {
-  name                = "${local.storage_name}-ep"
+  name                = "${local.storage_name}-queue-ep"
   resource_group_name = azurerm_resource_group.cqrs_region.name
   location            = azurerm_resource_group.cqrs_region.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {
-    name                           = "${local.storage_name}-ep"
+    name                           = "${local.storage_name}-queue-ep"
     private_connection_resource_id = azurerm_storage_account.cqrs.id
     subresource_names              = ["queue"]
     is_manual_connection           = false

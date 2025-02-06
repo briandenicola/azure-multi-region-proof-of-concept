@@ -27,6 +27,13 @@ resource "azurerm_subnet" "APIM" {
   address_prefixes     = [local.apim_subnet_cidr]
 }
 
+resource "azurerm_subnet" "compute" {
+  name                 = "compute"
+  resource_group_name  = azurerm_resource_group.cqrs_region.name
+  virtual_network_name = azurerm_virtual_network.cqrs.name
+  address_prefixes     = [local.compute_subnet_cidr]
+}
+
 resource "azurerm_subnet" "databricks_private" {
   name                 = "databricks-private"
   resource_group_name  = azurerm_resource_group.cqrs_region.name

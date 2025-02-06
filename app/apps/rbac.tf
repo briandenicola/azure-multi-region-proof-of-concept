@@ -47,9 +47,9 @@ resource "azurerm_role_assignment" "metrics_publisher_log_analytics" {
   skip_service_principal_aad_check = true
 }
 
-resource "azurerm_role_assignment" "storage_blob_contributor" {
+resource "azurerm_role_assignment" "storage_blob_owner" {
   scope                            = data.azurerm_storage_account.cqrs.id
-  role_definition_name             = "Storage Blob Data Contributor"
+  role_definition_name             = "Storage Blob Data Owner"
   principal_id                     = azurerm_user_assigned_identity.app_identity.principal_id
   skip_service_principal_aad_check = true
 }
