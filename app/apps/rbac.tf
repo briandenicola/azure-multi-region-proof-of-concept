@@ -33,6 +33,13 @@ resource "azurerm_role_assignment" "eventhub_data_sender" {
   skip_service_principal_aad_check = true
 }
 
+resource "azurerm_role_assignment" "eventhub_data_owenr" {
+  scope                            = data.azurerm_eventhub_namespace.cqrs.id
+  role_definition_name             = "Azure Event Hubs Data Owner"
+  principal_id                     = azurerm_user_assigned_identity.app_identity.principal_id
+  skip_service_principal_aad_check = true
+}
+
 resource "azurerm_role_assignment" "metrics_publisher_app_insights" {
   scope                            = data.azurerm_application_insights.cqrs.id
   role_definition_name             = "Monitoring Metrics Publisher"
