@@ -26,12 +26,9 @@ func handleEventHubAuthentication(EventHubUri string, EventHub string, ClientId 
 		ID: azidentity.ClientID(ClientId),
 	})
 
-	workload, err := azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
-		ClientID: ClientId,
-	})
-
 	azCLI, err := azidentity.NewAzureCLICredential(nil)
-	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{workload, managed, azCLI}, nil)
+	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{managed, azCLI}, nil)
+
 
 	producerClient, err := azeventhubs.NewProducerClient(EventHubUri, EventHub, credChain, nil)
 
@@ -50,12 +47,8 @@ func handleRedisAuthentication(RedisUri string, ClientId string, logger *slog.Lo
 		ID: azidentity.ClientID(ClientId),
 	})
 
-	workload, _ := azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
-		ClientID: ClientId,
-	})
-
 	azCLI, _ := azidentity.NewAzureCLICredential(nil)
-	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{workload, managed, azCLI}, nil)
+	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{managed, azCLI}, nil)
 
 	if err != nil {
 		logger.Error("Redis Cache", "Error", "Error creating token credential")

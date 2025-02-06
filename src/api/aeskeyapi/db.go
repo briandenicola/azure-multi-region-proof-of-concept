@@ -58,10 +58,12 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	db.slogger = slog.New(jsonHandler)
 
 	//Event Hub Setup
+	db.slogger.Info("DB Setup and Authentication", "EventHub Connection String", EventHubNsConnectionString, "ClientID", db.ClientID, "EventHub", db.EventHub)
 	db.producerClient, err = handleEventHubAuthentication(EventHubNsConnectionString, db.EventHub, db.ClientID, db.slogger)
 	
 	//Redis Cache Setup
 	if(useCache) { 
+		db.slogger.Info("DB Setup and Authentication", "Redis Connection String", RedisConnectionString, "ClientID", db.ClientID)
 		db.redisClient, db.CacheEnabled = handleRedisAuthentication(RedisConnectionString, db.ClientID, db.slogger)
 	} else {
 		db.CacheEnabled = false
@@ -72,7 +74,7 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 		EnableContentResponseOnWrite: true,
 	}
 
-	db.slogger.Info("Cosmos Setup", "Connection String: ", CosmosConnectionString)
+	db.slogger.Info("DB Setup and Authentication", "Cosmos Connection String", CosmosConnectionString)
 	db.cosmosPartitionKey = azcosmos.NewPartitionKeyString("keyId")
 	db.cosmosClient, err = azcosmos.NewClientFromConnectionString(CosmosConnectionString, &clientOptions)
 	if err != nil {
