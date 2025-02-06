@@ -41,6 +41,12 @@ resource "azurerm_container_app" "changefeedprocessor" {
         name  = "FUNCTIONS_WORKER_RUNTIME"
         value = "dotnet-isolated"
       }
+
+      env {
+        name  = "CACHE_ENABLED"
+        value = var.use_cache
+      }
+
       env {
         name  = "redisConnectionString__redisHostName"
         value = "${local.redis_name}.${var.location}.redis.azure.net:10000"

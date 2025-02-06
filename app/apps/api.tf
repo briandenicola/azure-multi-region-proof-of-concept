@@ -48,6 +48,12 @@ resource "azurerm_container_app" "api" {
         name  = "REGION"
         value = var.location
       }
+
+      env {
+        name  = "CACHE_ENABLED"
+        value = var.use_cache
+      }
+
       env {
         name        = "APPINSIGHTS_CONNECTION_STRING"
         secret_name = local.APPINSIGHTS_CONNECTION_STRING

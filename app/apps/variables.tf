@@ -18,3 +18,8 @@ variable "deploy_utils" {
   description = "Whether to deploy the utils container"
   default     = false
 }
+
+variable "use_cache" {
+  description = "Whether to use Redis cache"
+  default     = true
+}

@@ -9,6 +9,7 @@ env:
   DOMAIN_ROOT:            "bjdazure.tech"
   EXTERNAL_DEPLOYMENT:    false
   DEPLOYMENT_TYPE:        "single"
+  USE_REDIS_CACHE:        true
 
 tasks:
   default:
@@ -138,6 +139,7 @@ tasks:
         -var "app_name={{.APP_NAME}}"
         -var "commit_version={{.COMMIT_VERSION}}"
         -var "custom_domain={{.DOMAIN_ROOT}}"
+        -var "use_cache={{.USE_REDIS_CACHE}}"
         -compact-warnings
     vars:
       REGION: "{{default .PRIMARY_REGION .CLI_ARGS}}"

@@ -5,13 +5,14 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Redis; 
 using Microsoft.Azure.WebJobs.Extensions.Redis;
+
 namespace Eventing
 {
     public static class ChangeFeedProcessor
     {
         [FunctionName("CosmosChangeFeedProcessor")]
         [RedisOutput("redisConnectionString", "SET")]   
-        public static string Run (
+        public static String Run (
             [CosmosDBTrigger(
                 databaseName: "AesKeys", 
                 containerName: "Items", 
@@ -19,27 +20,31 @@ namespace Eventing
                 LeaseContainerName   =  "leases",
                 LeaseContainerPrefix = "LEASE_COLLECTION_PREFIX",
                 CreateLeaseContainerIfNotExists = true
-            )]IReadOnlyList<AesKey> changeStream,  
+            )]IReadOnlyList<AesKey> changeStream,
             ILogger log)
         {
-            if (changeStream != null && changeStream.Count > 0) {
-                try {
-                    log.LogInformation($"{changeStream.Count} - Documents will be added to Cache");
+            if( Convert.ToBoolean(System.Environment.GetEnvironmentVariable("CACHE_ENABLED") ) ) {
+                if (changeStream != null && changeStream.Count > 0) {
+                    try {
+                        log.LogInformation($"{changeStream.Count} - Documents will be added to Cache");
 
-                    foreach( var key in changeStream ) 
-                    {                       
-                        var redisItem = new AesKey(){
-                            keyId = key.keyId,
-                            key = JsonConvert.SerializeObject(key)
-                        };
-                       return JsonConvert.SerializeObject(redisItem);
+                        foreach( var key in changeStream ) 
+                        {                       
+                            var redisItem = new AesKey(){
+                                keyId = key.keyId,
+                                key = JsonConvert.SerializeObject(key)
+                            };
+                            var redisItemSerialized = JsonConvert.SerializeObject(redisItem);
+
+                            log.LogInformation($"Key: \"{key.keyId}\", Value: \"{redisItemSerialized}\" added to Cache");
+                            return $"{key.keyId} {redisItemSerialized}";
+                        }
+                    }
+                    catch( Exception e ) {
+                        log.LogInformation($"Failed to index some of the documents: {e.ToString()}");
                     }
                 }
-                catch( Exception e ) {
-                    log.LogInformation($"Failed to index some of the documents: {e.ToString()}");
-                }
             }
-
             return null;
         }
     }
