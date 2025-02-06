@@ -2,16 +2,18 @@ package aeskeyapi
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/microsoft/ApplicationInsights-Go/appinsights"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
-//API Interface
+// API Interface
 type API interface {
 	InitHTTPServer(port string)
 	GetById(c *gin.Context)
@@ -20,30 +22,38 @@ type API interface {
 	Options(c *gin.Context)
 	ParseRequestBody(c *gin.Context) int
 	CustomLogger(param gin.LogFormatterParams) string
-	AppInsightsTracer() gin.HandlerFunc 
+	AppInsightsTracer() gin.HandlerFunc
 	LogErrorHandler(err error)
 }
 
-//AESApi Structre
+// AESApi Structre
 type AESApi struct {
 	keydb    *AESKeyDB
 	aiClient appinsights.TelemetryClient
+	slogger  *slog.Logger
 }
 
-//NewKeyAPI - Initialized KeyDB
+// NewKeyAPI - Initialized KeyDB
 func NewKeyAPI() *AESApi {
 	api := new(AESApi)
 
 	api.aiClient = appinsights.NewTelemetryClient(os.Getenv("APPINSIGHTS_INSTRUMENTATIONKEY"))
 	api.aiClient.Track(appinsights.NewTraceTelemetry("Setup of AI client complete...", appinsights.Information))
 
-	api.keydb, _ = NewKeysDB()
+	c, err := strconv.ParseBool(os.Getenv("CACHE_ENABLED"))
+	if err != nil {
+		c = false
+	}
+	api.keydb, _ = NewKeysDB(c)
 	api.aiClient.Track(appinsights.NewTraceTelemetry("Setup of Database Connections complete...", appinsights.Information))
+
+	jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
+	api.slogger = slog.New(jsonHandler)
 
 	return api
 }
 
-//InitHTTPServer - Initialized HTTP Server
+// InitHTTPServer - Initialized HTTP Server
 func (a *AESApi) InitHTTPServer(port string) {
 
 	router := gin.New()
@@ -55,17 +65,16 @@ func (a *AESApi) InitHTTPServer(port string) {
 
 	apirouter := router.Group("/api")
 	apirouter.GET("/keys/:id", a.GetById)
-	apirouter.POST("/keys",a.Post)
+	apirouter.POST("/keys", a.Post)
 	apirouter.OPTIONS("/keys", a.Options)
 	apirouter.GET("/keys", a.NotImplemented)
 	apirouter.DELETE("/keys/:id", a.NotImplemented)
 	apirouter.PUT("/keys/:id", a.NotImplemented)
-	
+
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"state": "I'm alive!"})
 	})
 
-	log.Print("Listening on ", port)
 	log.Fatal(router.Run(port))
 }
 
@@ -84,9 +93,7 @@ func (a *AESApi) CustomLogger(param gin.LogFormatterParams) string {
 }
 
 func (a *AESApi) AppInsightsTracer() gin.HandlerFunc {
-
 	return func(c *gin.Context) {
-
 		startTime := time.Now()
 		c.Next()
 		duration := time.Since(startTime)
@@ -100,16 +107,15 @@ func (a *AESApi) AppInsightsTracer() gin.HandlerFunc {
 }
 
 func (a *AESApi) LogErrorHandler(c *gin.Context, err error) {
-
 	if err != nil {
-		log.Printf("Error - %s", err)
+		a.slogger.Error("Error", "key", err)
 		trace := appinsights.NewTraceTelemetry(err.Error(), appinsights.Error)
 		trace.Timestamp = time.Now()
 		a.aiClient.Track(trace)
 		defer appinsights.TrackPanic(a.aiClient, false)
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	c.JSON(http.StatusBadRequest, gin.H{"GIN Error Handler": err.Error()})
 }
 
 func (a *AESApi) ParseRequestBody(c *gin.Context) int {
@@ -123,7 +129,7 @@ func (a *AESApi) ParseRequestBody(c *gin.Context) int {
 	return 0
 }
 
-//Options - HTTP Options Handler
+// Options - HTTP Options Handler
 func (a *AESApi) Options(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
 }
@@ -132,7 +138,7 @@ func (a *AESApi) NotImplemented(c *gin.Context) {
 	c.String(http.StatusNotImplemented, "")
 }
 
-//GetbyId - HTTP GET Handler
+// GetbyId - HTTP GET Handler
 func (a *AESApi) GetById(c *gin.Context) {
 
 	id := c.Param("id")
@@ -151,12 +157,12 @@ func (a *AESApi) GetById(c *gin.Context) {
 	c.JSON(http.StatusOK, key)
 }
 
-//Post - HTTP POST Handler
+// Post - HTTP POST Handler
 func (a *AESApi) Post(c *gin.Context) {
-	
+
 	keysToGenerator := a.ParseRequestBody(c)
 
-	log.Printf("Keys to generate - %d", keysToGenerator)
+	a.slogger.Info("Keys to generate", "keys", keysToGenerator)
 
 	i := 0
 	for i < keysToGenerator {
@@ -167,7 +173,7 @@ func (a *AESApi) Post(c *gin.Context) {
 
 	savedKeys, err := a.keydb.Save()
 	if err != nil {
-		a.LogErrorHandler(c,err)
+		a.LogErrorHandler(c, err)
 		return
 	}
 

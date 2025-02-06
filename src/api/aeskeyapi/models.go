@@ -26,21 +26,3 @@ type AesKey struct {
 	WriteRegion string `json:"writeRegion"`
 	TimeStamp   string `json:"timeStamp"`
 }
-
-/*
-//Document - AESKey Document Object
-type Document struct {
-	documentdb.Document
-	KeyID 		string	`json:"keyId,omitempty"`
-	Key   		string	`json:"key,omitempty"`
-	FromCache	bool	`json:"fromCache,omitempty"`
-	ReadHost	string	`json:"readHost,omitempty"`
-	WriteHost 	string	`json:"writeHost,omitempty"`
-	ReadRegion	string	`json:"readRegion,omitempty"`
-	WriteRegion	string	`json:"writeRegion,omitempty"`
-	TimeStamp 	string	`json:"timeStamp,omitempty"`
-}
-
-type KeepAlive struct {
-	State string `json:"state"`
-}*/

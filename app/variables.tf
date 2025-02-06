@@ -15,3 +15,8 @@ variable commit_version {
 variable custom_domain {
   description = "The custom domain for this application deployment"
 }
+
+variable "use_cache" {
+  description = "Whether to use Redis cache"
+  default     = true
+}

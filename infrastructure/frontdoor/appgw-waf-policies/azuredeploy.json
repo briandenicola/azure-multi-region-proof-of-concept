@@ -76,7 +76,7 @@
         {
             "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
             "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
-            "apiVersion": "2020-05-01",
+            "apiVersion": "2024-05-01",
             "name": "[variables('ApplicationGatewayWebApplicationFirewallPolicySecondaryName')]",
             "location": "[parameters('secondaryLocation')]",
             "properties": {

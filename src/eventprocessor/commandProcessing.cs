@@ -1,15 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json; 
+using Newtonsoft.Json;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
-//using Microsoft.Azure.EventHubs;
-using Azure.Messaging.EventHubs;
 using Microsoft.Extensions.Logging;
-
+using Azure.Messaging.EventHubs;
 
 namespace Eventing
 {
@@ -17,35 +11,33 @@ namespace Eventing
     {
         [FunctionName("CommandProcessing")]
         public static async Task Run(
-        
+
             [EventHubTrigger(
                 "events",
                 ConsumerGroup =  "eventsfunction",
-                Connection = "EVENTHUB_CONNECTIONSTRING")] string[] events,
+                Connection = "EVENTHUB_CONNECTIONSTRING")] EventData[] events,
             [CosmosDB(
-                databaseName: "AesKeys", 
-                containerName: "Items", 
+                databaseName: "AesKeys",
+                containerName: "Items",
                 Connection  = "COSMOSDB_CONNECTIONSTRING")] IAsyncCollector<AesKey> keys,
             ILogger log)
         {
-            foreach (var message in events )
+            foreach (EventData eventData in events)
             {
-                log.LogInformation($"C# Event Hub trigger function processed a message: {message}");
-                var key = JsonConvert.DeserializeObject<AesKey>(message);
-                
-                key.Id = Guid.NewGuid().ToString(); 
-
-                log.LogInformation($"Adding key ({key.Id}) to Cosmosdb Collection");
-                await keys.AddAsync(key);
+                log.LogInformation($"C# Event Hub trigger function processed a message: {eventData.EventBody}");
+                var item = new AesKey();
+                item.Id = Guid.NewGuid().ToString();
+                item.Key = System.Text.Encoding.UTF8.GetString(eventData.EventBody);
+                await keys.AddAsync(item);
 
             }
 
         }
     }
 
-    public class AesKey 
+    public class AesKey
     {
-        [JsonProperty("id")]   
+        [JsonProperty("id")]
         public string Id { get; set; }
 
         [JsonProperty("keyId")]
@@ -55,25 +47,26 @@ namespace Eventing
         public string Key { get; set; }
 
         [JsonProperty("fromCache")]
-        public bool FromCache  { get; set; }
+        public bool FromCache { get; set; }
 
         [JsonProperty("readHost")]
-        public string ReadHost  { get; set; }
+        public string ReadHost { get; set; }
 
         [JsonProperty("writeHost")]
-        public string WriteHost  { get; set; }
+        public string WriteHost { get; set; }
 
         [JsonProperty("readRegion")]
-        public string ReadRegion  { get; set; }
+        public string ReadRegion { get; set; }
 
         [JsonProperty("writeRegion")]
-        public string WriteRegion  { get; set; }
+        public string WriteRegion { get; set; }
 
         [JsonProperty("timeStamp")]
         public string TimeStamp { get; set; }
 
-	public AesKey() {
-		Id = Guid.NewGuid().ToString();
-	}
+        public AesKey()
+        {
+            Id = Guid.NewGuid().ToString();
+        }
     }
 }

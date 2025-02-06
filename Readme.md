@@ -1,143 +1,100 @@
 # Introduction
-A very simple setup for Command Query Responsibility Separation (CQRS) in Azure that can be deployed to one or more Azure regions.
+A very simple Multi-Region design for an application following Command Query Responsibility Separation (CQRS) principles in Azure.
 In other words, the world's most expensive random number generator....
 
 ![Architecture](./.assets/architecture.png)
 
+# Prerequisites
+* A Posix compliant System. It could be one of the following:
+    * [Github CodeSpaces](https://github.com/features/codespaces)
+    * Azure Linux VM - Standard_B1s VM will work ($18/month)
+    * Windows 11 with [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install)
+* [dotnet 8](https://dotnet.microsoft.com/download) - The .NET SDK
+* [Visual Studio Code](https://code.visualstudio.com/) or equivalent - A lightweight code editor
+* [Docker](https://www.docker.com/products/docker-desktop) - The Docker Desktop to build/push containers
+* [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) - A tool for managing Azure resources
+* [PowerShell](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell) - The PowerShell Core for running scripts
+* [git](https://git-scm.com/) - The source control tool
+* [Taskfile](https://taskfile.dev/#/) - A task runner for the shell
+* [Terraform](https://www.terraform.io/) - A tool for building Azure infrastructure and infrastructure as code
+* If exposing application externally then a public domain that you can create DNS records
+
+* [Required Certificates](./docs/letsencrypt.md)
+
+> * **Note:** The documentation will use bjd.demo throughout as the root domain.  This can be replaced with your own domain
+> * **Note:** The Github Codespaces environment has all the tools pre-installed and configured.  You can use the following link to open the project in Github Codespaces: [Open in Github Codespaces](https://codespaces.new/briandenicola/azure-multi-region-proof-of-concept?quickstart=1)
+
+## Public DNS Records: 
+* The following DNS records are required for the application to work correctly.  These are used for the application to be accessed externally.  The following records are required: 
+    Name | Usage | DNS Record Type | IP Address
+    ------ | ---- | ---- | ----
+    api.bjd.demo | Azure Front Door  |  CNAME | Front Door URL>
+    westus.api.bjd.demo | App Gateway | A | App Gateway IP Address in West US
+    eastus.api.bjd.demo | App Gateway | A | App Gateway IP Address in East US
+
+## Task
+* The deployment of this application has been automated using [Taskfile](https://taskfile.dev/#/).  This was done instead of using a CI/CD pipeline to make it easier to understand the deployment process.  
+* Of course, the application can be deployed manually
+* The Taskfile is a simple way to run commands and scripts in a consistent manner.  
+* The [Taskfile](../Taskfile.yaml) definition is located in the root of the repository
+* The Task file declares the default values that can be updated to suit specific requirements: 
+
+    Name | Usage | Location | Required | Default or Example Value
+    ------ | ------ | ------ | ------ | ------
+    TITLE | Value used in Azure Tags | taskfile.yaml | Yes | CQRS Multi-region Pattern in Azure
+    DEFAULT_REGIONS | Default region to deploy to | taskfile.yaml | Yes | ["westus3"]
+    DOMAIN_ROOT | Default root domain used for all URLs & certs | taskfile.yaml | Yes | bjd.demo
+    EXTERNAL_DEPLOYMENT | Will this deployment deploy external components | taskfile.yaml | Yes | false
+    DEPLOYMENT_TYPE | Will this deployment deploy to multiple regions | taskfile.yaml | Yes | single (`multiregion` or `single` are valid options)
+    APIM_PFX_CERT_PATH | Path to the APIM PFX certificate | .env | External Only | ./certs/apim.pfx
+    APIM_PFX_CERT_PASSWORD | Password for the APIM PFX certificate | .env | External Only | <password for the pfx file>
+    APP_GW_PFX_CERT_PATH | Path to the App Gateway PFX certificate | .env | External Only | ./certs/appgw.pfx
+    APP_GW_PFX_CERT_PASSWORD | Password for the App Gateway PFX certificate | .env | External Only | <password for the pfx file>
+    FRONTDOOR_URL | The Custom URL for the Azure Front Door | .env | External Only | api.bjd.demo
+    APP_GW_URLS | The URLs for the App Gateways | .env | External Only | ["westus.api.bjd.demo"] 
+    APIM_URLS | The Urls for the APIM Gateways | .env | External Only | ["westus.apim.bjd.demo"]
+
+* Running the `task` command without any options will run the default command. This will list all the available tasks.
+    * `task init`               : Initialized Terraform modules
+    * `task up`                 : Builds complete environment
+    * `task down`               : Destroys all Azure resources and cleans up Terraform
+    * `task apply`              : Applies the Terraform configuration for the core components
+    * `task external`           : Applies ARM templates for external components
+    * `task apim`               : Deploys Azure API Management
+    * `task appgw`              : Deploys Azure Application Gateway
+    * `task frontdoor`          : Deploys Azure Front Door
+    * `task build`              : Builds containers and pushes to Azure Container Registry
+    * `task deploy`             : Creates application components and deploy the application code
+
 # Setup
 
-## Prerequisite
-* PowerShell
-* Azure Cli
-* Azure Static Webapp cli
-* Terraform
-* A public domain that you can create DNS records
-   * Will use bjd.demo for this documentation 
-* Certificates
-   * Follow this [link](./letsencrypt.md) for required certificates 
-
-### Public DNS Records: 
-_Only required if deploying application externally with APIM/AppGateway/FrontDoor_
-* api.bjd.demo - CNAME to the Azure Front Door Name 
-* api.us.bjd.demo - Public IP Address of Azure Gateway US Region. This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
-* api.uk.bjd.demo - Public IP Address of Azure Gateway UK Region. This needs to be be created after the App Gateway is configured. The ARM template will ouput the public IP address
-    
-## Infrastructure Steps
-```powershell
-pwsh
-cd ./scripts
-$opts = @{
-    regions             = '["westus3", "ukwest"]'
-    SubscriptionName    = "my_subscription"
-    DomainName          = "bjd.demo" 
-    IngressPfxFilePath  = "~/certs/wildcard.bjd.demo.pfx"
-    PFXPassword         = $PfxPASSWORD   
-}
-./create_core_infrastructure.ps1 @opts
-```
-
-## Application Build Deployment 
-```powershell
-pwsh
-$AppName = "quetzal-8233" #This will be the output from the create_core_infrastructure.ps1 script
-cd ./scripts
-$opts = @{
-    AppName             = $AppName
-    Regions             = '["westus3", "ukwest"]'
-    SubscriptionName    = "my_subscription"
-    DomainName          = "bjda.demo"
-}
-./deploy_application.ps1 @opts
-```
-
-# Expose API Externally 
-* The demo can be expanded to include additional Azure resources - Front Door, API Maanagment, Azure App Gateway - for external access.
-
-## Automated Steps
-```powershell
-pwsh
-cd ./scripts
-$opts = @{
-	AppName                   = $AppName
-	Regions                   = @("westus3","ukwest")
-	SubscriptionName          = "my_subscription"
-	DeploymentType            = "multi"
-	ApiManagementPfxFilePath  = "~/certs/apim.pfx"
-	AppGatewayPfxFilePath     = "~/certs/gw.pfx"
-	PfxPassword               = (ConvertTo-SecureString -String $PfxPASSWORD -AsPlainText -Force)
-	DNSZone                   = "bjd.demo"
-	IngressUrl                = "api.ingress.bjd.demo"
-	ApimRootDomainName	  	  = "apim.bjd.demo"
-	ApimGatewayUrls           = @("api.apim.us.bjd.demo","api.apim.uk.bjd.demo") 
-	AppGatewayUrls            = @("api.us.bjd.demo","api.uk.bjd.demo")
-	FrontDoorUrl              = "api.bjd.demo"
-}
-./create_ext_infrastructure.ps1 @opts
-```
-
+## Infrastructure
+> * **Note:** Before starting, ensure that the values ACA_INGRESS_PFX_CERT_PASSWORD and ACA_INGRESS_PFX_CERT_PATH are set in the .env file at the project root
+## Application Build  
+## Application Deployment 
 ## Manual Steps
-* You need to take the IP Addresses from the output of the App Gateway ARM template to create DNS records with your external DNS provider
-* You need to assoicate the APIM Product Key Service with the Key Service and Key Service v2 APIs
-* You need to then log into the Azure Portal > App Gateway (per region) and associate each App Gateway with their regional WAF policy
-* You need to manually enable TLS on the custom Front Door Uri. Use the Front Door provided certificate 
-* You can create a custom domain for the Static Web App UI and use the provided certificate but this is not required.
+
+# External Access
+## Infrastructure
+> * **Note:** Before starting, ensure that the required external values are set in the .env file at the project root
+
+## UI Deployment 
+## Manual Steps
 
 # Testing
-## Test Container Apps 
-```powershell
-cd ./tests
-./validate.ps1 -DomainName bjd.demo -RG quetzal-8233_westus3_rg
-```
 
-## Test Application Gateways Individually using PowerShell
-* Obtain your APIM subscription key from the APIM Service 
-```powershell
-$h = New-APIMHeader -key $apiSubscriptionKey
-Invoke-RestMethod -UseBasicParsing `
-    -Uri https://api.us.bjd.demo/k/10?api-version=2020-05-04 ` 
-    -Method Post `
-    -Headers $h
-Invoke-RestMethod -UseBasicParsing `
-    -Uri https://api.uk.bjd.demo/k/10?api-version=2020-05-04 `
-    -Method Post `
-    -Headers $h
-
-$keyId = "" #copy a reply from the commands above
-Invoke-RestMethod -UseBasicParsing `
-    -Uri https://api.us.bjd.demo/k/${keyId}?api-version=2020-05-04 `
-    -Headers $h
-Invoke-RestMethod -UseBasicParsing `
-    -Uri https://api.uk.bjd.demo/k/${keyId}?api-version=2020-05-04 `
-    -Headers $h
-```
-
-
-
-# To Do List 
-- [x] Infrastructure 
-- [x] Test Flexvol with local.settings.json for Functions in container
-- [x] Sample Python Script to create events published to Event Hub
-- [x] Azure Function to process event, storing in Cosmos and Redis Cache
-- [x] Go Write API to generate events to Event Hub 
-- [x] Go Read API to read from Redis 
-- [x] Go Read API to read from Cosmos db using SQL API
-- [x] Deployment artifacts to Kubernetes
-- [x] Configure Scaling with Keda 
-- [x] Add Application Insights - golang
-- [x] Add Application Insights - Azure Funtions
-- [x] Log Analytics automation 
-- [x] Update deployments to Helm 3
-- [x] Multiple Region Deployment with Azure Front Door
-- [x] Add support for Cosmos DB private endpoint
-- [x] Add support for Storage private endpoint
-- [x] Add support for Redis Cache private endpoint
-- [x] Add support for Azure Container Repo private endpoint
-- [x] Add support for Azure Event Hubs private endpoints
-- [x] Add support for Azure Private DNS Zones
-- [x] Update diagrams 
-- [x] Update documention
-- [x] Update for Terraforms to create main infrastructure components
-- [x] GitHub Actions pipeline 
-- [x] Simplify deployment
-- [x] Move to Azure Container Apps
-- [x] Move to dotnet8
+# Backlog
+- [x] Moved to Taskfile for deployments instead of script
+- [x] Validate certificates naming standards
+- [x] General rev updates of TF resources
+- [x] General rev updates of ARM template resources
+- [x] Update naming standards
+- [x] Moved to Managed Redis instead of Azure Cache for Redis
+- [x] Code (and modules) updated to latest versions
+- [x] Event Processor Function Code updated to Managed Identities for Event Hubs, Functions Runtime/Storage and Redis
+- [x] Change Feed Processor Function Code updated to Managed Identities for Event Hubs, Functions Runtime/Storage 
+- [x] API updated to Managed Identities for Event Hubs, App Insights and Redis
+- [x] Gracefully handle connection issues on API startup - non-persistent mode
+- [] Review new APIM v2 features and platform for additional updates
+- [] Review AppGateway and Front Door configurations for additional updates
+- [] Update documentation 

@@ -1,44 +1,33 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.236.0/containers/dotnet
 {
-	"name": "azure-multi-region-proof-of-concept",
+	"name": "C# (.NET)",
 	"build": {
 		"dockerfile": "Dockerfile",
 		"args": { 
-			"VARIANT": "1.17-bullseye",
+			"VARIANT": "dev-8.0-jammy",
 			"NODE_VERSION": "lts/*"
-		}		
+		}
 	},
 	"runArgs": ["--init", "--privileged"],
 
-	"forwardPorts": [
-		8080
-	],
-
-	"portsAttributes": {
-		"8080": { "label": "App"}
-	},
-
 	"customizations": {
 		"vscode": {	
-			"settings": { 
-				"go.toolsManagement.checkForUpdates": "local",
-				"go.useLanguageServer": true,
-				"go.gopath": "/go",
-				"go.goroot": "/usr/local/go"
-			},
-			
 			"extensions": [
-				"golang.Go",
-				"GitHub.copilot",
 				"ms-dotnettools.csharp",
 				"ms-azuretools.vscode-docker",
+				"ms-azuretools.vscode-dapr",
+				"ms-azuretools.vscode-azureterraform",
 				"ms-vscode.powershell",
-				"ms-azuretools.vscode-azurefunctions",
-				"ms-azuretools.vscode-azureterraform"
+				"ms-vscode.azure-account",
+				"ms-kubernetes-tools.aks-devx-tools",
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"github.vscode-pull-request-github",				
+				"github.copilot",
+				"mindaro.mindaro" 
 			]
 		}
 	},
+
+	"forwardPorts": [5000, 5001],
 
 	"remoteUser": "vscode",
 	"features": {
@@ -48,7 +37,8 @@
 		"ghcr.io/devcontainers/features/docker-from-docker:1": {},
 		"ghcr.io/devcontainers/features/sshd:1": {
 			"version": "latest"
-		}
+		},
+		"ghcr.io/devcontainers/features/powershell:1": {}
 	},
 
 	"waitFor": "postCreateCommand",

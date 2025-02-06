@@ -1,0 +1,191 @@
+version: "3"
+
+dotenv: [".env"]
+
+env:
+  TITLE:                  "CQRS Multi-region Pattern in Azure"
+  PRIMARY_REGION:         "canadacentral"
+  ALL_REGIONS:            '["canadacentral"]' #,"westus3", "eastus2"]'
+  DOMAIN_ROOT:            "bjdazure.tech"
+  EXTERNAL_DEPLOYMENT:    false
+  DEPLOYMENT_TYPE:        "single"
+  USE_REDIS_CACHE:        true
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  up:
+    desc: Builds Complete Environment
+    cmds:
+      - task: init
+      - task: apply
+
+  init:
+    desc: Initializes Terraform and deploys the internal Azure infrastructure components
+    cmds:
+      - terraform -chdir=./infrastructure/core workspace new {{.REGION}} || true
+      - terraform -chdir=./infrastructure/core workspace select {{.REGION}}
+      - terraform -chdir=./infrastructure/core init
+    vars:
+      REGION: "{{default .PRIMARY_REGION .CLI_ARGS}}"
+
+  apply:
+    desc: Applies the Terraform configuration for the core components
+    cmds:
+      - terraform -chdir=./infrastructure/core apply -auto-approve
+        -var 'locations={{.ALL_REGIONS}}'
+        -var "tags={{.TITLE}}"
+        -var "deploying_externally={{.EXTERNAL_DEPLOYMENT}}"
+        -var "custom_domain={{.DOMAIN_ROOT}}"
+        -var "certificate_file_path={{.ACA_INGRESS_PFX_CERT_PATH}}"
+        -var "certificate_password={{.ACA_INGRESS_PFX_CERT_PASSWORD}}"
+        -compact-warnings
+    vars:
+      REGION: "{{default .PRIMARY_REGION .CLI_ARGS}}"
+
+  external:
+    desc: Deploys the external components using ARM Templates
+    cmds:
+    - task: apim
+    - task: appgateway
+    - task: frontdoor
+  
+  apim:
+    desc: Deploys Azure API Management
+    dir: ./infrastructure/apim
+    cmds:
+    - pwsh ./Deploy.ps1 -verbose
+        -ApplicationName {{.APP_NAME}}
+        -Regions '{{.ALL_REGIONS}}'
+        -DeploymentType {{.DEPLOYMENT_TYPE}}
+        -PFXPath {{.APIM_PFX_CERT_PATH}}
+        -PFXPassword {{.APIM_PFX_CERT_PASSWORD}}
+        -ApimGatewayUrls '{{.APIM_URLS}}'
+        -ApimRootDomainName "apim.{{.DOMAIN_ROOT}}"
+        -DNSZone {{.DOMAIN_ROOT}}
+    - task: product        
+    vars:
+      APP_NAME: 
+        sh: terraform -chdir=../core output -raw APP_NAME
+      
+  product:
+    internal: true
+    desc: Deploys Product configuration into APIM
+    dir: ./infrastructure/product
+    cmds:
+    - pwsh ./Deploy.ps1 -verbose
+        -ApplicationName {{.APP_NAME}}
+        -primaryBackendUrl "https://{{.APP_URL}}"
+    vars:
+      APP_NAME: 
+        sh: terraform -chdir=../core output -raw APP_NAME
+
+  appgateway:
+    desc:  Deploys Azure App Gateway
+    dir: ./infrastructure/gateway
+    cmds:
+    - pwsh ./Deploy.ps1 -verbose
+        -ApplicationName {{.APP_NAME}}
+        -Regions '{{.ALL_REGIONS}}'
+        -DeploymentType {{.DEPLOYMENT_TYPE}}
+        -PFXPath {{.APP_GW_PFX_CERT_PATH}}
+        -PFXPassword {{.APP_GW_PFX_CERT_PASSWORD}}
+        -AppGatewayUrls '{{.APP_GW_URLS}}'
+        -BackendHostNames '{{.APIM_URLS}}'
+    vars:
+      APP_NAME: 
+        sh: terraform -chdir=../core output -raw APP_NAME
+
+  frontdoor:
+    desc:  Deploys Azure Front Door
+    dir: ./infrastructure/frontdoor
+    cmds:
+    - pwsh ./Deploy.ps1 -verbose
+        -ApplicationName {{.APP_NAME}}
+        -Regions '{{.ALL_REGIONS}}'
+        -DeploymentType {{.DEPLOYMENT_TYPE}}
+        -FrontDoorUri {{.FRONTDOOR_URL}}
+        -BackendHostNames '{{.APP_GW_URLS}}'
+        -DeployWAFPolicies $true
+    vars:
+      APP_NAME: 
+        sh: terraform -chdir=../core output -raw APP_NAME
+
+  build:
+    desc: Builds and pushes the containers to Azure Container Registry
+    dir: ./scripts
+    cmds:
+    - pwsh ./build-containers.ps1 
+      -AppName {{.APP_NAME}}
+      -ACRName {{.ACR_NAME}}
+      -CommitVersion {{.COMMIT_VERSION}}
+      -SourceRootPath "../src"
+    vars:
+      APP_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw APP_NAME
+      ACR_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw ACR_NAME        
+      COMMIT_VERSION:
+        sh: git rev-parse HEAD | cut -c 1-8
+
+  deploy:
+    desc: Applies the Terraform configuration for the application components
+    cmds:
+      - task: appinit
+      - terraform -chdir=./app apply -auto-approve
+        -var 'locations={{.ALL_REGIONS}}'
+        -var "app_name={{.APP_NAME}}"
+        -var "commit_version={{.COMMIT_VERSION}}"
+        -var "custom_domain={{.DOMAIN_ROOT}}"
+        -var "use_cache={{.USE_REDIS_CACHE}}"
+        -compact-warnings
+    vars:
+      REGION: "{{default .PRIMARY_REGION .CLI_ARGS}}"
+      COMMIT_VERSION:
+        sh: git rev-parse HEAD | cut -c 1-8
+      APP_NAME:
+        sh: terraform -chdir=./infrastructure/core output -raw APP_NAME
+
+  appinit:
+    internal: true
+    desc: Initializes Terraform and deploys the internal Azure infrastructure components
+    cmds:
+      - terraform -chdir=./app init
+
+  validate:
+    desc: Executes a script to validate the deployment from within Container Apps Environment
+    dir: ./scripts
+    cmds:
+    - pwsh ./validate.ps1 
+      -DomainName {{.DOMAIN_ROOT}}
+      -ResoureGroupName "{{.APP_NAME}}_{{.REGION}}_apps_rg"
+    vars: 
+      APP_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw APP_NAME
+      ACR_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw ACR_NAME        
+      REGION: "{{default .PRIMARY_REGION .CLI_ARGS}}"
+
+  ui:
+    desc: Deploys the UI code to Azure Static Web Apps
+    cmds:
+    - cmd: swa deploy --env production --app-location "./src/ui" --deployment-token {{.DEPLOY_TOKEN}}
+      silent: true 
+    vars:
+      APP_NAME:
+        sh: terraform -chdir=../infrastructure/core output -raw APP_NAME
+      SWA:
+        sh: terraform -chdir=../infrastructure/core output -raw AZURE_STATIC_WEBAPP_NAME
+      DEPLOY_TOKEN:
+        sh: az staticwebapp secrets list --name {{.SWA}} --query "properties.apiKey" -o tsv
+        
+  down:
+    desc: Destroys all Azure resources and cleans up Terraform
+    cmds:
+      - az group list --tag Application="{{.TITLE}}" --query "[].name" -o tsv | xargs -ot -n 1 az group delete -y --no-wait -n || true
+      - cd infrastructure/core ;
+        rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info || true
+      - cd app ;
+        rm -rf terraform.tfstate.d .terraform.lock.hcl .terraform terraform.tfstate terraform.tfstate.backup .terraform.tfstate.lock.info || true

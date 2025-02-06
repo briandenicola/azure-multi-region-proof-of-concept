@@ -1,4 +1,4 @@
-FROM golang:1.19 AS builder
+FROM golang:1.23 AS builder
 
 WORKDIR /src
 ENV GO111MODULE=on
@@ -6,9 +6,10 @@ COPY . .
 RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /main .
 
-FROM scratch
-COPY --from=busybox:1.28 /bin/busybox /bin/busybox
-COPY --from=builder /src/ca-certificates.crt /etc/ssl/certs/
+FROM gcr.io/distroless/static-debian11
+#FROM scratch
+#COPY --from=busybox:1.28 /bin/busybox /bin/busybox
+#COPY --from=builder /src/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /main ./
 EXPOSE 8080
 ENTRYPOINT ["./main" ]

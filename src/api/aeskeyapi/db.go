@@ -2,16 +2,17 @@ package aeskeyapi
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
-	"github.com/Azure/azure-event-hubs-go/v3"
-	"github.com/a8m/documentdb"
-	"github.com/go-redis/redis/v8"
+	"log/slog"
 	"os"
 	"time"
+
+	azcosmos "github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+	azeventhubs "github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs"
+	"github.com/redis/go-redis/v9"
 )
 
-//DB Interface
+// DB Interface
 type DB interface {
 	Get(id string) (*AesKey, error)
 	Add(k *AesKey)
@@ -19,79 +20,111 @@ type DB interface {
 	Flush()
 }
 
-//AESKeyDB Structure
+// AESKeyDB Structure
 type AESKeyDB struct {
-	Database   string
-	Collection string
-	EventHub   string
+	DatabaseName  string
+	ContainerName string
+	EventHub      string
+	ClientID      string
+	CacheEnabled  bool
 
-	kafkaClient  *eventhub.Hub
-	redisClient  *redis.Client
-	cosmosClient *documentdb.DocumentDB
+	slogger *slog.Logger
 
-	db         *documentdb.Database
-	collection *documentdb.Collection
+	producerClient *azeventhubs.ProducerClient
+	redisClient    *redis.Client
+	cosmosClient   *azcosmos.Client
 
-	keys []*AesKey
+	cosmosContainer    *azcosmos.ContainerClient
+	cosmosDatabase     *azcosmos.DatabaseClient
+	cosmosPartitionKey azcosmos.PartitionKey
+	keys               []*AesKey
 }
 
-//NewKeysDB - Initialize connections to Event Hub, Cosmos and Redis
-func NewKeysDB() (*AESKeyDB, error) {
+// NewKeysDB - Initialize connections to Event Hub, Cosmos and Redis
+func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	var err error
 
 	db := new(AESKeyDB)
-	db.Database = COSMOS_DATABASE_NAME
-	db.Collection = COSMOS_COLLECTION_NAME
+	db.DatabaseName = COSMOS_DATABASE_NAME
+	db.ContainerName = COSMOS_COLLECTION_NAME
 	db.EventHub = EVENT_HUB_NAME
 
-	kafkaConStr := parseEventHubConnectionString(os.Getenv("EVENTHUB_CONNECTIONSTRING"))
-	db.kafkaClient, _ = eventhub.NewHubFromConnectionString(kafkaConStr)
+	db.ClientID = os.Getenv("APPLICATION_CLIENT_ID")
+	EventHubNsConnectionString := os.Getenv("EVENTHUB_CONNECTIONSTRING")										     
+	RedisConnectionString := os.Getenv("REDISCACHE_CONNECTIONSTRING")
+	CosmosConnectionString := os.Getenv("COSMOSDB_CONNECTIONSTRING")
 
-	redisServer, redisPasswords := parseRedisConnectionString(os.Getenv("REDISCACHE_CONNECTIONSTRING"))
-	db.redisClient = redis.NewClient(&redis.Options{
-		Addr:      redisServer,
-		Password:  redisPasswords,
-		DB:        0,
-		TLSConfig: &tls.Config{InsecureSkipVerify: true},
-	})
-	//defer db.redisClient.Close()
+	jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
+	db.slogger = slog.New(jsonHandler)
 
-	cosmsosURL, cosomosMasterKey := parseCosmosConnectionString(os.Getenv("COSMOSDB_CONNECTIONSTRING"))
-	cosmosConfig := documentdb.NewConfig(&documentdb.Key{
-		Key: cosomosMasterKey,
-	})
-	db.cosmosClient = documentdb.New(cosmsosURL, cosmosConfig)
+	//Event Hub Setup
+	db.slogger.Info("DB Setup and Authentication", "EventHub Connection String", EventHubNsConnectionString, "ClientID", db.ClientID, "EventHub", db.EventHub)
+	db.producerClient, err = handleEventHubAuthentication(EventHubNsConnectionString, db.EventHub, db.ClientID, db.slogger)
 
-	err = db.findDatabase(db.Database)
+	//Redis Cache Setup
+	if useCache {
+		db.slogger.Info("DB Setup and Authentication", "Redis Connection String", RedisConnectionString, "ClientID", db.ClientID)
+		db.redisClient, db.CacheEnabled = handleRedisAuthentication(RedisConnectionString, db.ClientID, db.slogger)
+	} else {
+		db.CacheEnabled = false
+	}
+
+	//Cosmos DB Setup
+	clientOptions := azcosmos.ClientOptions{
+		EnableContentResponseOnWrite: true,
+	}
+
+	db.slogger.Info("DB Setup and Authentication", "Cosmos Connection String", CosmosConnectionString)
+	db.cosmosPartitionKey = azcosmos.NewPartitionKeyString("keyId")
+	db.cosmosClient, err = azcosmos.NewClientFromConnectionString(CosmosConnectionString, &clientOptions)
 	if err != nil {
 		panic(err)
 	}
-	db.findCollection(db.Collection)
+
+	db.cosmosDatabase, err = db.cosmosClient.NewDatabase(db.DatabaseName)
+	if err != nil {
+		panic(err)
+	}
+	db.cosmosContainer, err = db.cosmosDatabase.NewContainer(db.ContainerName)
 
 	return db, nil
 }
 
-//Save - Write AES Key object to Azure Event Hub
+// Save - Write AES Key object to Azure Event Hub
 func (k *AESKeyDB) Save() ([]*AesKey, error) {
 
 	var (
-		err    error
-		events []*eventhub.Event
+		err error
 	)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	_, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
+	batchOptions := &azeventhubs.EventDataBatchOptions{}
+	batch, err := k.producerClient.NewEventDataBatch(context.TODO(), batchOptions)
+
 	for index := range k.keys {
-		encodedAesKey, _ := json.Marshal(k.keys[index])
-		events = append(events, eventhub.NewEvent(encodedAesKey))
+		encodedAesKey := encodeForEventHub(k.keys[index])
+		k.slogger.Info("Event Hub Save", "Key Details", encodedAesKey)
+		err = batch.AddEventData(&encodedAesKey, nil)
 	}
 
-	err = k.kafkaClient.SendBatch(ctx, eventhub.NewEventBatchIterator(events...))
+	if batch.NumEvents() > 0 {
+		if err := k.producerClient.SendEventDataBatch(context.TODO(), batch, nil); err != nil {
+			k.slogger.Error("Event Hub SendBatch Issue", "Error", err)
+			panic(err)
+		}
+	}
 	return k.keys, err
 }
 
-//Get - Retrieve AES Key object from Redis cache or Cosmos DB
+func encodeForEventHub(data *AesKey) azeventhubs.EventData {
+	encoded, _ := json.Marshal(data)
+	return azeventhubs.EventData{
+		Body: encoded,
+	}
+}
+
+// Get - Retrieve AES Key object from Redis cache or Cosmos DB
 func (k *AESKeyDB) Get(id string) (*AesKey, error) {
 	var keys []*AesKey
 	var key *AesKey
@@ -100,57 +133,38 @@ func (k *AESKeyDB) Get(id string) (*AesKey, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	result, err := k.redisClient.Get(ctx, id).Result()
+	if k.CacheEnabled == true {
+		k.slogger.Info("Redis Cache", "UseCached", k.CacheEnabled)
+		result, err := k.redisClient.Get(ctx, id).Result()
 
-	if err == nil {
-		_ = json.Unmarshal([]byte(result), &key)
-		key.FromCache = true
-		return key, nil
+		if err == nil {
+			_ = json.Unmarshal([]byte(result), &key)
+			k.slogger.Info("Redis Cache Read Details", "Key Details", key)
+			key.FromCache = true
+			return key, nil
+		}
 	}
 
-	query := documentdb.NewQuery("SELECT * FROM c WHERE c.keyId=@keyId", documentdb.P{Name: "@keyId", Value: id})
-	_, err = k.cosmosClient.QueryDocuments(k.collection.Self, query, &keys)
+	itemResponse, _ := k.cosmosContainer.ReadItem(ctx, k.cosmosPartitionKey, id, nil)
+	err = json.Unmarshal(itemResponse.Value, &keys)
 
 	if err == nil && len(keys) != 0 {
+		k.slogger.Info("CosmosDB Read Details", "Key Details", keys[0])
 		return keys[0], nil
 	}
 
+	k.slogger.Error("CosmosDB Read Details", "Error Details", err)
 	return nil, err
-
 }
 
-//Add - Add key to local cache of AESKeys
+// Add - Add key to local cache of AESKeys
 func (k *AESKeyDB) Add(key *AesKey) {
+	k.slogger.Info("Add Key to local cache of keys", "Key Details", key)
 	k.keys = append(k.keys, key)
 }
 
-//Flush - Reset stored AESKeys
+// Flush - Reset stored AESKeys
 func (k *AESKeyDB) Flush() {
+	k.slogger.Info("Flush local cache of keys")
 	k.keys = nil
-}
-
-//findCollection Finds Collection in CosmosDB Account
-func (k *AESKeyDB) findCollection(name string) (err error) {
-
-	query := documentdb.NewQuery("SELECT * FROM ROOT r WHERE r.id=@name", documentdb.P{Name: "@name", Value: name})
-	colls, err := k.cosmosClient.QueryCollections(k.db.Self, query)
-	if err != nil {
-		return err
-	}
-
-	k.collection = &colls[0]
-	return
-}
-
-//findDatabase - Finds Database in CosmosDB Account
-func (k *AESKeyDB) findDatabase(name string) (err error) {
-
-	query := documentdb.NewQuery("SELECT * FROM ROOT r WHERE r.id=@name", documentdb.P{Name: "@name", Value: name})
-	dbs, err := k.cosmosClient.QueryDatabases(query)
-	if err != nil {
-		return err
-	}
-
-	k.db = &dbs[0]
-	return
 }

@@ -17,10 +17,13 @@ terraform.tfstate
 terraform.tfstate.bak
 terraform.tfstate.d/
 .terraform.tfstate.lock.info
+terraform.tfstate.backup
 *.plan*
 
 # Project Files
+.env
 wrapper.ps1
+scripts/renew_certs.sh
 dynamic.tfvars
 
 # Azure Functions localsettings file
@@ -285,3 +288,4 @@ paket-files/
 __pycache__/
 *.pyc
 .venv/*
+

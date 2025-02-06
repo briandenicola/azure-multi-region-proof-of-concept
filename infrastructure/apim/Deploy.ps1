@@ -1,29 +1,29 @@
 param (
     [Parameter(Mandatory = $true)]
-    [string]            $ApplicationName,
+    [String]            $ApplicationName,
 
     [Parameter(Mandatory = $true)]
-    [string[]]          $Regions,
+    [String]            $Regions,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet("single", "multi")]
-    [string]            $DeploymentType,
+    [ValidateSet("single", "multiregion")]
+    [String]            $DeploymentType,
 
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Test-Path $_ })]
-    [string]            $PFXPath,
+    [String]            $PFXPath,
     
     [Parameter(Mandatory = $true)]
-    [securestring]      $PFXPassword,
+    [String]      $PFXPassword,
 
     [Parameter(Mandatory = $true)]
-    [string[]]          $ApimGatewayUrls,
+    [String]            $ApimGatewayUrls,
 
     [Parameter(Mandatory = $true)]
-    [string]            $ApimRootDomainName,
+    [String]            $ApimRootDomainName,
 
     [Parameter(Mandatory = $true)]
-    [string]            $DNSZone
+    [String]            $DNSZone
 )  
 
 function Get-HostName
@@ -51,12 +51,14 @@ function Get-AzureRegion
     return ($location -replace " ", "").ToLower()
 }
 
-Import-Module -Name bjd.Azure.Functions
+$AllRegions            = @($Regions | ConvertFrom-Json)
+$AllApimGatewayUrls    = @($ApimGatewayUrls | ConvertFrom-Json)
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $ApiMgmtName       = "{0}-apim" -f $ApplicationName
 $ManagementUris    = @("management", "portal", "developer", "management.scm")
-$pfxEncoded        = Convert-CertificatetoBase64 -CertPath $PFXPath
+$pfxEncoded        = [convert]::ToBase64String( (Get-Content -AsByteStream -Path $PFXPath) ) 
+$PFXEncodedPassword = ConvertTo-SecureString -String $PFXPassword -AsPlainText -Force
 
 $opts = @{
     Name                            = ("ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
@@ -65,14 +67,14 @@ $opts = @{
     apiManagementName               = $ApiMgmtName
     customDomain                    = $ApimRootDomainName
     customDomainCertificateData     = $pfxEncoded
-    customDomainCertificatePassword = $PFXPassword
-    primaryProxyFQDN                = $ApimGatewayUrls[0]
+    customDomainCertificatePassword = $PFXEncodedPassword
+    primaryProxyFQDN                = $AllApimGatewayUrls[0]
     multiRegionDeployment           = $false
-    primaryVnetName                 = ("{0}-{1}-vnet"     -f $ApplicationName, $Regions[0])
-    primaryVnetResourceGroup        = ("{0}_{1}_infra_rg" -f $ApplicationName, $Regions[0])
+    primaryVnetName                 = ("{0}-{1}-vnet"     -f $ApplicationName, $AllRegions[0])
+    primaryVnetResourceGroup        = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[0])
 }
 
-if ($DeploymentType -eq "multi")
+if ($DeploymentType -eq "multiregion")
 {
     if ($ApimProxies.Length -eq 1 ) 
     {
@@ -80,11 +82,12 @@ if ($DeploymentType -eq "multi")
         exit -1
     }
     $opts.secondaryLocation  = $Regions[1]
-    $opts.secondaryProxyFQDN = $ApimGatewayUrls[1]
-    $opts.secondaryVnetName  =  ("{0}-{1}-vnet" -f $ApplicationName, $Regions[1])
-    $opts.secondaryVnetResourceGroup = ("{0}_{1}_infra_rg" -f $ApplicationName, $Regions[1])
+    $opts.secondaryProxyFQDN = $AllApimGatewayUrls[1]
+    $opts.secondaryVnetName  =  ("{0}-{1}-vnet" -f $ApplicationName, $AllRegions[1])
+    $opts.secondaryVnetResourceGroup = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[1])
     $opts.multiRegionDeployment = $true
 }
+
 New-AzResourceGroupDeployment @opts -verbose
 
 if ($?) 
@@ -111,7 +114,7 @@ if ($?)
     foreach ($region in $apim.AdditionalRegions) 
     {
         $secondaryResourceGroup = "{0}_{1}_infra_rg" -f $ApplicationName, (Get-AzureRegion -location $region.Location)        
-        foreach ( $uri in $ApimGatewayUrls ) 
+        foreach ( $uri in $AllApimGatewayUrls ) 
         {
             $h = Get-HostName -Uri $uri -RootDomain $DNSZone
             $ip = New-AzPrivateDnsRecordConfig -IPv4Address $region.PrivateIPAddresses[0]

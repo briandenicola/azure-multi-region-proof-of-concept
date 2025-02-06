@@ -1,48 +1,103 @@
 package aeskeyapi
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"log/slog"
 	"os"
-	"regexp"
+	"strings"
 	"time"
+	"crypto/tls"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs"
+	"github.com/redis/go-redis/v9"
+
 )
 
-func parseEventHubConnectionString(constr string) string {
-	return constr
+func handleEventHubAuthentication(EventHubUri string, EventHub string, ClientId string, logger *slog.Logger) (*azeventhubs.ProducerClient, error) {
+	managed, err := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
+		ID: azidentity.ClientID(ClientId),
+	})
+
+	azCLI, err := azidentity.NewAzureCLICredential(nil)
+	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{managed, azCLI}, nil)
+
+
+	producerClient, err := azeventhubs.NewProducerClient(EventHubUri, EventHub, credChain, nil)
+
+	if err != nil {
+		logger.Error("Event Hubs", "Error", "Error Connecting to Redis Cache")
+	}
+
+	return producerClient, err
 }
 
-func parseRedisConnectionString(constr string) (string, string) {
-	var (
-		server   string
-		password string
-		re       *regexp.Regexp
-	)
+func handleRedisAuthentication(RedisUri string, ClientId string, logger *slog.Logger) (*redis.Client, bool) {
 
-	re = regexp.MustCompile(`(.*):(\d{4})`)
-	server = re.FindString(constr)
+	var CacheEnabled = false
 
-	re = regexp.MustCompile(`(password=)(.*=),`)
-	password = string(re.FindSubmatch([]byte(constr))[2])
+	managed, _ := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
+		ID: azidentity.ClientID(ClientId),
+	})
 
-	return server, password
+	azCLI, _ := azidentity.NewAzureCLICredential(nil)
+	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{managed, azCLI}, nil)
+
+	if err != nil {
+		logger.Error("Redis Cache", "Error", "Error creating token credential")
+		return nil, false
+	}
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:      					RedisUri,
+		CredentialsProviderContext: redisCredentialProvider(credChain),
+		TLSConfig:                  &tls.Config{MinVersion: tls.VersionTLS12},
+	})
+
+	if( redisClient == nil) {
+		logger.Error("Redis Cache", "Error", "Error creating connection to Redis Cache")
+		CacheEnabled = false
+	}
+	
+	return redisClient, CacheEnabled
 }
 
-func parseCosmosConnectionString(constr string) (string, string) {
-	var (
-		account   string
-		masterKey string
-		re        *regexp.Regexp
-	)
-
-	re = regexp.MustCompile(`(AccountEndpoint=)(.*:\d{3})`)
-	account = string(re.FindSubmatch([]byte(constr))[2])
-
-	re = regexp.MustCompile(`(AccountKey=)(.*);`)
-	masterKey = string(re.FindSubmatch([]byte(constr))[2])
-
-	return account, masterKey
+func redisCredentialProvider(credential azcore.TokenCredential) func(context.Context) (string, string, error) {
+	return func(ctx context.Context) (string, string, error) {
+		tk, err := credential.GetToken(ctx, policy.TokenRequestOptions{
+			Scopes: []string{"https://redis.azure.com/.default"},
+		})
+		if err != nil {
+			return "", "", err
+		}
+		// the token is a JWT; get the principal's object ID from its payload
+		parts := strings.Split(tk.Token, ".")
+		if len(parts) != 3 {
+			return "", "", errors.New("token must have 3 parts")
+		}
+		payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+		if err != nil {
+			return "", "", fmt.Errorf("couldn't decode payload: %s", err)
+		}
+		claims := struct {
+			OID string `json:"oid"`
+		}{}
+		err = json.Unmarshal(payload, &claims)
+		if err != nil {
+			return "", "", fmt.Errorf("couldn't unmarshal payload: %s", err)
+		}
+		if claims.OID == "" {
+			return "", "", errors.New("missing object ID claim")
+		}
+		return claims.OID, tk.Token, nil
+	}
 }
 
 func createUUID() string {

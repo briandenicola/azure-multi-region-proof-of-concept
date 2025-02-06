@@ -6,18 +6,21 @@ param (
     [string]    $FrontDoorUri,
 
     [Parameter(Mandatory = $true)]
-    [string[]]  $BackendHostNames,
+    [string]    $BackendHostNames,
 
     [Parameter(Mandatory = $false)]
     [switch]    $DeployWAFPolicies,
 
     [Parameter(Mandatory = $true)]
-    [string[]]  $Regions,
+    [string]    $Regions,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet("single", "multi")]
+    [ValidateSet("single", "multiregion")]
     [string]    $DeploymentType
 )  
+
+$AllRegions           = @($Regions | ConvertFrom-Json)
+$AllBackendHostNames  = @($BackendHostNames | ConvertFrom-Json)
 
 $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $AppGwRGName       = "{0}_appgw_rg" -f $ApplicationName
@@ -31,15 +34,12 @@ $opts = @{
     TemplateFile          = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
     frontDoorName         = $FrontDoorName
     frontDoorUrl          = $FrontDoorUri
-    primaryBackendEndFQDN = $BackendHostNames[0]
+    primaryBackendEndFQDN = $AllBackendHostNames[0]
 }
 
-if ($BackendHostNames.Length -eq 1 ) {
-    throw "Need to provide two Backend Host Names if using multiple regions..."
-    exit -1
+if ($DeploymentType -eq "multiregion") {
+    $opts.secondaryBackendEndFQDN = $AllBackendHostNames[1]
 }
-$opts.secondaryBackendEndFQDN = $BackendHostNames[1]
-
 $result = New-AzResourceGroupDeployment @opts -verbose
 
 if ($DeployWAFPolicies) {
@@ -55,8 +55,8 @@ if ($DeployWAFPolicies) {
         AppGatewayName    = $AppGatewayName
     }
 
-    if ($DeploymentType -eq "multi") {
-        $opts.secondaryLocation     = $Regions[1]
+    if ($DeploymentType -eq "multiregion") {
+        $opts.secondaryLocation     = $AllRegions[1]
         $opts.multiRegionDeployment = $true
     }
 

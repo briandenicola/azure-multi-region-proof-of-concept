@@ -11,6 +11,7 @@ resource "random_pet" "this" {
 locals {
   resource_name        = "${random_pet.this.id}-${random_id.this.dec}"
   authorized_ip_ranges = "${chomp(data.http.myip.response_body)}/32"
+  redis_database_name  = "default"
 }
 
 module "global_resources" {
@@ -18,6 +19,8 @@ module "global_resources" {
   authorized_ip_ranges = local.authorized_ip_ranges
   locations            = var.locations
   app_name             = local.resource_name
+  tags                 = var.tags
+  deploying_externally = var.deploying_externally
 }
 
 module "regional_resources" {
@@ -33,4 +36,5 @@ module "regional_resources" {
   certificate_file_path = var.certificate_file_path
   certificate_password  = var.certificate_password
   authorized_ip_ranges  = local.authorized_ip_ranges
+  tags                  = var.tags
 }

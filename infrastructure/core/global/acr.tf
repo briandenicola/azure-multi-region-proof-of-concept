@@ -1,4 +1,4 @@
-resource "azurerm_container_registry" "cqrs_acr" {
+resource "azurerm_container_registry" "cqrs" {
   name                     = local.acr_name
   resource_group_name      = azurerm_resource_group.cqrs_global.name
   location                 = azurerm_resource_group.cqrs_global.location
@@ -23,10 +23,10 @@ resource "azurerm_container_registry" "cqrs_acr" {
   }
 }
 
-resource "azurerm_monitor_diagnostic_setting" "arc" {
+resource "azurerm_monitor_diagnostic_setting" "acr" {
   name                        = "diag"
-  target_resource_id          = azurerm_container_registry.cqrs_acr.id
-  log_analytics_workspace_id  = azurerm_log_analytics_workspace.cqrs_logs.id
+  target_resource_id          = azurerm_container_registry.cqrs.id
+  log_analytics_workspace_id  = azurerm_log_analytics_workspace.cqrs.id
 
   enabled_log {
     category = "ContainerRegistryRepositoryEvents"
