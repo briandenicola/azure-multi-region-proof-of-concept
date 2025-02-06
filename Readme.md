@@ -69,14 +69,14 @@ In other words, the world's most expensive random number generator....
 # Setup
 
 ## Infrastructure
-> * **Note:** Before starting ensure that  ACA_INGRESS_PFX_CERT_PASSWORD and ACA_INGRESS_PFX_CERT_PATH are set in the .env file at the project root
+> * **Note:** Before starting, ensure that the values ACA_INGRESS_PFX_CERT_PASSWORD and ACA_INGRESS_PFX_CERT_PATH are set in the .env file at the project root
 ## Application Build  
 ## Application Deployment 
 ## Manual Steps
 
 # External Access
 ## Infrastructure
-> * **Note:** Before starting ensure that the required external values are set in the .env file at the project root
+> * **Note:** Before starting, ensure that the required external values are set in the .env file at the project root
 
 ## UI Deployment 
 ## Manual Steps
