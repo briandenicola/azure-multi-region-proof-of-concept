@@ -1,29 +1,79 @@
 package aeskeyapi
 
 import (
+	"context"
 	"crypto/rand"
-	"context"	
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"	
+	"log/slog"
 	"os"
+	"strings"
 	"time"
+	"crypto/tls"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs"
+	"github.com/redis/go-redis/v9"
+
 )
 
-func handleRedisAuthentication() func(context.Context) (string, string, error) {
-	managed, _ := azidentity.NewManagedIdentityCredential(nil)
-	azCLI, _ := azidentity.NewAzureCLICredential(nil)
-	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{managed, azCLI}, nil)
-	
+func handleEventHubAuthentication(EventHubUri string, EventHub string, ClientId string, logger *slog.Logger) (*azeventhubs.ProducerClient, error) {
+	managed, err := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
+		ID: azidentity.ClientID(ClientId),
+	})
+
+	workload, err := azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
+		ClientID: ClientId,
+	})
+
+	azCLI, err := azidentity.NewAzureCLICredential(nil)
+	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{workload, managed, azCLI}, nil)
+
+	producerClient, err := azeventhubs.NewProducerClient(EventHubUri, EventHub, credChain, nil)
+
 	if err != nil {
-		return nil
+		logger.Error("Event Hubs", "Error", "Error Connecting to Redis Cache")
 	}
-	return redisCredentialProvider(credChain)
+
+	return producerClient, err
+}
+
+func handleRedisAuthentication(RedisUri string, ClientId string, logger *slog.Logger) (*redis.Client, bool) {
+
+	var CacheEnabled = false
+
+	managed, _ := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
+		ID: azidentity.ClientID(ClientId),
+	})
+
+	workload, _ := azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
+		ClientID: ClientId,
+	})
+
+	azCLI, _ := azidentity.NewAzureCLICredential(nil)
+	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{workload, managed, azCLI}, nil)
+
+	if err != nil {
+		logger.Error("Redis Cache", "Error", "Error creating token credential")
+		return nil, false
+	}
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:      					RedisUri,
+		CredentialsProviderContext: redisCredentialProvider(credChain),
+		TLSConfig:                  &tls.Config{MinVersion: tls.VersionTLS12},
+	})
+
+	if( redisClient == nil) {
+		logger.Error("Redis Cache", "Error", "Error creating connection to Redis Cache")
+		CacheEnabled = false
+	}
+	
+	return redisClient, CacheEnabled
 }
 
 func redisCredentialProvider(credential azcore.TokenCredential) func(context.Context) (string, string, error) {

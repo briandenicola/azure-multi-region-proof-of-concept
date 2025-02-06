@@ -2,15 +2,11 @@ package aeskeyapi
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
-	"log"
 	"log/slog"
 	"os"
 	"time"
 
-	azcore "github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	azcosmos "github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	azeventhubs "github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs"
 	"github.com/redis/go-redis/v9"
@@ -28,8 +24,7 @@ type DB interface {
 type AESKeyDB struct {
 	DatabaseName   		string
 	ContainerName 		string
-	EventHub   			string
-	EventHubNamespace 	string
+	EventHub 			string
 	ClientID   			string
 	CacheEnabled 		bool
 
@@ -53,58 +48,33 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	db.DatabaseName = COSMOS_DATABASE_NAME
 	db.ContainerName = COSMOS_COLLECTION_NAME
 	db.EventHub = EVENT_HUB_NAME
-	db.EventHubNamespace = os.Getenv("EVENTHUB_CONNECTIONSTRING")
+	
 	db.ClientID = os.Getenv("APPLICATION_CLIENT_ID")
+	EventHubNsConnectionString := os.Getenv("EVENTHUB_CONNECTIONSTRING")
+	RedisConnectionString := os.Getenv("REDISCACHE_CONNECTIONSTRING")
+	CosmosConnectionString := os.Getenv("COSMOSDB_CONNECTIONSTRING")
 
 	jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
 	db.slogger = slog.New(jsonHandler)
 
-	managed, err := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
-		ID: azidentity.ClientID(db.ClientID),
-	})
-	if err != nil {
-		db.slogger.Error("NewManagedIdentityCredential", "Error", err)
+	//Event Hub Setup
+	db.producerClient, err = handleEventHubAuthentication(EventHubNsConnectionString, db.EventHub, db.ClientID, db.slogger)
+	
+	//Redis Cache Setup
+	if(useCache) { 
+		db.redisClient, db.CacheEnabled = handleRedisAuthentication(RedisConnectionString, db.ClientID, db.slogger)
+	} else {
+		db.CacheEnabled = false
 	}
 
-	workload, err := azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
-		ClientID: db.ClientID,
-	})
-	if err != nil {
-		db.slogger.Error("WorkloadIdentityCredential", "Error", err)
-	}
-
-	azCLI, err := azidentity.NewAzureCLICredential(nil)
-	if	err != nil {
-		db.slogger.Error("NewAzureCLICredential", "Error", err)
-	}
-	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{azCLI, workload, managed}, nil)
-
-	db.producerClient, err = azeventhubs.NewProducerClient(db.EventHubNamespace, db.EventHub, credChain, nil)
-	if err != nil {
-		panic(err)
-	}	
-	db.slogger.Info("Event Hub Setup", "Namespace", db.EventHubNamespace, "Event Hub", db.EventHub)
-
-	db.CacheEnabled = useCache
-	if(db.CacheEnabled == true) {
-		db.redisClient = redis.NewClient(&redis.Options{
-			Addr:      					os.Getenv("REDISCACHE_CONNECTIONSTRING"),
-			CredentialsProviderContext: handleRedisAuthentication(),
-			TLSConfig:                  &tls.Config{MinVersion: tls.VersionTLS12},
-		})
-		if( db.redisClient == nil) {
-			db.slogger.Error("Redis Cache", "Error", "Error Connecting to Redis Cache")
-			db.CacheEnabled = false
-		}
-	}
-
+	//Cosmos DB Setup
 	clientOptions := azcosmos.ClientOptions{
 		EnableContentResponseOnWrite: true,
 	}
 
-	db.slogger.Info("Cosmos Setup", "Connection String", os.Getenv("COSMOSDB_CONNECTIONSTRING"))
+	db.slogger.Info("Cosmos Setup", "Connection String: ", CosmosConnectionString)
 	db.cosmosPartitionKey = azcosmos.NewPartitionKeyString("keyId")
-	db.cosmosClient, err = azcosmos.NewClientFromConnectionString(os.Getenv("COSMOSDB_CONNECTIONSTRING"), &clientOptions)
+	db.cosmosClient, err = azcosmos.NewClientFromConnectionString(CosmosConnectionString, &clientOptions)
 	if err != nil {
 		panic(err)
 	}
