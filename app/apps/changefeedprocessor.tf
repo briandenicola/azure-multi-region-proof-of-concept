@@ -39,7 +39,7 @@ resource "azurerm_container_app" "changefeedprocessor" {
       }
       env {
         name  = "FUNCTIONS_WORKER_RUNTIME"
-        value = "dotnet"
+        value = "dotnet-isolated"
       }
       env {
         name  = "redisConnectionString__redisHostName"
