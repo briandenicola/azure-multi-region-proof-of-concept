@@ -138,5 +138,5 @@ Apply complete! Resources: 4 added, 1 changed, 0 destroyed.
 ```
 
 # Navigation
-[Previous Section ⏪](./infrastructure.md) ‖ [Return to Main Index 🏠](../testing.md) ‖ [Next Section ⏩](./testing.md) 
+[Previous Section ⏪](../docs/infrastructure.md) ‖ [Return to Main Index 🏠](../Readme.md) ‖ [Next Section ⏩](../docs/testing.md) 
 <p align="right">(<a href="#build">back to top</a>)</p>

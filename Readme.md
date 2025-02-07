@@ -19,7 +19,6 @@ In other words, the world's most expensive random number generator....
 * [Taskfile](https://taskfile.dev/#/) - A task runner for the shell
 * [Terraform](https://www.terraform.io/) - A tool for building Azure infrastructure and infrastructure as code
 * If exposing application externally then a public domain that you can create DNS records
-
 * [Required Certificates](./docs/letsencrypt.md)
 
 > * **Note:** The documentation will use bjd.demo throughout as the root domain.  This can be replaced with your own domain
@@ -89,5 +88,5 @@ In other words, the world's most expensive random number generator....
 - [] Review AppGateway and Front Door configurations for additional updates
 
 # Setup
-[Return to Main Index 🏠](../README.md)  ‖ [Next Section ⏩](./letsencrypt.md)
+[Return to Main Index 🏠](../README.md)  ‖ [Next Section ⏩](./docs/letsencrypt.md)
 <p align="right">(<a href="#Introduction">Back to Top</a>)</p>
