@@ -4,7 +4,7 @@ Name | Usage | Required | SAN Urls
 ------ | ---- | ---- | ----
 api.internal.bjd.demo | Ingress for the Azure Container Apps | Yes 
 *.apim.bjd.demo | APIM | No | *.scm.apim.bjd.demo, westus.apim.bjd.demo, eastus.apim.bjd.demo
-api.bjd.demo | Azure Front Door and App Gateway | No |  westus.api.bjd.demo, eastus.api.bjd.demo
+api.bjd.demo | Azure Front Door and App Gateway | No |  centralcanada.api.bjd.demo, eastus.api.bjd.demo
 
 ## ACME Script Installation
 
@@ -22,8 +22,8 @@ acme.sh --issue --dns dns_azure -d api.bjd.demo
 acme.sh --toPkcs -d api.ingres.bjd.demo --password $PfxPASSWORD
 ```
 ### Notes
-> * Set ACA_INGRESS_PFX_CERT_PASSWORD in the  ~/.env file to the $PfxPASSWORD value
-> * Set ACA_INGRESS_PFX_CERT_PATH in the ~/.env file to the path where the pfx file is be stored
+> Set ACA_INGRESS_PFX_CERT_PASSWORD in the  ~/.env file to the $PfxPASSWORD value
+> Set ACA_INGRESS_PFX_CERT_PATH in the ~/.env file to the path where the pfx file is be stored
 <p align="right">(<a href="#lets-encrypt-tls-certificates">back to top</a>)</p>
 
 ## Optional Certificates 
@@ -31,22 +31,41 @@ acme.sh --toPkcs -d api.ingres.bjd.demo --password $PfxPASSWORD
 
 ### APIM Certificate Certificate Request
 ```bash
-acme.sh --issue --dns dns_azure -d \*.apim.bjd.demo -d \*.scm.apim.bjd.demo -d \*.apim.westus.bjd.demo -d \*.apim.eastus.bjd.demo
+acme.sh --issue --dns dns_azure -d \*.apim.bjd.demo -d \*.scm.apim.bjd.demo -d \*.apim.centralcanada.bjd.demo -d \*.apim.eastus.bjd.demo
 acme.sh --toPkcs -d \*.apim.bjd.demo --password $PfxPASSWORD
 ```
 ### Notes
-> * Set APIM_PFX_CERT_PATH in the  ~/.env file to the $PfxPASSWORD value
-> * Set APIM_PFX_CERT_PASSWORD in the ~/.env file to the path where the pfx file is be stored
+> Set APIM_PFX_CERT_PATH in the  ~/.env file to the $PfxPASSWORD value
+> Set APIM_PFX_CERT_PASSWORD in the ~/.env file to the path where the pfx file is be stored
 <p align="right">(<a href="#lets-encrypt-tls-certificates">back to top</a>)</p>
 
 ### AppGateway Certificate Request
 ```bash
-acme.sh --issue --dns dns_azure -d api.bjd.demo -d westus.api.bjd.demo -d eastus.api.bjd.demo
+acme.sh --issue --dns dns_azure -d api.bjd.demo -d centralcanada.api.bjd.demo -d eastus.api.bjd.demo
 acme.sh --toPkcs -d api.bjd.demo --password $PfxPASSWORD
 ```
 ### Notes
-> * Set APP_GW_PFX_CERT_PATH in the  ~/.env file to the $PfxPASSWORD value
-> * Set APP_GW_PFX_CERT_PASSWORD in the ~/.env file to the path where the pfx file is be stored
+> Set APP_GW_PFX_CERT_PATH in the  ~/.env file to the $PfxPASSWORD value
+> Set APP_GW_PFX_CERT_PASSWORD in the ~/.env file to the path where the pfx file is be stored
+
+
+## Example ENV File
+```bash
+➜  git:(main) ✗ cat .env
+ACA_INGRESS_PFX_CERT_PATH=/home/brian/working/api.ingress.bjdazure.tech.pfx
+ACA_INGRESS_PFX_CERT_PASSWORD=REPACED_WITH_PASSWORD!!!!!
+
+APIM_PFX_CERT_PATH=/home/brian/working/wildcard.apim.bjdazure.tech.pfx
+APIM_PFX_CERT_PASSWORD=REPACED_WITH_PASSWORD!!!!!
+
+APP_GW_PFX_CERT_PATH=/home/brian/working/api.bjdazure.tech.pfx
+APP_GW_PFX_CERT_PASSWORD=REPACED_WITH_PASSWORD!!!!!
+
+FRONTDOOR_URL=api.bjdazure.tech
+APP_GW_URLS=["centralcanada.api.bjdazure.tech"]
+APIM_URLS=["centralcanada.apim.bjdazure.tech"]
+APP_URL="api.ingress.bjdazure.tech"%
+```
 
 # Navigation
 [⏪ Previous Section](../README.md) ‖ [Return to Main Index 🏠](../README.md) ‖ [Next Section ⏩](../docs/infrastructure.md) 
