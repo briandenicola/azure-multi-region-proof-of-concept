@@ -45,6 +45,7 @@ In other words, the world's most expensive random number generator....
     DEFAULT_REGIONS | Default region to deploy to | taskfile.yaml | Yes | ["westus3"]
     DOMAIN_ROOT | Default root domain used for all URLs & certs | taskfile.yaml | Yes | bjd.demo
     EXTERNAL_DEPLOYMENT | Will this deployment deploy external components | taskfile.yaml | Yes | false
+    USE_REDIS_CACHE | Caches results into Azure Redis Cache | taskfile.yaml | No | false
     DEPLOYMENT_TYPE | Will this deployment deploy to multiple regions | taskfile.yaml | Yes | single (`multiregion` or `single` are valid options)
     APIM_PFX_CERT_PATH | Path to the APIM PFX certificate | .env | External Only | ./certs/apim.pfx
     APIM_PFX_CERT_PASSWORD | Password for the APIM PFX certificate | .env | External Only | <password for the pfx file>
@@ -65,23 +66,44 @@ In other words, the world's most expensive random number generator....
     * `task frontdoor`          : Deploys Azure Front Door
     * `task build`              : Builds containers and pushes to Azure Container Registry
     * `task deploy`             : Creates application components and deploy the application code
+    * `task ui`                 : Deploys Blazor UI components to Azure Static Web Apps
+    * `task validate`           : Creates a tunnel to the `utils` container app to test internal components
 
 # Setup
 
-## Infrastructure
+## Core Infrastructure
 > * **Note:** Before starting, ensure that the values ACA_INGRESS_PFX_CERT_PASSWORD and ACA_INGRESS_PFX_CERT_PATH are set in the .env file at the project root
+```bash
+task up
+```
 ## Application Build  
+```bash
+task build
+```
 ## Application Deployment 
-## Manual Steps
+```bash
+task deploy
+```
 
 # External Access
 ## Infrastructure
 > * **Note:** Before starting, ensure that the required external values are set in the .env file at the project root
+```bash
+task external #Calls task apim; task appgw; task frontdoor
+```
+## Manual Steps
+* Create DNS A records for each Application Gateway as outputted by the deploy `appgateway` task
+* Create DNS CNAME record for the Azure Front Door as outputted by the deploy `frontdoor` task
 
 ## UI Deployment 
-## Manual Steps
+```bash
+task ui
+```
 
 # Testing
+```bash
+task validate 
+```
 
 # Backlog
 - [x] Moved to Taskfile for deployments instead of script
@@ -97,4 +119,4 @@ In other words, the world's most expensive random number generator....
 - [x] Gracefully handle connection issues on API startup - non-persistent mode
 - [] Review new APIM v2 features and platform for additional updates
 - [] Review AppGateway and Front Door configurations for additional updates
-- [] Update documentation 
+- [x] Update documentation 

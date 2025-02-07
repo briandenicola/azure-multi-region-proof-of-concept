@@ -9,7 +9,7 @@ env:
   DOMAIN_ROOT:            "bjdazure.tech"
   EXTERNAL_DEPLOYMENT:    false
   DEPLOYMENT_TYPE:        "single"
-  USE_REDIS_CACHE:        true
+  USE_REDIS_CACHE:        false
 
 tasks:
   default:
