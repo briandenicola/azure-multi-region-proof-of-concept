@@ -41,21 +41,22 @@ In other words, the world's most expensive random number generator....
 * The Task file declares the default values that can be updated to suit specific requirements: 
 
 ### Taskfile Variables
-    Name | Usage | Location | Required | Default or Example Value
-    ------ | ------ | ------ | ------ | ------
-    TITLE | Value used in Azure Tags | taskfile.yaml | Yes | CQRS Multi-region Pattern in Azure
-    DEFAULT_REGIONS | Default region to deploy to | taskfile.yaml | Yes | ["westus3"]
-    DOMAIN_ROOT | Default root domain used for all URLs & certs | taskfile.yaml | Yes | bjd.demo
-    EXTERNAL_DEPLOYMENT | Will this deployment deploy external components | taskfile.yaml | Yes | false
-    USE_REDIS_CACHE | Caches results into Azure Redis Cache | taskfile.yaml | No | false
-    DEPLOYMENT_TYPE | Will this deployment deploy to multiple regions | taskfile.yaml | Yes | single (`multiregion` or `single` are valid options)
-    APIM_PFX_CERT_PATH | Path to the APIM PFX certificate | .env | External Only | ./certs/apim.pfx
-    APIM_PFX_CERT_PASSWORD | Password for the APIM PFX certificate | .env | External Only | <password for the pfx file>
-    APP_GW_PFX_CERT_PATH | Path to the App Gateway PFX certificate | .env | External Only | ./certs/appgw.pfx
-    APP_GW_PFX_CERT_PASSWORD | Password for the App Gateway PFX certificate | .env | External Only | <password for the pfx file>
-    FRONTDOOR_URL | The Custom URL for the Azure Front Door | .env | External Only | api.bjd.demo
-    APP_GW_URLS | The URLs for the App Gateways | .env | External Only | ["westus.api.bjd.demo"] 
-    APIM_URLS | The Urls for the APIM Gateways | .env | External Only | ["westus.apim.bjd.demo"]
+
+Name | Usage | Location | Required | Default or Example Value
+------ | ------ | ------ | ------ | ------
+TITLE | Value used in Azure Tags | taskfile.yaml | Yes | CQRS Multi-region Pattern in Azure
+DEFAULT_REGIONS | Default region to deploy to | taskfile.yaml | Yes | ["westus3"]
+DOMAIN_ROOT | Default root domain used for all URLs & certs | taskfile.yaml | Yes | bjd.demo
+EXTERNAL_DEPLOYMENT | Will this deployment deploy external components | taskfile.yaml | Yes | false
+USE_REDIS_CACHE | Caches results into Azure Redis Cache | taskfile.yaml | No | false
+DEPLOYMENT_TYPE | Will this deployment deploy to multiple regions | taskfile.yaml | Yes | single (`multiregion` or `single` are valid options)
+APIM_PFX_CERT_PATH | Path to the APIM PFX certificate | .env | External Only | ./certs/apim.pfx
+APIM_PFX_CERT_PASSWORD | Password for the APIM PFX certificate | .env | External Only | <password for the pfx file>
+APP_GW_PFX_CERT_PATH | Path to the App Gateway PFX certificate | .env | External Only | ./certs/appgw.pfx
+APP_GW_PFX_CERT_PASSWORD | Password for the App Gateway PFX certificate | .env | External Only | <password for the pfx file>
+FRONTDOOR_URL | The Custom URL for the Azure Front Door | .env | External Only | api.bjd.demo
+APP_GW_URLS | The URLs for the App Gateways | .env | External Only | ["westus.api.bjd.demo"] 
+APIM_URLS | The Urls for the APIM Gateways | .env | External Only | ["westus.apim.bjd.demo"]
 
 ### Task Commands
 * Running the `task` command without any options will run the default command. This will list all the available tasks.
