@@ -52,19 +52,19 @@ acme.sh --toPkcs -d api.bjd.demo --password $PfxPASSWORD
 ## Example ENV File
 ```bash
 ➜  git:(main) ✗ cat .env
-ACA_INGRESS_PFX_CERT_PATH=/home/brian/working/api.ingress.bjdazure.tech.pfx
+ACA_INGRESS_PFX_CERT_PATH=/home/brian/working/api.ingress.bjd.demo.pfx
 ACA_INGRESS_PFX_CERT_PASSWORD=REPACED_WITH_PASSWORD!!!!!
 
-APIM_PFX_CERT_PATH=/home/brian/working/wildcard.apim.bjdazure.tech.pfx
+APIM_PFX_CERT_PATH=/home/brian/working/wildcard.apim.bjd.demo.pfx
 APIM_PFX_CERT_PASSWORD=REPACED_WITH_PASSWORD!!!!!
 
-APP_GW_PFX_CERT_PATH=/home/brian/working/api.bjdazure.tech.pfx
+APP_GW_PFX_CERT_PATH=/home/brian/working/api.bjd.demo.pfx
 APP_GW_PFX_CERT_PASSWORD=REPACED_WITH_PASSWORD!!!!!
 
-FRONTDOOR_URL=api.bjdazure.tech
-APP_GW_URLS=["centralcanada.api.bjdazure.tech"]
-APIM_URLS=["centralcanada.apim.bjdazure.tech"]
-APP_URL="api.ingress.bjdazure.tech"%
+FRONTDOOR_URL=api.bjd.demo
+APP_GW_URLS=["centralcanada.api.bjd.demo"]
+APIM_URLS=["centralcanada.apim.bjd.demo"]
+APP_URL="api.ingress.bjd.demo"%
 ```
 
 # Navigation

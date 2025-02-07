@@ -113,7 +113,7 @@ Name | Resource Group | Usage
 ```bash
 ➜  git:(main) ✗ task external #Calls task apim; task appgw; task frontdoor
 ➜  cqrs git:(main) ✗ task external
-task: [apim] pwsh ./Deploy.ps1 -verbose -ApplicationName pipefish-47182 -Regions '["canadacentral"]' -DeploymentType single -PFXPath /home/brian/working/wildcard.apim.bjdazure.tech.pfx -PFXPassword .... -ApimGatewayUrls '["canadacentral.apim.bjdazure.tech"]' -ApimRootDomainName "apim.bjdazure.tech" -DNSZone bjdazure.tech
+task: [apim] pwsh ./Deploy.ps1 -verbose -ApplicationName pipefish-47182 -Regions '["canadacentral"]' -DeploymentType single -PFXPath /home/brian/working/wildcard.apim.bjd.demo.pfx -PFXPassword .... -ApimGatewayUrls '["canadacentral.apim.bjd.demo"]' -ApimRootDomainName "apim.bjd.demo" -DNSZone bjd.demo
 ...
 VERBOSE: 12:23:41 - Template is valid.
 VERBOSE: 12:23:46 - Create template deployment 'ApiManagement-Deployment-pipefish-47182_global_rg-20250207122337'
@@ -124,12 +124,12 @@ VERBOSE: 12:23:57 - Checking deployment status in 17 seconds
 VERBOSE: 12:24:15 - Checking deployment status in 21 seconds
 VERBOSE: 12:24:36 - Checking deployment status in 20 seconds
 ...
-VERBOSE: Record set 'management.scm.apim' was created in Private DNS zone 'bjdazure.tech'.The record set is empty. Use Add-AzPrivateDnsRecordConfig to add A records to it and Set-AzDnsRecordSet to save your changes.
-VERBOSE: After you create A records in this record set you will be able to query them in DNS using the FQDN 'management.scm.apim.bjdazure.tech.'
+VERBOSE: Record set 'management.scm.apim' was created in Private DNS zone 'bjd.demo'.The record set is empty. Use Add-AzPrivateDnsRecordConfig to add A records to it and Set-AzDnsRecordSet to save your changes.
+VERBOSE: After you create A records in this record set you will be able to query them in DNS using the FQDN 'management.scm.apim.bjd.demo.'
 
-Id                : /subscriptions/69dafa76-bad9-48a7-a96a-e1f25830a5b0/resourceGroups/pipefish-47182_canadacentral_infra_rg/providers/Microsoft.Network/privateDnsZones/bjdazure.tech/A/management.scm.apim
+Id                : /subscriptions/69dafa76-bad9-48a7-a96a-e1f25830a5b0/resourceGroups/pipefish-47182_canadacentral_infra_rg/providers/Microsoft.Network/privateDnsZones/bjd.demo/A/management.scm.apim
 Name              : management.scm.apim
-ZoneName          : bjdazure.tech
+ZoneName          : bjd.demo
 ResourceGroupName : pipefish-47182_canadacentral_infra_rg
 Ttl               : 3600
 Etag              : 56296d26-2ced-4294-9309-da4eab0d1f14
@@ -138,16 +138,16 @@ Records           : {10.155.4.5}
 Metadata          :
 IsAutoRegistered  : False
 
-task: [product] pwsh ./Deploy.ps1 -verbose -ApplicationName pipefish-47182 -primaryBackendUrl "https://api.ingress.bjdazure.tech"
+task: [product] pwsh ./Deploy.ps1 -verbose -ApplicationName pipefish-47182 -primaryBackendUrl "https://api.ingress.bjd.demo"
 ....
-task: [appgateway] pwsh ./Deploy.ps1 -verbose -ApplicationName pipefish-47182 -Regions '["canadacentral"]' -DeploymentType single -PFXPath /home/brian/working/api.bjdazure.tech/api.bjdazure.tech.pfx -PFXPassword ... -AppGatewayUrls '["canadacentral.api.bjdazure.tech"]' -BackendHostNames '["canadacentral.apim.bjdazure.tech"]'
+task: [appgateway] pwsh ./Deploy.ps1 -verbose -ApplicationName pipefish-47182 -Regions '["canadacentral"]' -DeploymentType single -PFXPath /home/brian/working/api.bjd.demo/api.bjd.demo.pfx -PFXPassword ... -AppGatewayUrls '["canadacentral.api.bjd.demo"]' -BackendHostNames '["canadacentral.apim.bjd.demo"]'
 VERBOSE: Populating RepositorySourceLocation property for module Az.Accounts.
 VERBOSE: Populating RepositorySourceLocation property for module Az.Accounts.
 ....
 VERBOSE: 12:56:02 - Resource Microsoft.Network/applicationGateways 'pipefish-47182-gw-canadacentral' provisioning status is succeeded
-VERBOSE: Please create a 'A' DNS Recording point 'canadacentral.api.bjdazure.tech' to '4.205.88.168'
-task: [frontdoor] pwsh ./Deploy.ps1 -verbose -ApplicationName pipefish-47182 -Regions '["canadacentral"]' -DeploymentType single -FrontDoorUri api.bjdazure.tech -BackendHostNames '["canadacentral.api.bjdazure.tech"]' -DeployWAFPolicies $true
-Ensure that a CNAME DNS record exists that maps api.bjdazure.tech to afd-pipefish-47182.z01.azurefd.net...:
+VERBOSE: Please create a 'A' DNS Recording point 'canadacentral.api.bjd.demo' to '4.205.88.168'
+task: [frontdoor] pwsh ./Deploy.ps1 -verbose -ApplicationName pipefish-47182 -Regions '["canadacentral"]' -DeploymentType single -FrontDoorUri api.bjd.demo -BackendHostNames '["canadacentral.api.bjd.demo"]' -DeployWAFPolicies $true
+Ensure that a CNAME DNS record exists that maps api.bjd.demo to afd-pipefish-47182.z01.azurefd.net...:
 ....
 DeploymentName          : WAF-Deployment-pipefish-47182_appgw_rg-20250207010406
 ResourceGroupName       : pipefish-47182_appgw_rg

@@ -38,7 +38,7 @@
     "variables": {
         "skuCount": 1,
         "publisherName": "bjdazuretech",
-        "publisherEmail": "brian@bjdazure.tech",
+        "publisherEmail": "brian@bjd.demo",
         "subnetName" : "/subnets/APIM",
         "primarySubnetId": "[concat(resourceId(parameters('primaryVnetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('primaryVnetName')), variables('subnetName'))]",
         "apimSKU": "[if(equals(parameters('multiRegionDeployment'),'True'),'Premium','Developer')]"

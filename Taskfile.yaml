@@ -6,7 +6,7 @@ env:
   TITLE:                  "CQRS Multi-region Pattern in Azure"
   PRIMARY_REGION:         "canadacentral"
   ALL_REGIONS:            '["canadacentral"]' #,"westus3", "eastus2"]'
-  DOMAIN_ROOT:            "bjdazure.tech"
+  DOMAIN_ROOT:            "bjd.demo"
   EXTERNAL_DEPLOYMENT:    true
   DEPLOYMENT_TYPE:        "single"
   USE_REDIS_CACHE:        false

@@ -126,7 +126,7 @@ module.container_apps["canadacentral"].azurerm_container_app.api: Creation compl
 module.container_apps["canadacentral"].azurerm_container_app_custom_domain.api: Creating...
 module.container_apps["canadacentral"].azurerm_container_app_custom_domain.api: Still creating... [10s elapsed]
 module.container_apps["canadacentral"].azurerm_container_app_custom_domain.api: Still creating... [20s elapsed]
-module.container_apps["canadacentral"].azurerm_container_app_custom_domain.api: Creation complete after 21s [id=/subscriptions/69dafa76-bad9-48a7-a96a-e1f25830a5b0/resourceGroups/pipefish-47182_canadacentral_apps_rg/providers/Microsoft.App/containerApps/api/customDomainName/api.ingress.bjdazure.tech]
+module.container_apps["canadacentral"].azurerm_container_app_custom_domain.api: Creation complete after 21s [id=/subscriptions/69dafa76-bad9-48a7-a96a-e1f25830a5b0/resourceGroups/pipefish-47182_canadacentral_apps_rg/providers/Microsoft.App/containerApps/api/customDomainName/api.ingress.bjd.demo]
 
 Apply complete! Resources: 4 added, 1 changed, 0 destroyed.      
 ```
