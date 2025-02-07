@@ -13,7 +13,7 @@ curl https://get.acme.sh | sh
 ```
 
 ### Notes
-> * Follow [this blog](https://www.robokiwi.com/wiki/azure/dns/lets-encrypt/) to setup Let's Encrypt with Azure DNS
+> Follow [this blog](https://www.robokiwi.com/wiki/azure/dns/lets-encrypt/) to setup Let's Encrypt with Azure DNS
 
 ## Container Apps Ingress Certificate Request
 ```bash

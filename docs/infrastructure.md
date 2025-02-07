@@ -109,7 +109,7 @@ Name | Resource Group | Usage
 \${app_name}-frontdoor | Global Resource Group | Azure Front Door for routing
 
 ## External Infrastructure Steps
-> * **Note:** Before starting, ensure that the required external values are set in the .env file at the project root
+> Before starting, ensure that the required external values are set in the .env file at the project root
 ```bash
 ➜  git:(main) ✗ task external #Calls task apim; task appgw; task frontdoor
 ➜  cqrs git:(main) ✗ task external
