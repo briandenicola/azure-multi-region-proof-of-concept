@@ -40,6 +40,7 @@ In other words, the world's most expensive random number generator....
 * The [Taskfile](../Taskfile.yaml) definition is located in the root of the repository
 * The Task file declares the default values that can be updated to suit specific requirements: 
 
+### Taskfile Variables
     Name | Usage | Location | Required | Default or Example Value
     ------ | ------ | ------ | ------ | ------
     TITLE | Value used in Azure Tags | taskfile.yaml | Yes | CQRS Multi-region Pattern in Azure
@@ -56,6 +57,7 @@ In other words, the world's most expensive random number generator....
     APP_GW_URLS | The URLs for the App Gateways | .env | External Only | ["westus.api.bjd.demo"] 
     APIM_URLS | The Urls for the APIM Gateways | .env | External Only | ["westus.apim.bjd.demo"]
 
+### Task Commands
 * Running the `task` command without any options will run the default command. This will list all the available tasks.
     * `task init`               : Initialized Terraform modules
     * `task up`                 : Builds complete environment

@@ -174,5 +174,5 @@ DeploymentDebugLogLevel :
 <p align="right">(<a href="#Infrastructure">back to top</a>)</p>
 
 # Navigation
-[Previous Section ⏪](../docs/letsencrypt.md) ‖ [Return to Main Index 🏠](../README.md) ‖ [Next Section ⏩](../docs/code.md) 
+[⏪ Previous Section](../docs/letsencrypt.md) ‖ [Return to Main Index 🏠](../README.md) ‖ [Next Section ⏩](../docs/code.md) 
 <p align="right">(<a href="#Infrastructure">back to top</a>)</p>

@@ -47,5 +47,5 @@ root@utils--93xfo0m-55d8c7f479-vbflq:/code# curl -s --header "Content-Type: appl
 ```
 
 # Navigation
-[Previous Section ⏪](../docs/code.md) ‖ [Return to Main Index 🏠](../README.md) ‖
+[⏪ Previous Section](../docs/code.md) ‖ [Return to Main Index 🏠](../README.md) ‖
 <p align="right">(<a href="#lets-encrypt-tls-certificates">back to top</a>)</p>

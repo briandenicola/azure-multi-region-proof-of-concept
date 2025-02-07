@@ -14,7 +14,7 @@ UI Build & Deployment
 * It is hosted uses Azure Static Web Apps.
 * The deployment uses the Azure Static Web Apps cli to deploy the application to Azure.
 
-## Container Apps
+Container Apps
 =============
 Name | Resource Group | Usage 
 ------ | ---- | ----
@@ -138,5 +138,5 @@ Apply complete! Resources: 4 added, 1 changed, 0 destroyed.
 ```
 
 # Navigation
-[Previous Section ⏪](../docs/infrastructure.md) ‖ [Return to Main Index 🏠](../Readme.md) ‖ [Next Section ⏩](../docs/testing.md) 
+[⏪ Previous Section](../docs/infrastructure.md) ‖ [Return to Main Index 🏠](../Readme.md) ‖ [Next Section ⏩](../docs/testing.md) 
 <p align="right">(<a href="#build">back to top</a>)</p>

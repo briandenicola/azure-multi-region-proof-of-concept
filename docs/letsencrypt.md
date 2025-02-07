@@ -49,5 +49,5 @@ acme.sh --toPkcs -d api.bjd.demo --password $PfxPASSWORD
 > * Set APP_GW_PFX_CERT_PASSWORD in the ~/.env file to the path where the pfx file is be stored
 
 # Navigation
-[Previous Section ⏪](../README.md) ‖ [Return to Main Index 🏠](../README.md) ‖ [Next Section ⏩](../docs/infrastructure.md) 
+[⏪ Previous Section](../README.md) ‖ [Return to Main Index 🏠](../README.md) ‖ [Next Section ⏩](../docs/infrastructure.md) 
 <p align="right">(<a href="#lets-encrypt-tls-certificates">back to top</a>)</p>
