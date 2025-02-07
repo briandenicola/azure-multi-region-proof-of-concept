@@ -9,7 +9,8 @@ In other words, the world's most expensive random number generator....
     * [Github CodeSpaces](https://github.com/features/codespaces)
     * Azure Linux VM - Standard_B1s VM will work ($18/month)
     * Windows 11 with [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install)
-* [dotnet 8](https://dotnet.microsoft.com/download) - The .NET SDK
+* [dotnet 8](https://dotnet.microsoft.com/download) - The .NET Platform
+* [Golang](https://golang.org/dl/) - The Go Programming Language
 * [Visual Studio Code](https://code.visualstudio.com/) or equivalent - A lightweight code editor
 * [Docker](https://www.docker.com/products/docker-desktop) - The Docker Desktop to build/push containers
 * [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) - A tool for managing Azure resources
@@ -31,6 +32,7 @@ In other words, the world's most expensive random number generator....
     api.bjd.demo | Azure Front Door  |  CNAME | Front Door URL>
     westus.api.bjd.demo | App Gateway | A | App Gateway IP Address in West US
     eastus.api.bjd.demo | App Gateway | A | App Gateway IP Address in East US
+<p align="right">(<a href="#Introduction">Back to Top</a>)</p>
 
 ## Task
 * The deployment of this application has been automated using [Taskfile](https://taskfile.dev/#/).  This was done instead of using a CI/CD pipeline to make it easier to understand the deployment process.  
@@ -68,44 +70,9 @@ In other words, the world's most expensive random number generator....
     * `task deploy`             : Creates application components and deploy the application code
     * `task ui`                 : Deploys Blazor UI components to Azure Static Web Apps
     * `task validate`           : Creates a tunnel to the `utils` container app to test internal components
+<p align="right">(<a href="#Introduction">Back to Top</a>)</p>
 
-# Setup
-
-## Core Infrastructure
-> * **Note:** Before starting, ensure that the values ACA_INGRESS_PFX_CERT_PASSWORD and ACA_INGRESS_PFX_CERT_PATH are set in the .env file at the project root
-```bash
-task up
-```
-## Application Build  
-```bash
-task build
-```
-## Application Deployment 
-```bash
-task deploy
-```
-
-# External Access
-## Infrastructure
-> * **Note:** Before starting, ensure that the required external values are set in the .env file at the project root
-```bash
-task external #Calls task apim; task appgw; task frontdoor
-```
-## Manual Steps
-* Create DNS A records for each Application Gateway as outputted by the deploy `appgateway` task
-* Create DNS CNAME record for the Azure Front Door as outputted by the deploy `frontdoor` task
-
-## UI Deployment 
-```bash
-task ui
-```
-
-# Testing
-```bash
-task validate 
-```
-
-# Backlog
+# Roadmap
 - [x] Moved to Taskfile for deployments instead of script
 - [x] Validate certificates naming standards
 - [x] General rev updates of TF resources
@@ -117,6 +84,10 @@ task validate
 - [x] Change Feed Processor Function Code updated to Managed Identities for Event Hubs, Functions Runtime/Storage 
 - [x] API updated to Managed Identities for Event Hubs, App Insights and Redis
 - [x] Gracefully handle connection issues on API startup - non-persistent mode
-- [] Review new APIM v2 features and platform for additional updates
-- [] Review AppGateway and Front Door configurations for additional updates
+- [x] Review new APIM v2 features and platform for additional updates
 - [x] Update documentation 
+- [] Review AppGateway and Front Door configurations for additional updates
+
+# Setup
+[Return to Main Index 🏠](../README.md)  ‖ [Next Section ⏩](./letsencrypt.md)
+<p align="right">(<a href="#Introduction">Back to Top</a>)</p>

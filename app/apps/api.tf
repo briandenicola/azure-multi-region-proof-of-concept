@@ -1,4 +1,9 @@
 resource "azurerm_container_app" "api" {
+  depends_on = [ 
+    azurerm_key_vault_secret.cosmosdb_connection_string,
+    azurerm_key_vault_secret.app_insights_connection_string
+  ]
+  
   name                         = "api"
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = local.apps_rg_name
