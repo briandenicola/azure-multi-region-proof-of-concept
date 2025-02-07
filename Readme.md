@@ -21,8 +21,14 @@ In other words, the world's most expensive random number generator....
 * If exposing application externally then a public domain that you can create DNS records
 * [Required Certificates](./docs/letsencrypt.md)
 
-> * **Note:** The documentation will use bjd.demo throughout as the root domain.  This can be replaced with your own domain
-> * **Note:** The Github Codespaces environment has all the tools pre-installed and configured.  You can use the following link to open the project in Github Codespaces: [Open in Github Codespaces](https://codespaces.new/briandenicola/azure-multi-region-proof-of-concept?quickstart=1)
+## Notes
+> The documentation will use bjd.demo throughout as the root domain.  This can be replaced with your own domain
+
+## Codespaces
+> You can use the following link to launch a Codespaces configured for this project:
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/briandenicola/eShopOnAKS?quickstart=1)
+
 
 ## Public DNS Records: 
 * The following DNS records are required for the application to work correctly.  These are used for the application to be accessed externally.  The following records are required: 
