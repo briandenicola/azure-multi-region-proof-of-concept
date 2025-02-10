@@ -22,22 +22,22 @@ type DB interface {
 
 // AESKeyDB Structure
 type AESKeyDB struct {
-	DatabaseName  string
-	ContainerName string
-	EventHub      string
-	ClientID      string
-	CacheEnabled  bool
+	DatabaseName  		string
+	ContainerName 		string
+	EventHub      		string
+	ClientID      		string
+	CacheEnabled 		bool
 
-	slogger *slog.Logger
+	slogger 			*slog.Logger
 
-	producerClient *azeventhubs.ProducerClient
-	redisClient    *redis.Client
-	cosmosClient   *azcosmos.Client
+	producerClient 		*azeventhubs.ProducerClient
+	redisClient    		*redis.Client
+	cosmosClient   		*azcosmos.Client
 
-	cosmosContainer    *azcosmos.ContainerClient
-	cosmosDatabase     *azcosmos.DatabaseClient
-	cosmosPartitionKey azcosmos.PartitionKey
-	keys               []*AesKey
+	cosmosContainer    	*azcosmos.ContainerClient
+	cosmosDatabase     	*azcosmos.DatabaseClient
+	cosmosPartitionKey 	azcosmos.PartitionKey
+	keys               	[]*AesKey
 }
 
 // NewKeysDB - Initialize connections to Event Hub, Cosmos and Redis
@@ -61,6 +61,10 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	db.slogger.Info("DB Setup and Authentication", "EventHub Connection String", EventHubNsConnectionString, "ClientID", db.ClientID, "EventHub", db.EventHub)
 	db.producerClient, err = handleEventHubAuthentication(EventHubNsConnectionString, db.EventHub, db.ClientID, db.slogger)
 
+	if err != nil {
+		panic(err)
+	}
+
 	//Redis Cache Setup
 	if useCache {
 		db.slogger.Info("DB Setup and Authentication", "Redis Connection String", RedisConnectionString, "ClientID", db.ClientID)
@@ -75,7 +79,7 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	}
 
 	db.slogger.Info("DB Setup and Authentication", "Cosmos Connection String", CosmosConnectionString)
-	db.cosmosPartitionKey = azcosmos.NewPartitionKeyString("keyId")
+
 	db.cosmosClient, err = azcosmos.NewClientFromConnectionString(CosmosConnectionString, &clientOptions)
 	if err != nil {
 		panic(err)
@@ -85,7 +89,12 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	if err != nil {
 		panic(err)
 	}
+
+	
 	db.cosmosContainer, err = db.cosmosDatabase.NewContainer(db.ContainerName)
+	if err != nil {
+		panic(err)
+	}
 
 	return db, nil
 }
@@ -126,14 +135,13 @@ func encodeForEventHub(data *AesKey) azeventhubs.EventData {
 
 // Get - Retrieve AES Key object from Redis cache or Cosmos DB
 func (k *AESKeyDB) Get(id string) (*AesKey, error) {
-	var keys []*AesKey
 	var key *AesKey
 	var err error
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	if k.CacheEnabled == true {
+	if k.CacheEnabled {
 		k.slogger.Info("Redis Cache", "UseCached", k.CacheEnabled)
 		result, err := k.redisClient.Get(ctx, id).Result()
 
@@ -145,12 +153,13 @@ func (k *AESKeyDB) Get(id string) (*AesKey, error) {
 		}
 	}
 
-	itemResponse, _ := k.cosmosContainer.ReadItem(ctx, k.cosmosPartitionKey, id, nil)
-	err = json.Unmarshal(itemResponse.Value, &keys)
+	cosmosPartitionKey := azcosmos.NewPartitionKeyString(COSMOS_PARTITION_KEY_VALUE)
+	itemResponse, _ := k.cosmosContainer.ReadItem(ctx, cosmosPartitionKey, id, nil)
+	err = json.Unmarshal(itemResponse.Value, &key)
 
-	if err == nil && len(keys) != 0 {
-		k.slogger.Info("CosmosDB Read Details", "Key Details", keys[0])
-		return keys[0], nil
+	if err == nil{
+		k.slogger.Info("CosmosDB Read Details", "Key Details", key)
+		return key, nil
 	}
 
 	k.slogger.Error("CosmosDB Read Details", "Error Details", err)

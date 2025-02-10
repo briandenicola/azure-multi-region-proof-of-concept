@@ -31,8 +31,8 @@ Write-Host "curl -s https://api.ingress.${DomainName}/healthz" -ForegroundColor 
 Write-Host "curl -s --header `"Content-Type: application/json`" --data `'{`"NumberOfKeys`":10}`' https://api.ingress.${DomainName}/api/keys | jq" -ForegroundColor Green
 Write-Host ""
 Write-Host "Pick one of the ids from the above command and then run the following command:"
-Write-Host "export keyid=<id from above" -ForegroundColor Green
-Write-Host "curl -s --header `"Content-Type: application/json`" https://api.ingress.${DomainName}/api/keys/`${keyid} | jq" -ForegroundColor Green
+Write-Host "export id=<id from above" -ForegroundColor Green
+Write-Host "curl -s --header `"Content-Type: application/json`" https://api.ingress.${DomainName}/api/keys/`${id} | jq" -ForegroundColor Green
 Write-Host "exit" -ForegroundColor Green
 Write-Host "...."
 

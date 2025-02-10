@@ -5,9 +5,10 @@ import (
 )
 
 const (
-	EVENT_HUB_NAME         string = "events"
-	COSMOS_DATABASE_NAME   string = "AesKeys"
-	COSMOS_COLLECTION_NAME string = "Items"
+	EVENT_HUB_NAME         		string = "events"
+	COSMOS_DATABASE_NAME   		string = "AesKeys"
+	COSMOS_COLLECTION_NAME 		string = "Items"
+	COSMOS_PARTITION_KEY_VALUE 	string = "SinglePartition"
 )
 
 //RequestBody - How many Keys to Generate
@@ -17,7 +18,8 @@ type RequestBody struct {
 
 //AesKey - AESKey Object
 type AesKey struct {
-	KeyID       string `json:"keyId"`
+	ID      	string `json:"id"`
+	KeyID     	string `json:"keyId"`
 	Key         string `json:"key"`
 	FromCache   bool   `json:"fromCache"`
 	ReadHost    string `json:"readHost"`

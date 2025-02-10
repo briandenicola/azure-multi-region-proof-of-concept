@@ -123,6 +123,7 @@ func createKey() string {
 func NewAesKey() *AesKey {
 	var key = AesKey{
 		createUUID(),
+		COSMOS_PARTITION_KEY_VALUE,
 		createKey(),
 		false,
 		getEmptyString(),

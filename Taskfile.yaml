@@ -6,8 +6,8 @@ env:
   TITLE:                  "CQRS Multi-region Pattern in Azure"
   PRIMARY_REGION:         "canadacentral"
   ALL_REGIONS:            '["canadacentral"]' #,"westus3", "eastus2"]'
-  DOMAIN_ROOT:            "bjd.demo"
-  EXTERNAL_DEPLOYMENT:    true
+  DOMAIN_ROOT:            "bjdazure.tech"
+  EXTERNAL_DEPLOYMENT:    false
   DEPLOYMENT_TYPE:        "single"
   USE_REDIS_CACHE:        false
 
@@ -117,7 +117,7 @@ tasks:
     desc: Builds and pushes the containers to Azure Container Registry
     dir: ./scripts
     cmds:
-    - pwsh ./build-containers.ps1 
+    - pwsh ./build-containers.ps1 {{.CLI_ARGS}}
       -AppName {{.APP_NAME}}
       -ACRName {{.ACR_NAME}}
       -CommitVersion {{.COMMIT_VERSION}}

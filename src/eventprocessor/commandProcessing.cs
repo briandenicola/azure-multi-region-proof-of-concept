@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Azure.Messaging.EventHubs;
+using System.Runtime.Serialization.Formatters.Binary;
+using Azure;
 
 namespace Eventing
 {
@@ -24,10 +26,10 @@ namespace Eventing
         {
             foreach (EventData eventData in events)
             {
-                log.LogInformation($"C# Event Hub trigger function processed a message: {eventData.EventBody}");
-                var item = new AesKey();
-                item.Id = Guid.NewGuid().ToString();
-                item.Key = System.Text.Encoding.UTF8.GetString(eventData.EventBody);
+                log.LogInformation($"Event Hub trigger function processed a message: {eventData.EventBody}");
+                var item =  JsonConvert.DeserializeObject<AesKey>(eventData.EventBody.ToString());
+
+                log.LogInformation($"Key Data: {item.Key}");
                 await keys.AddAsync(item);
 
             }
