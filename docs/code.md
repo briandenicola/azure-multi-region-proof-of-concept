@@ -7,6 +7,9 @@ Core Build & Deployment
 * The application is hosted on Azure Container Apps.
 * Container App Event Triggers scale the Event Processor based on the number of events in the Event Hub.
 * Deployment will create the necessary Container App and required configuration for it in Azure.
+* The task `task build` will build all components of application and push the images to Azure Container Registry. 
+  * To build only one component, use the `task build -- ${BuildOption}`. Possible Build Options are: -BuildApiOnly, -BuildEventProcessorOnly, -BuildChangeFeedProcessorOnly
+* The task `task deploy` will deploy the application to Azure Container Apps. 
 
 UI Build & Deployment
 =============

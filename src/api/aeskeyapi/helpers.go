@@ -3,6 +3,7 @@ package aeskeyapi
 import (
 	"context"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -11,24 +12,22 @@ import (
 	"os"
 	"strings"
 	"time"
-	"crypto/tls"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs"
 	"github.com/redis/go-redis/v9"
-
 )
 
 func handleEventHubAuthentication(EventHubUri string, EventHub string, ClientId string, logger *slog.Logger) (*azeventhubs.ProducerClient, error) {
-	managed, err := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
+
+	managed, _ := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
 		ID: azidentity.ClientID(ClientId),
 	})
 
-	azCLI, err := azidentity.NewAzureCLICredential(nil)
-	credChain, err := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{managed, azCLI}, nil)
-
+	azCLI, _ := azidentity.NewAzureCLICredential(nil)
+	credChain, _ := azidentity.NewChainedTokenCredential([]azcore.TokenCredential{managed, azCLI}, nil)
 
 	producerClient, err := azeventhubs.NewProducerClient(EventHubUri, EventHub, credChain, nil)
 
@@ -56,16 +55,16 @@ func handleRedisAuthentication(RedisUri string, ClientId string, logger *slog.Lo
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:      					RedisUri,
+		Addr:                       RedisUri,
 		CredentialsProviderContext: redisCredentialProvider(credChain),
 		TLSConfig:                  &tls.Config{MinVersion: tls.VersionTLS12},
 	})
 
-	if( redisClient == nil) {
+	if redisClient == nil {
 		logger.Error("Redis Cache", "Error", "Error creating connection to Redis Cache")
 		CacheEnabled = false
 	}
-	
+
 	return redisClient, CacheEnabled
 }
 
