@@ -137,7 +137,40 @@ Apply complete! Resources: 4 added, 1 changed, 0 destroyed.
 # UI Build and Deployment 
 ```bash
 ➜  cqrs git:(main) ✗ task ui
-....
+task: [ui] swa build -a . -O build -A 'dotnet publish -o build'
+
+Welcome to Azure Static Web Apps CLI (2.0.2)
+
+Build configuration:
+- App location: .
+- API location:
+- Output location: build
+- App build command: dotnet publish -o build
+- API build command:
+(node:24899) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Building app with dotnet publish -o build in . ...
+Restore complete (0.5s)
+  ui succeeded (2.4s) → build/
+
+Build succeeded in 3.2s
+
+Welcome to Azure Static Web Apps CLI (2.0.2)
+
+Deploying front-end files from folder:
+  /home/brian/code/cqrs/src/ui/build/wwwroot
+
+(node:24970) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Consider providing api-language and version using --api-language and --api-version flags,
+    otherwise default values apiLanguage: node and apiVersion: 16 will apply
+
+Deploying to environment: production
+
+Deploying project to Azure Static Web Apps...
+✔ Project deployed to https://brave-sky.4.azurestaticapps.net 🚀
+
+task: [ui] rm -rf build/
 ```
 
 # Navigation

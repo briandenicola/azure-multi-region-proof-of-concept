@@ -170,14 +170,17 @@ tasks:
 
   ui:
     desc: Deploys the UI code to Azure Static Web Apps
+    dir: ./src/ui
     cmds:
-    - cmd: swa deploy --env production --app-location "./src/ui" --deployment-token {{.DEPLOY_TOKEN}}
+    - cmd: swa build -a . -O build -A 'dotnet publish -o build'
+    - cmd: swa deploy --env production --app-location build/wwwroot --deployment-token {{.DEPLOY_TOKEN}}
       silent: true 
+    - cmd: rm -rf build/
     vars:
       APP_NAME:
-        sh: terraform -chdir=../infrastructure/core output -raw APP_NAME
-      SWA:
-        sh: terraform -chdir=../infrastructure/core output -raw AZURE_STATIC_WEBAPP_NAME
+        sh: terraform -chdir=../../infrastructure/core output -raw APP_NAME
+      SWA: monitor-54936-ui
+        #sh: terraform -chdir=../../infrastructure/core output -raw AZURE_STATIC_WEBAPP_NAME
       DEPLOY_TOKEN:
         sh: az staticwebapp secrets list --name {{.SWA}} --query "properties.apiKey" -o tsv
         
