@@ -22,8 +22,8 @@ acme.sh --issue --dns dns_azure -d api.bjd.demo
 acme.sh --toPkcs -d api.ingres.bjd.demo --password $PfxPASSWORD
 ```
 ### Notes
-> Set ACA_INGRESS_PFX_CERT_PASSWORD in the  ~/.env file to the $PfxPASSWORD value
-> Set ACA_INGRESS_PFX_CERT_PATH in the ~/.env file to the path where the pfx file is be stored
+> * Set ACA_INGRESS_PFX_CERT_PASSWORD in the  ~/.env file to the $PfxPASSWORD value
+> * Set ACA_INGRESS_PFX_CERT_PATH in the ~/.env file to the path where the pfx file is be stored
 <p align="right">(<a href="#lets-encrypt-tls-certificates">back to top</a>)</p>
 
 ## Optional Certificates 
@@ -35,8 +35,8 @@ acme.sh --issue --dns dns_azure -d \*.apim.bjd.demo -d \*.scm.apim.bjd.demo -d \
 acme.sh --toPkcs -d \*.apim.bjd.demo --password $PfxPASSWORD
 ```
 ### Notes
-> Set APIM_PFX_CERT_PATH in the  ~/.env file to the $PfxPASSWORD value
-> Set APIM_PFX_CERT_PASSWORD in the ~/.env file to the path where the pfx file is be stored
+> * Set APIM_PFX_CERT_PATH in the  ~/.env file to the $PfxPASSWORD value
+> * Set APIM_PFX_CERT_PASSWORD in the ~/.env file to the path where the pfx file is be stored
 <p align="right">(<a href="#lets-encrypt-tls-certificates">back to top</a>)</p>
 
 ### AppGateway Certificate Request
@@ -45,8 +45,8 @@ acme.sh --issue --dns dns_azure -d api.bjd.demo -d centralcanada.api.bjd.demo -d
 acme.sh --toPkcs -d api.bjd.demo --password $PfxPASSWORD
 ```
 ### Notes
-> Set APP_GW_PFX_CERT_PATH in the  ~/.env file to the $PfxPASSWORD value
-> Set APP_GW_PFX_CERT_PASSWORD in the ~/.env file to the path where the pfx file is be stored
+> * Set APP_GW_PFX_CERT_PATH in the  ~/.env file to the $PfxPASSWORD value
+> * Set APP_GW_PFX_CERT_PASSWORD in the ~/.env file to the path where the pfx file is be stored
 
 
 ## Example ENV File
