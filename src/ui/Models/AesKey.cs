@@ -1,13 +1,13 @@
-namespace cqrs_ui.models {
+namespace cqrs.ui.models {
     public class AesKey {
-        public string   keyId       { get; set; }
-        public string   key         { get; set; }
-        public bool     fromCache   { get; set; }        
-        public string   readHost    { get; set; }
-        public string   writeHost   { get; set; }
-        public string   readRegion  { get; set; }
-        public string   writeRegion { get; set; }
-        public string   timeStamp   { get; set; }
-
+        public string   id          { get; set; } = String.Empty;
+        public string   keyId       { get; set; } = String.Empty;
+        public string   key         { get; set; } = String.Empty;
+        public bool     fromCache   { get; set; } = false;
+        public string   readHost    { get; set; } = String.Empty;
+        public string   writeHost   { get; set; } = String.Empty;
+        public string   readRegion  { get; set; } = String.Empty;
+        public string   writeRegion { get; set; } = String.Empty;
+        public string   timeStamp   { get; set; } = String.Empty;
     }
 }

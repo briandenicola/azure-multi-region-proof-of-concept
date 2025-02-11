@@ -1,24 +1,21 @@
-using System;
 using System.Threading.Tasks;
-using System.Net.Http;
-using System.Text.Json;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
-using System.ComponentModel.DataAnnotations;
-using cqrs_ui.models;
+using cqrs.ui.models;
 
-namespace cqrs_ui.pages {
+namespace cqrs.ui.pages {
 
     public class IndexComponent : ComponentBase
     {
         protected int numKeys = 50;
-        protected List<AesKey> keys;
+        protected List<AesKey>? keys;
 
         [Inject]
-        protected KeyService req { get; set; }
+        protected KeyService? req { get; set; }
 
         protected async Task HandleHttpRequest()
         {
+            if( req == null ) return;
             keys = await req.SendPostRequest(numKeys);
         }
 

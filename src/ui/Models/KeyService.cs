@@ -5,17 +5,17 @@ using System.Text.Json;
 using System.Net.Http;
 using System.Collections.Generic;
 
-namespace cqrs_ui.models {
+namespace cqrs.ui.models {
     public class KeyService {
-        public string uri { get; set; }
-
-        public HttpClient httpClient { get; set; }
+        public string uri { get; set; } = "https://your-api-name.azure-api.net";
 
         public string uriPath { get; set; } = "/k/keys";
 
-        public string apiVersion { get; set; } = "api-version=2020-05-04";
+        public string apiVersion { get; set; } = "api-version=2025-01-01";
         
-        public string subscriptionKey  { get; set; }
+        public string subscriptionKey  { get; set; } = "your-subscription-key";
+
+        public HttpClient httpClient { get; set; }
 
         public KeyService() {
             httpClient = new HttpClient();
@@ -36,8 +36,8 @@ namespace cqrs_ui.models {
         {   
             List<AesKey> keys = new List<AesKey>();
 
-            if( Uri.TryCreate( new Uri(uri), $"{uriPath}/{requstedKeys}?{apiVersion}", out Uri fqdn) ) {
-                keys = JsonSerializer.Deserialize<List<AesKey>>(await SendRequest(HttpMethod.Post, fqdn));
+            if( Uri.TryCreate( new Uri(uri), $"{uriPath}/{requstedKeys}?{apiVersion}", out Uri? fqdn) ) {
+                keys = JsonSerializer.Deserialize<List<AesKey>>(await SendRequest(HttpMethod.Post, fqdn)) ?? new List<AesKey>();
             }
             return keys;
         }
@@ -46,7 +46,7 @@ namespace cqrs_ui.models {
         {
             AesKey key = new AesKey();
 
-            if( Uri.TryCreate( new Uri(uri), $"{uriPath}/{id}?{apiVersion}", out Uri fqdn) )
+            if( Uri.TryCreate( new Uri(uri), $"{uriPath}/{id}?{apiVersion}", out Uri? fqdn) )
             {
                 if( region != String.Empty ) 
                 {
@@ -57,7 +57,7 @@ namespace cqrs_ui.models {
                     fqdn = uriBuilder.Uri;         
                 }  
                 
-                key = JsonSerializer.Deserialize<AesKey>(await SendRequest(HttpMethod.Get, fqdn));
+                key = JsonSerializer.Deserialize<AesKey>(await SendRequest(HttpMethod.Get, fqdn)) ?? new AesKey();
             }
 
             return key;

@@ -1,12 +1,11 @@
 ﻿@inherits IndexComponent
 @page "/"
-@using cqrs_ui.pages
-@using cqrs_ui.models
+@using cqrs.ui.pages
+@using cqrs.ui.models
 
 <h1>Random Number Generator</h1>
 
 <hr/>
-
     <EditForm Model="@req" OnValidSubmit="@HandleSaveConfig">
         <DataAnnotationsValidator />
         <ValidationSummary />
