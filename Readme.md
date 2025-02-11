@@ -94,7 +94,7 @@ APIM_URLS | The Urls for the APIM Gateways | .env | External Only | ["westus.api
 - [x] Gracefully handle connection issues on API startup - non-persistent mode
 - [x] Review new APIM v2 features and platform for additional updates
 - [x] Update documentation 
-- [] Review AppGateway and Front Door configurations for additional updates
+- [ ] Review AppGateway and Front Door configurations for additional updates
 
 # Setup
 [Return to Main Index 🏠](../README.md)  ‖ [Next Section ⏩](./docs/letsencrypt.md)
