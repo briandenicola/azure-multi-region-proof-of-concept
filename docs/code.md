@@ -147,8 +147,6 @@ Build configuration:
 - Output location: build
 - App build command: dotnet publish -o build
 - API build command:
-(node:24899) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-(Use `node --trace-deprecation ...` to show where the warning was created)
 Building app with dotnet publish -o build in . ...
 Restore complete (0.5s)
   ui succeeded (2.4s) → build/
@@ -159,11 +157,6 @@ Welcome to Azure Static Web Apps CLI (2.0.2)
 
 Deploying front-end files from folder:
   /home/brian/code/cqrs/src/ui/build/wwwroot
-
-(node:24970) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-Consider providing api-language and version using --api-language and --api-version flags,
-    otherwise default values apiLanguage: node and apiVersion: 16 will apply
 
 Deploying to environment: production
 
