@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using blazor;
+using ui;
 using cqrs.ui;
 using cqrs.ui.models;
 
