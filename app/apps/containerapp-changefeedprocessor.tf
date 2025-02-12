@@ -1,10 +1,9 @@
-resource "azurerm_container_app" "eventprocessor" {
+resource "azurerm_container_app" "changefeedprocessor" {
   depends_on = [ 
     azurerm_key_vault_secret.cosmosdb_connection_string,
     azurerm_key_vault_secret.app_insights_connection_string
   ]
-  
-  name                         = "eventprocessor"
+  name                         = local.app_changefeedprocessor_name
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = local.apps_rg_name
   revision_mode                = "Single"
@@ -24,10 +23,10 @@ resource "azurerm_container_app" "eventprocessor" {
 
   template {
     container {
-      name   = "eventprocessor"
-      image  = local.eventprocessor_image
-      cpu    = 0.5
-      memory = "1Gi"
+      name   = local.app_changefeedprocessor_name
+      image  = local.app_changefeedprocessor_image
+      cpu    = 1
+      memory = "0.5Gi"
 
       env {
         name        = "COSMOSDB_CONNECTIONSTRING"
@@ -40,36 +39,31 @@ resource "azurerm_container_app" "eventprocessor" {
 
       env {
         name  = "AzureFunctionsJobHost__functions__0"
-        value = "CommandProcessing"
+        value = "CosmosChangeFeedProcessor"
       }
       env {
         name  = "FUNCTIONS_WORKER_RUNTIME"
         value = "dotnet-isolated"
       }
-      
+
       env {
-        name  = "FUNCTIONS_EXTENSION_VERSION"
-        value = "~4"
+        name  = "CACHE_ENABLED"
+        value = var.use_cache
       }
 
       env {
-        name  = "LEASE_COLLECTION_PREFIX"
-        value = var.location
+        name  = "redisConnectionString__redisHostName"
+        value = "${local.redis_name}.${var.location}.redis.azure.net:10000"
       }
 
       env {
-        name  = "EVENTHUB_CONNECTIONSTRING__credential"
-        value = "managedidentity"
+        name  = "redisConnectionString__principalId"
+        value = azurerm_user_assigned_identity.app_identity.principal_id
       }
 
       env {
-        name  = "EVENTHUB_CONNECTIONSTRING__clientId"
+        name  = "redisConnectionString__clientId"
         value = azurerm_user_assigned_identity.app_identity.client_id
-      }
-
-      env {
-        name  = "EVENTHUB_CONNECTIONSTRING__fullyQualifiedNamespace"
-        value = "${local.eventhub_namespace_name}.servicebus.windows.net" 
       }
 
       env {
@@ -98,27 +92,11 @@ resource "azurerm_container_app" "eventprocessor" {
       env {
         name  = "AzureWebJobsStorage__blobServiceUri"
         value = data.azurerm_storage_account.cqrs.primary_blob_endpoint
-      }     
+      }
     }
 
-    max_replicas = 15
+    max_replicas = 1
     min_replicas = 1
-  
-    # Terraform does not support custom scale rules with managed identity yet.
-    # custom_scale_rule {
-    #   name              = "eventprocessor"
-    #   custom_rule_type  = "azure-eventhub"
-    #   metadata = {
-    #     minReplica         = 0
-    #     maxReplica         = 15
-    #     cooldownPeriod     = 120
-    #     pollingInterval    = 15
-    #     consumerGroup      = "eventsfunction"
-    #     checkpointStrategy = "azureFunction"
-    #     connectionFromEnv  = "EVENTHUB_CONNECTIONSTRINGSTRING"
-    #     storageConnectionFromEnv : "AzureWebJobsStorage"
-    #   }
-    # }
   }
 
   secret {

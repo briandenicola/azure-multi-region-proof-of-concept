@@ -15,3 +15,8 @@ resource azurerm_key_vault_secret app_insights_connection_string {
   value        = data.azurerm_application_insights.cqrs.connection_string
   key_vault_id = data.azurerm_key_vault.cqrs.id
 }
+
+data "azurerm_key_vault" "cqrs" {
+  name                = local.kv_name
+  resource_group_name = local.apps_rg_name
+}

@@ -4,7 +4,7 @@ resource "azurerm_container_app" "api" {
     azurerm_key_vault_secret.app_insights_connection_string
   ]
   
-  name                         = "api"
+  name                         = local.app_api_name
   container_app_environment_id = data.azurerm_container_app_environment.this.id
   resource_group_name          = local.apps_rg_name
   revision_mode                = "Multiple"
@@ -36,8 +36,8 @@ resource "azurerm_container_app" "api" {
 
   template {
     container {
-      name   = "api"
-      image  = local.api_image
+      name   = local.app_api_name
+      image  = local.app_api_image
       cpu    = 1
       memory = "0.5Gi"
 
@@ -110,7 +110,7 @@ resource "azurerm_container_app_custom_domain" "api" {
   depends_on = [
     azurerm_container_app.api
   ]
-  name                                     = local.ingress_domain_name 
+  name                                     = local.app_api_custom_domain_name 
   certificate_binding_type                 = "SniEnabled"
   container_app_id                         = azurerm_container_app.api.id
   container_app_environment_certificate_id = data.azurerm_container_app_environment_certificate.this.id
