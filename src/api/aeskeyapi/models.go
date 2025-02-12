@@ -1,9 +1,5 @@
 package aeskeyapi
 
-import (
-//"github.com/a8m/documentdb"
-)
-
 const (
 	EVENT_HUB_NAME         		string = "events"
 	COSMOS_DATABASE_NAME   		string = "AesKeys"

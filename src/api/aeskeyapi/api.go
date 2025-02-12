@@ -26,7 +26,7 @@ type API interface {
 	LogErrorHandler(err error)
 }
 
-// AESApi Structre
+// AESApi Structure
 type AESApi struct {
 	keydb    *AESKeyDB
 	aiClient appinsights.TelemetryClient
@@ -44,6 +44,7 @@ func NewKeyAPI() *AESApi {
 	if err != nil {
 		c = false
 	}
+
 	api.keydb, _ = NewKeysDB(c)
 	api.aiClient.Track(appinsights.NewTraceTelemetry("Setup of Database Connections complete...", appinsights.Information))
 
@@ -93,6 +94,7 @@ func (a *AESApi) CustomLogger(param gin.LogFormatterParams) string {
 }
 
 func (a *AESApi) AppInsightsTracer() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
 		startTime := time.Now()
 		c.Next()
@@ -107,6 +109,7 @@ func (a *AESApi) AppInsightsTracer() gin.HandlerFunc {
 }
 
 func (a *AESApi) LogErrorHandler(c *gin.Context, err error) {
+	
 	if err != nil {
 		a.slogger.Error("Error", "key", err)
 		trace := appinsights.NewTraceTelemetry(err.Error(), appinsights.Error)
@@ -134,11 +137,12 @@ func (a *AESApi) Options(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
 }
 
+// NotImplemented - HTTP Not Implemented Handler	
 func (a *AESApi) NotImplemented(c *gin.Context) {
 	c.String(http.StatusNotImplemented, "")
 }
 
-// GetbyId - HTTP GET Handler
+// GetById - HTTP GET Handler
 func (a *AESApi) GetById(c *gin.Context) {
 
 	id := c.Param("id")
