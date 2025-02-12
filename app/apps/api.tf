@@ -110,7 +110,7 @@ resource "azurerm_container_app_custom_domain" "api" {
   depends_on = [
     azurerm_container_app.api
   ]
-  name                                     = "api.ingress.${var.custom_domain}"
+  name                                     = local.ingress_domain_name 
   certificate_binding_type                 = "SniEnabled"
   container_app_id                         = azurerm_container_app.api.id
   container_app_environment_certificate_id = data.azurerm_container_app_environment_certificate.this.id

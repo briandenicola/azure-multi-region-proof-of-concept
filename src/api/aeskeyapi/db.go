@@ -73,23 +73,7 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	}
 
 	//Cosmos DB Setup
-	clientOptions := azcosmos.ClientOptions{
-		EnableContentResponseOnWrite: true,
-	}
-
-	db.slogger.Info("DB Setup and Authentication", "Cosmos Connection String", CosmosConnectionString)
-
-	db.cosmosClient, err = azcosmos.NewClientFromConnectionString(CosmosConnectionString, &clientOptions)
-	if err != nil {
-		panic(err)
-	}
-
-	db.cosmosDatabase, err = db.cosmosClient.NewDatabase(db.DatabaseName)
-	if err != nil {
-		panic(err)
-	}
-
-	db.cosmosContainer, err = db.cosmosDatabase.NewContainer(db.ContainerName)
+	db.cosmosClient, db.cosmosDatabase, db.cosmosContainer, err = handleCosmosDBAuthentication(CosmosConnectionString, db.DatabaseName, db.ContainerName, db.slogger)
 	if err != nil {
 		panic(err)
 	}
@@ -122,13 +106,6 @@ func (k *AESKeyDB) Save() ([]*AesKey, error) {
 		}
 	}
 	return k.keys, err
-}
-
-func encodeForEventHub(data *AesKey) azeventhubs.EventData {
-	encoded, _ := json.Marshal(data)
-	return azeventhubs.EventData{
-		Body: encoded,
-	}
 }
 
 // Get - Retrieve AES Key object from Redis cache or Cosmos DB

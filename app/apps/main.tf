@@ -27,7 +27,7 @@ locals {
   workload_profile_name         = "default"
   COSMOSDB_CONNECTIONSTRING     = "cosmosdb-connection-string"
   APPINSIGHTS_CONNECTION_STRING = "appinsights-connection-string"
-
+  ingress_domain_name           = var.ingress_domain_name
   api_image                     = "${local.acr_fqdn}/cqrs/api:${var.commit_version}"
   eventprocessor_image          = "${local.acr_fqdn}/cqrs/eventprocessor:${var.commit_version}"
   changefeedprocessor_image     = "${local.acr_fqdn}/cqrs/changefeedprocessor:${var.commit_version}"

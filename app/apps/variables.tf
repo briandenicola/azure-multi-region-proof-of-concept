@@ -14,6 +14,11 @@ variable "custom_domain" {
   description = "The custom domain for this application deployment"
 }
 
+variable "ingress_domain_name" {
+  description = "The domain name for API ingress controller"
+  default     = "api.ingress.${var.custom_domain}"
+}
+
 variable "deploy_utils" {
   description = "Whether to deploy the utils container"
   default     = false

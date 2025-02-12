@@ -103,7 +103,8 @@ resource "azurerm_container_app" "eventprocessor" {
 
     max_replicas = 15
     min_replicas = 1
-
+  
+    # Terraform does not support custom scale rules with managed identity yet.
     # custom_scale_rule {
     #   name              = "eventprocessor"
     #   custom_rule_type  = "azure-eventhub"

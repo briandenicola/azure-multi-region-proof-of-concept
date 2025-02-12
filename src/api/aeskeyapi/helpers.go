@@ -17,8 +17,43 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs"
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
+		
 	"github.com/redis/go-redis/v9"
 )
+
+func handleCosmosAuthentication(CosmosConnectionString string, DatabaseName string, ContainerName, logger *slog.Logger) (*azcosmos.Client, *azcomosdb.DatabaseClient, *azcosmos.ContainerClient, err) {
+	var (
+		err error
+		cosmosClient *azcosmos.Client
+		cosmosDatabase *azcosmos.DatabaseClient
+		cosmosContainer *azcosmos.ContainerClient	
+	)
+	
+	clientOptions := azcosmos.ClientOptions{
+		EnableContentResponseOnWrite: true,
+	}
+
+	slogger.Info("DB Setup and Authentication", "Cosmos Connection String", CosmosConnectionString)
+
+	cosmosClient, err = azcosmos.NewClientFromConnectionString(CosmosConnectionString, &clientOptions)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	cosmosDatabase, err = cosmosClient.NewDatabase(DatabaseName)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+
+	cosmosContainer, err = db.cosmosDatabase.NewContainer(ContainerName)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return cosmosClient, cosmosDatabase, cosmosContainer, nil
+}
 
 func handleEventHubAuthentication(EventHubUri string, EventHub string, ClientId string, logger *slog.Logger) (*azeventhubs.ProducerClient, error) {
 
@@ -76,7 +111,7 @@ func redisCredentialProvider(credential azcore.TokenCredential) func(context.Con
 		if err != nil {
 			return "", "", err
 		}
-		// the token is a JWT; get the principal's object ID from its payload
+
 		parts := strings.Split(tk.Token, ".")
 		if len(parts) != 3 {
 			return "", "", errors.New("token must have 3 parts")
@@ -96,6 +131,13 @@ func redisCredentialProvider(credential azcore.TokenCredential) func(context.Con
 			return "", "", errors.New("missing object ID claim")
 		}
 		return claims.OID, tk.Token, nil
+	}
+}
+
+func encodeForEventHub(data *AesKey) azeventhubs.EventData {
+	encoded, _ := json.Marshal(data)
+	return azeventhubs.EventData{
+		Body: encoded,
 	}
 }
 

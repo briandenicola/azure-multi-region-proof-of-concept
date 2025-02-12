@@ -3,7 +3,7 @@
 	"build": {
 		"dockerfile": "Dockerfile",
 		"args": { 
-			"VARIANT": "dev-8.0-jammy",
+			"VARIANT": "dev-9.0-noble",
 			"NODE_VERSION": "lts/*"
 		}
 	},
@@ -13,14 +13,15 @@
 		"vscode": {	
 			"extensions": [
 				"ms-dotnettools.csharp",
+				"ms-dotnettools.vscode-dotnet-runtime",
+				"golang.go",
 				"ms-azuretools.vscode-docker",
-				"ms-azuretools.vscode-dapr",
 				"ms-azuretools.vscode-azureterraform",
+				"ms-azuretools.vscode-azurefunctions",
+				"ms-azuretools.vscode-azurecontainerapps",
+				"ms-azuretools.vscode-azure-github-copilot",
 				"ms-vscode.powershell",
-				"ms-vscode.azure-account",
-				"ms-kubernetes-tools.aks-devx-tools",
-				"ms-kubernetes-tools.vscode-kubernetes-tools",
-				"github.vscode-pull-request-github",				
+				"github.vscode-pull-request-github",	
 				"github.copilot",
 				"mindaro.mindaro" 
 			]
@@ -33,6 +34,7 @@
 	"features": {
 		"ghcr.io/devcontainers/features/azure-cli:1": {},
 		"ghcr.io/devcontainers/features/common-utils:1": {},
+		"ghcr.io/devcontainers/features/go:1": {},
 		"ghcr.io/devcontainers/features/terraform:1": {},
 		"ghcr.io/devcontainers/features/docker-from-docker:1": {},
 		"ghcr.io/devcontainers/features/sshd:1": {
