@@ -22,7 +22,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func handleCosmosAuthentication(CosmosConnectionString string, DatabaseName string, ContainerName, logger *slog.Logger) (*azcosmos.Client, *azcomosdb.DatabaseClient, *azcosmos.ContainerClient, err) {
+func handleCosmosDBAuthentication(CosmosConnectionString string, DatabaseName string, ContainerName string, logger *slog.Logger) (*azcosmos.Client, *azcosmos.DatabaseClient, *azcosmos.ContainerClient, error) {
 	var (
 		err error
 		cosmosClient *azcosmos.Client
@@ -34,7 +34,7 @@ func handleCosmosAuthentication(CosmosConnectionString string, DatabaseName stri
 		EnableContentResponseOnWrite: true,
 	}
 
-	slogger.Info("DB Setup and Authentication", "Cosmos Connection String", CosmosConnectionString)
+	logger.Info("DB Setup and Authentication", "Cosmos Connection String", CosmosConnectionString)
 
 	cosmosClient, err = azcosmos.NewClientFromConnectionString(CosmosConnectionString, &clientOptions)
 	if err != nil {
@@ -47,7 +47,7 @@ func handleCosmosAuthentication(CosmosConnectionString string, DatabaseName stri
 	}
 
 
-	cosmosContainer, err = db.cosmosDatabase.NewContainer(ContainerName)
+	cosmosContainer, err = cosmosDatabase.NewContainer(ContainerName)
 	if err != nil {
 		return nil, nil, nil, err
 	}
