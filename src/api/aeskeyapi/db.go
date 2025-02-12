@@ -32,10 +32,10 @@ type AESKeyDB struct {
 
 	producerClient *azeventhubs.ProducerClient
 	redisClient    *redis.Client
-	cosmosClient   *azcosmos.Client
 
+	cosmosClient   *azcosmos.Client
 	cosmosContainer *azcosmos.ContainerClient
-	cosmosDatabase  *azcosmos.DatabaseClient
+	
 	keys            []*AesKey
 }
 
@@ -73,7 +73,7 @@ func NewKeysDB(useCache bool) (*AESKeyDB, error) {
 	}
 
 	//Cosmos DB Setup
-	db.cosmosClient, db.cosmosDatabase, db.cosmosContainer, err = handleCosmosDBAuthentication(CosmosConnectionString, db.DatabaseName, db.ContainerName, db.slogger)
+	db.cosmosClient, db.cosmosContainer, err = handleCosmosDBAuthentication(CosmosConnectionString, db.DatabaseName, db.ContainerName, db.slogger)
 	if err != nil {
 		panic(err)
 	}

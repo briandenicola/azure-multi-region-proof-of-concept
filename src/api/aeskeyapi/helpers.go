@@ -22,7 +22,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func handleCosmosDBAuthentication(CosmosConnectionString string, DatabaseName string, ContainerName string, logger *slog.Logger) (*azcosmos.Client, *azcosmos.DatabaseClient, *azcosmos.ContainerClient, error) {
+func handleCosmosDBAuthentication(CosmosConnectionString string, DatabaseName string, ContainerName string, logger *slog.Logger) (*azcosmos.Client, *azcosmos.ContainerClient, error) {
 	var (
 		err error
 		cosmosClient *azcosmos.Client
@@ -38,21 +38,21 @@ func handleCosmosDBAuthentication(CosmosConnectionString string, DatabaseName st
 
 	cosmosClient, err = azcosmos.NewClientFromConnectionString(CosmosConnectionString, &clientOptions)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	cosmosDatabase, err = cosmosClient.NewDatabase(DatabaseName)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 
 	cosmosContainer, err = cosmosDatabase.NewContainer(ContainerName)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
-	return cosmosClient, cosmosDatabase, cosmosContainer, nil
+	return cosmosClient, cosmosContainer, nil
 }
 
 func handleEventHubAuthentication(EventHubUri string, EventHub string, ClientId string, logger *slog.Logger) (*azeventhubs.ProducerClient, error) {
