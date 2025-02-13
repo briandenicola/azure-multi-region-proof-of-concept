@@ -75,7 +75,7 @@ func handleEventHubAuthentication(EventHubUri string, EventHub string, ClientId 
 
 func handleRedisAuthentication(RedisUri string, ClientId string, logger *slog.Logger) (*redis.Client, bool) {
 
-	var CacheEnabled = false
+	var cacheEnabled = false
 
 	managed, _ := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
 		ID: azidentity.ClientID(ClientId),
@@ -97,39 +97,47 @@ func handleRedisAuthentication(RedisUri string, ClientId string, logger *slog.Lo
 
 	if redisClient == nil {
 		logger.Error("Redis Cache", "Error", "Error creating connection to Redis Cache")
-		CacheEnabled = false
+		cacheEnabled = false
 	}
 
-	return redisClient, CacheEnabled
+	return redisClient, cacheEnabled
 }
 
 func redisCredentialProvider(credential azcore.TokenCredential) func(context.Context) (string, string, error) {
+	
 	return func(ctx context.Context) (string, string, error) {
+
 		tk, err := credential.GetToken(ctx, policy.TokenRequestOptions{
 			Scopes: []string{"https://redis.azure.com/.default"},
 		})
+		
 		if err != nil {
 			return "", "", err
 		}
 
 		parts := strings.Split(tk.Token, ".")
-		if len(parts) != 3 {
+		if len(parts) != 3 {		
 			return "", "", errors.New("token must have 3 parts")
 		}
+
 		payload, err := base64.RawURLEncoding.DecodeString(parts[1])
 		if err != nil {
 			return "", "", fmt.Errorf("couldn't decode payload: %s", err)
 		}
+
 		claims := struct {
 			OID string `json:"oid"`
 		}{}
+
 		err = json.Unmarshal(payload, &claims)
 		if err != nil {
 			return "", "", fmt.Errorf("couldn't unmarshal payload: %s", err)
 		}
+
 		if claims.OID == "" {
 			return "", "", errors.New("missing object ID claim")
 		}
+
 		return claims.OID, tk.Token, nil
 	}
 }
