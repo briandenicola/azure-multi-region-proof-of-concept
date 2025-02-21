@@ -179,8 +179,8 @@ tasks:
     vars:
       APP_NAME:
         sh: terraform -chdir=../../infrastructure/core output -raw APP_NAME
-      SWA: monitor-54936-ui
-        #sh: terraform -chdir=../../infrastructure/core output -raw AZURE_STATIC_WEBAPP_NAME
+      SWA: 
+        sh: terraform -chdir=../../infrastructure/core output -raw AZURE_STATIC_WEBAPP_NAME
       DEPLOY_TOKEN:
         sh: az staticwebapp secrets list --name {{.SWA}} --query "properties.apiKey" -o tsv
         
