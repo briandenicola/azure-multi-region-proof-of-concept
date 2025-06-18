@@ -34,12 +34,12 @@ locals {
   acr_fqdn                      = "${local.acr_name}.azurecr.io"
   app_identity                  = "${local.regional_name}-app-identity"
   app_eventprocessor_name       = "eventprocessor"
-  app_eventprocessor_image      = "${local.acr_fqdn}/cqrs/${app_eventprocessor_name}:${var.commit_version}"
+  app_eventprocessor_image      = "${local.acr_fqdn}/cqrs/${local.app_eventprocessor_name}:${var.commit_version}"
 
   app_changefeedprocessor_name  = "changefeedprocessor"
-  app_changefeedprocessor_image = "${local.acr_fqdn}/cqrs/${app_changefeedprocessor_name}:${var.commit_version}"
+  app_changefeedprocessor_image = "${local.acr_fqdn}/cqrs/${local.app_changefeedprocessor_name}:${var.commit_version}"
 
   app_api_name                  = "api"
-  app_api_image                 = "${local.acr_fqdn}/cqrs/${app_api_name}:${var.commit_version}"
-  app_api_custom_domain_name    = var.ingress_domain_name
+  app_api_image                 = "${local.acr_fqdn}/cqrs/${local.app_api_name}:${var.commit_version}"
+  app_api_custom_domain_name    = var.ingress_domain_name == null ? "api.ingress.${var.custom_domain}" : var.ingress_domain_name
 }

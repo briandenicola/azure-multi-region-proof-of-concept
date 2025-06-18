@@ -16,7 +16,7 @@ variable "custom_domain" {
 
 variable "ingress_domain_name" {
   description = "The domain name for API ingress controller"
-  default     = "api.ingress.${var.custom_domain}"
+  default = null
 }
 
 variable "deploy_utils" {
