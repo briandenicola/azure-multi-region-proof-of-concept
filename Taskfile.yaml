@@ -140,6 +140,7 @@ tasks:
         -var "commit_version={{.COMMIT_VERSION}}"
         -var "custom_domain={{.DOMAIN_ROOT}}"
         -var "use_cache={{.USE_REDIS_CACHE}}"
+        -var "tags={{.TITLE}}"
         -compact-warnings
     vars:
       REGION: "{{default .PRIMARY_REGION .CLI_ARGS}}"

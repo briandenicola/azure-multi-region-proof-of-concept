@@ -4,6 +4,8 @@ variable "vm" {
     location            = string
     resource_group_name = string
     sku                 = string
+    tags                = string
+    app_name            = string
     admin = object({
       username = string
       ssh_key_path        = string

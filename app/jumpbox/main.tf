@@ -1,3 +1,15 @@
+
+resource "azurerm_resource_group" "cqrs_vm" {
+  name     = var.vm.resource_group_name
+  location = var.vm.location
+  tags = {
+    Application = var.vm.tags
+    AppName     = var.vm.app_name
+    Components  = "Jumpbox Virtual Machine, User Assigned Identity, Network Interface"
+    DeployedOn  = timestamp()
+  }
+}
+
 resource "azurerm_user_assigned_identity" "this" {
   name                = "${var.vm.name}-identity"
   resource_group_name = var.vm.resource_group_name
