@@ -11,12 +11,20 @@ resource "azurerm_resource_group" "cqrs_vm" {
 }
 
 resource "azurerm_user_assigned_identity" "this" {
+  depends_on = [ 
+    azurerm_resource_group.cqrs_vm
+  ]
+
   name                = "${var.vm.name}-identity"
   resource_group_name = var.vm.resource_group_name
   location            = var.vm.location
 }
 
 resource "azurerm_network_interface" "this" {
+  depends_on = [ 
+    azurerm_resource_group.cqrs_vm
+  ]
+
   name                = "${var.vm.name}-nic"
   resource_group_name = var.vm.resource_group_name
   location            = var.vm.location
@@ -29,6 +37,10 @@ resource "azurerm_network_interface" "this" {
 }
 
 resource "azurerm_linux_virtual_machine" "this" {
+  depends_on = [ 
+    azurerm_resource_group.cqrs_vm
+  ]
+
   name                = "${var.vm.name}-linux"
   resource_group_name = var.vm.resource_group_name
   location            = var.vm.location
