@@ -46,7 +46,7 @@ tasks:
       REGION: "{{default .PRIMARY_REGION .CLI_ARGS}}"
 
   external:
-    desc: Deploys the external components using ARM Templates
+    desc: Deploys the external (APIM/AppGateway/FrontDoor) components
     cmds:
     - task: apim
     - task: appgateway
