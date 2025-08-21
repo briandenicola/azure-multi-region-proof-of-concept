@@ -62,7 +62,7 @@ $pfxEncoded        = [convert]::ToBase64String( (Get-Content -AsByteStream -Path
 $deploymentName = "ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss")
 $templateFile = Join-Path -Path $PWD.Path -ChildPath ("azuredeploy.{0}-region.json" -f $DeploymentType)
 $primaryVnetName = "{0}-{1}-vnet" -f $ApplicationName, $AllRegions[0]
-$primaryVnetResourceGroup = "{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[0]
+$primaryVnetResourceGroup = "{0}_{1}_vnet_rg" -f $ApplicationName, $AllRegions[0]
 
 # Build parameters JSON for the deployment
 $opts = @{
@@ -86,7 +86,7 @@ if ($DeploymentType -eq "multiregion")
     $opts.secondaryLocation = @{ value = $AllRegions[1] }
     $opts.secondaryProxyFQDN = @{ value = $AllApimGatewayUrls[1] }
     $opts.secondaryVnetName = @{ value = ("{0}-{1}-vnet" -f $ApplicationName, $AllRegions[1]) }
-    $opts.secondaryVnetResourceGroup = @{ value = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[1]) }
+    $opts.secondaryVnetResourceGroup = @{ value = ("{0}_{1}_vnet_rg" -f $ApplicationName, $AllRegions[1]) }
     $opts.multiRegionDeployment = @{ value = "true" }
 }
 

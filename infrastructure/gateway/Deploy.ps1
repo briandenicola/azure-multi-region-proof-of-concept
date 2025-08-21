@@ -37,7 +37,7 @@ for($i = 0; $i -lt $AllRegions.Length; $i++) {
     $AppGatewayName       = "{0}-{1}-gw" -f $ApplicationName, $region
 
     $vnetName            = "{0}-{1}-vnet"     -f $ApplicationName, $region
-    $vnetResourceGroup   = "{0}_{1}_infra_rg" -f $ApplicationName, $region
+    $vnetResourceGroup   = "{0}_{1}_vnet_rg" -f $ApplicationName, $region
 
     # Build parameters JSON for the deployment
     $opts = @{
