@@ -1,7 +1,8 @@
 resource "azurerm_container_app" "changefeedprocessor" {
   depends_on = [ 
     azurerm_key_vault_secret.cosmosdb_connection_string,
-    azurerm_key_vault_secret.app_insights_connection_string
+    azurerm_key_vault_secret.app_insights_connection_string,
+    azurerm_private_endpoint.key_vault,
   ]
   name                         = local.app_changefeedprocessor_name
   container_app_environment_id = data.azurerm_container_app_environment.this.id

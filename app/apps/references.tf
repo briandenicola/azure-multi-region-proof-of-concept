@@ -7,7 +7,7 @@ data "http" "myip" {
 
 data "azurerm_storage_account" "this" {
   name                = local.storage_name
-  resource_group_name = local.apps_rg_name
+  resource_group_name = local.infra_rg_name
 }
 
 data "azurerm_application_insights" "this" {
@@ -22,7 +22,7 @@ data "azurerm_log_analytics_workspace" "this" {
 
 data "azurerm_eventhub_namespace" "this" {
   name                = local.eventhub_namespace_name
-  resource_group_name = local.apps_rg_name
+  resource_group_name = local.infra_rg_name
 }
 
 data "azurerm_cosmosdb_account" "this" {

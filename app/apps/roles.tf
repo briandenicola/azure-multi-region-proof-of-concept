@@ -6,14 +6,14 @@ resource "azurerm_role_assignment" "acr_pull" {
 }
 
 resource "azurerm_role_assignment" "secrets" {
-  scope                            = data.azurerm_key_vault.this.id
+  scope                            = azurerm_key_vault.this.id
   role_definition_name             = "Key Vault Secrets User"
   principal_id                     = azurerm_user_assigned_identity.app_identity.principal_id
   skip_service_principal_aad_check = true
 }
 
 resource "azurerm_role_assignment" "certs" {
-  scope                            = data.azurerm_key_vault.this.id
+  scope                            = azurerm_key_vault.this.id
   role_definition_name             = "Key Vault Certificates Officer"
   principal_id                     = azurerm_user_assigned_identity.app_identity.principal_id
   skip_service_principal_aad_check = true
@@ -76,7 +76,7 @@ resource "azurerm_role_assignment" "azurerm_queue_account" {
 }
 
 resource "azurerm_role_assignment" "administrator" {
-  scope                = data.azurerm_key_vault.this.id
+  scope                = azurerm_key_vault.this.id
   role_definition_name = "Key Vault Administrator"
   principal_id         = data.azurerm_client_config.current.object_id
 }

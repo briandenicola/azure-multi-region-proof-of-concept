@@ -1,7 +1,8 @@
 resource "azurerm_container_app" "api" {
   depends_on = [ 
     azurerm_key_vault_secret.cosmosdb_connection_string,
-    azurerm_key_vault_secret.app_insights_connection_string
+    azurerm_key_vault_secret.app_insights_connection_string,
+    azurerm_private_endpoint.key_vault,
   ]
   
   name                         = local.app_api_name

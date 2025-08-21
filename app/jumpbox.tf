@@ -14,7 +14,7 @@ module "jumpbox" {
     }
     vnet = {
       name    = "${var.app_name}-${each.value}-vnet"
-      rg_name = "${var.app_name}_${each.value}_infra_rg"
+      rg_name = "${var.app_name}_${each.value}_vnet_rg"
     }
   }
 }
