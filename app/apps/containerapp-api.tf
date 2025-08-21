@@ -6,7 +6,7 @@ resource "azurerm_container_app" "api" {
   
   name                         = local.app_api_name
   container_app_environment_id = data.azurerm_container_app_environment.this.id
-  resource_group_name          = local.apps_rg_name
+  resource_group_name          = azurerm_resource_group.regional_apps.name
   revision_mode                = "Multiple"
   workload_profile_name        = local.workload_profile_name
 

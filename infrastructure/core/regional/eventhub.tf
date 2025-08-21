@@ -1,7 +1,7 @@
 resource "azurerm_eventhub_namespace" "this" {
   name                     = local.eventhub_namespace_name
-  location                 = azurerm_resource_group.regional_apps.location
-  resource_group_name      = azurerm_resource_group.regional_apps.name
+  location                 = azurerm_resource_group.regional_infra.location
+  resource_group_name      = azurerm_resource_group.regional_infra.name
   sku                      = "Standard"
   maximum_throughput_units = 5
   auto_inflate_enabled     = true
@@ -10,7 +10,7 @@ resource "azurerm_eventhub_namespace" "this" {
 resource "azurerm_monitor_diagnostic_setting" "eventhub" {
   name                       = "diag"
   target_resource_id         = azurerm_eventhub_namespace.this.id
-  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.cqrs.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
 
   enabled_log {
     category = "ArchiveLogs"
@@ -40,13 +40,13 @@ resource "azurerm_eventhub_consumer_group" "this" {
   name                = local.azurerm_eventhub_consumer_group_name
   namespace_name      = azurerm_eventhub_namespace.this.name
   eventhub_name       = azurerm_eventhub.this.name
-  resource_group_name = azurerm_resource_group.regional_apps.name
+  resource_group_name = azurerm_resource_group.regional_infra.name
 }
 
 resource "azurerm_private_endpoint" "eventhub" {
   name                = "${local.eventhub_namespace_name}-ep"
-  resource_group_name = azurerm_resource_group.regional_infra.name
-  location            = azurerm_resource_group.regional_infra.location
+  resource_group_name = azurerm_resource_group.regional_network.name
+  location            = azurerm_resource_group.regional_network.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {

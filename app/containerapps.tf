@@ -8,4 +8,6 @@ module "container_apps" {
   deploy_utils        = true
   use_cache           = var.use_cache
   ingress_domain_name = null
+  tags                = var.tags
+  authorized_ip_ranges = local.authorized_ip_ranges
 }

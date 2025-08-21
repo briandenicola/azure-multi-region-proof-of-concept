@@ -6,7 +6,7 @@ resource "azurerm_container_app" "eventprocessor" {
   
   name                         = local.app_eventprocessor_name 
   container_app_environment_id = data.azurerm_container_app_environment.this.id
-  resource_group_name          = local.apps_rg_name
+  resource_group_name          = azurerm_resource_group.regional_apps.name
   revision_mode                = "Single"
   workload_profile_name        = local.workload_profile_name
 

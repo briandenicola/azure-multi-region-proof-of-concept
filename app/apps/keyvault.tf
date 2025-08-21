@@ -1,22 +1,39 @@
-resource azurerm_key_vault_secret cosmosdb_connection_string {
-  depends_on = [ 
-    azurerm_role_assignment.administrator
-  ]
-  name         = local.COSMOSDB_CONNECTIONSTRING
-  value        = data.azurerm_cosmosdb_account.this.primary_sql_connection_string
-  key_vault_id = data.azurerm_key_vault.this.id
+
+resource "azurerm_key_vault" "this" {
+  name                       = local.kv_name
+  resource_group_name        = azurerm_resource_group.regional_apps.name
+  location                   = azurerm_resource_group.regional_apps.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+  enable_rbac_authorization  = true
+
+  sku_name = "standard"
+
+  network_acls {
+    bypass         = "AzureServices"
+    default_action = "Deny"
+    ip_rules       = [var.authorized_ip_ranges]
+  }
 }
 
-resource azurerm_key_vault_secret app_insights_connection_string {
-  depends_on = [ 
-    azurerm_role_assignment.administrator
-  ]
-  name         = local.APPINSIGHTS_CONNECTION_STRING
-  value        = data.azurerm_application_insights.this.connection_string
-  key_vault_id = data.azurerm_key_vault.this.id
-}
+resource "azurerm_private_endpoint" "key_vault" {
+  name                = "${local.kv_name}-ep"
+  resource_group_name = local.vnet_rg_name
+  location            = azurerm_resource_group.regional_apps.location
+  subnet_id           = data.azurerm_subnet.pe.id
 
-data "azurerm_key_vault" "this" {
-  name                = local.kv_name
-  resource_group_name = local.apps_rg_name
+  private_service_connection {
+    name                           = "${local.kv_name}-ep"
+    private_connection_resource_id = azurerm_key_vault.this.id
+    subresource_names              = ["vault"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "privatelink.vaultcore.azure.net"
+    private_dns_zone_ids = [
+      data.azurerm_private_dns_zone.privatelink_vaultcore_azure_net.id
+    ]
+  }
 }

@@ -21,7 +21,7 @@ resource "azapi_resource" "redis" {
 resource "azurerm_monitor_diagnostic_setting" "cache" {
   name                       = "${local.redis_name}-diag"
   target_resource_id         = azapi_resource.redis.id
-  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.cqrs.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
 
   enabled_metric {
     category = "AllMetrics"
@@ -30,8 +30,8 @@ resource "azurerm_monitor_diagnostic_setting" "cache" {
 
 resource "azurerm_private_endpoint" "cache" {
   name                = "${local.redis_name}-ep"
-  resource_group_name = azurerm_resource_group.regional_infra.name
-  location            = azurerm_resource_group.regional_infra.location
+  resource_group_name = azurerm_resource_group.regional_network.name
+  location            = azurerm_resource_group.regional_network.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {

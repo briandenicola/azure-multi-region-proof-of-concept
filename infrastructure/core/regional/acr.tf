@@ -5,8 +5,8 @@ data "azurerm_container_registry" "cqrs" {
 
 resource "azurerm_private_endpoint" "acr" {
   name                = "${local.acr_name}-ep"
-  resource_group_name = azurerm_resource_group.regional_infra.name
-  location            = azurerm_resource_group.regional_infra.location
+  resource_group_name = azurerm_resource_group.regional_network.name
+  location            = azurerm_resource_group.regional_network.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {

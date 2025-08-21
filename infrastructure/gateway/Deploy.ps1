@@ -14,7 +14,7 @@ param (
     [String]                $PFXPath,
     
     [Parameter(Mandatory = $true)]
-    [String]          $PFXPassword,
+    [String]                $PFXPassword,
 
     [Parameter(Mandatory = $true)]
     [String]                $BackendHostNames,
@@ -26,40 +26,52 @@ param (
 $AllRegions           = @($Regions | ConvertFrom-Json)
 $AllBackendHostNames  = @($BackendHostNames | ConvertFrom-Json)
 $AllAppGatewayUrls    = @($AppGatewayUrls | ConvertFrom-Json)
-
 $pfxEncoded           = [convert]::ToBase64String( (Get-Content -AsByteStream -Path $PFXPath) )
-$ResourceGroupName    = "{0}_appgw_rg" -f $ApplicationName
-$AppGatewayName       = "{0}-gw"       -f $ApplicationName
-$PFXEncodedPassword   = ConvertTo-SecureString -String $PFXPassword -AsPlainText -Force
 
-$opts = @{
-    Name                            = ("AppGateway-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
-    ResourceGroupName               = $ResourceGroupName
-    TemplateFile                    = (Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json")
-    appGatewayName                  = $AppGatewayName
-    domainCertificateData           = $pfxEncoded
-    domainCertificatePassword       = $PFXEncodedPassword
-    primaryBackendEndFQDN           = $AllBackendHostNames[0]
-    multiRegionDeployment           = $false
-    primaryVnetName                 = ("{0}-{1}-vnet" -f $ApplicationName, $AllRegions[0])
-    primaryVnetResourceGroup        = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[0])
-}
+for($i = 0; $i -lt $AllRegions.Length; $i++) {
+    $region               = $AllRegions[$i]
+    $ResourceGroupName    = "{0}_{1}_infra_rg" -f $ApplicationName, $region
+    $DeploymentName       = "AppGateway-Deployment-{0}-{1}" -f $region, $(Get-Date).ToString("yyyyMMddhhmmss")
+    $TemplateFilePath     = Join-Path -Path $PWD.Path -ChildPath "azuredeploy.json"
+    $ParameterFilePath    = Join-Path -Path $PWD.Path -ChildPath "params-$region.json"
+    $AppGatewayName       = "{0}-{1}-gw" -f $ApplicationName, $region
 
-if ($DeploymentType -eq "multiregion") {
-    if ($BackendHostNames.Length -eq 1 ) {
-        throw "Need to provide two Backend Host Names if using multiple regions..."
-        exit -1
+    $vnetName            = "{0}-{1}-vnet"     -f $ApplicationName, $region
+    $vnetResourceGroup   = "{0}_{1}_infra_rg" -f $ApplicationName, $region
+
+    # Build parameters JSON for the deployment
+    $opts = @{
+        appGatewayName              = @{ value = $AppGatewayName }
+        domainCertificateData       = @{ value = $pfxEncoded }
+        domainCertificatePassword   = @{ value = $PFXPassword }
+        backendEndFQDN              = @{ value = $AllBackendHostNames[$i] }
+        vnetName                    = @{ value = $vnetName }
+        vnetResourceGroup           = @{ value = $vnetResourceGroup }
     }
-    $opts.secondaryBackendEndFQDN = $AllBackendHostNames[1]
-    $opts.secondaryLocation  = $Regions[1]
-    $opts.secondaryVnetName  = ("{0}-{1}-vnet" -f $ApplicationName, $AllRegions[1])
-    $opts.secondaryVnetResourceGroup = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[1])
-    $opts.multiRegionDeployment = $true
-}
 
-$output = New-AzResourceGroupDeployment @opts -verbose
+    # Convert WAF parameters to JSON
+    $parameterFile = @{}
+    $parameterFile.'$schema' = "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#"
+    $parameterFile.contentVersion = "1.0.0.0"
+    $parameterFile.parameters = $opts
+    $parameterFile | ConvertTo-Json | Out-File -FilePath $ParameterFilePath -Encoding utf8
 
-if($?) {
-    Write-Verbose -Message ("Please create a `'A`' DNS Recording point `'{0}`' to `'{1}`'"  -f $AllAppGatewayUrls[0], $output.Outputs["primary IP Address"].Value)
-    if($DeploymentType -eq "multiregion") { Write-Verbose -Message ("Please create a `A` DNS Recording point `'{0}`' to `'{1}`'" -f $AllAppGatewayUrls[1], $output.Outputs["secondary IP Address"].Value) }
+    # Deploy using Azure CLI
+    Write-Host "Starting App Gateway deployment with Azure CLI..."
+    $deploymentResultJson = az deployment group create `
+        --name $DeploymentName `
+        --resource-group $ResourceGroupName `
+        --template-file $TemplateFilePath `
+        --parameters "@$ParameterFilePath" `
+        --verbose
+
+    if ($LASTEXITCODE -eq 0) {
+        $deploymentResult = $deploymentResultJson | ConvertFrom-Json
+        $outputs = $deploymentResult.properties.outputs
+
+        if ($outputs.PublicIPAddress) {
+            $PublicIP = $outputs.PublicIPAddress.value
+            Write-Host "Please create an 'A' DNS record pointing '$($AllAppGatewayUrls[$i])' to '$PublicIP'" -ForegroundColor Yellow
+        }
+    }
 }

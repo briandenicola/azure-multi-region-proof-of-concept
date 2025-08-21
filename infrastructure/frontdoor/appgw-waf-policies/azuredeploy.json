@@ -5,80 +5,23 @@
         "AzureFrontDoorID": {
             "type": "string"
         },
-        "appGatewayName": {
+        "AppGatewayName": {
             "type": "string"
         },
         "location": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]"
-        },
-        "secondaryLocation": {
-            "type": "string",
-            "defaultValue": "ukwest"
-        },
-        "multiRegionDeployment": {
-            "type": "string",
-            "defaultValue": "false"
         }
     },
     "variables": {
-        "ApplicationGatewayWebApplicationFirewallPolicyPrimaryName": "[concat( parameters('appGatewayName'), '-', parameters('location'), '-wafpolicy' )]",
-        "ApplicationGatewayWebApplicationFirewallPolicySecondaryName": "[concat( parameters('appGatewayName'), '-', parameters('secondaryLocation'), '-wafpolicy' )]"
+        "ApplicationGatewayWebApplicationFirewallPolicyName": "[concat( parameters('appGatewayName'), '-', parameters('location'), '-wafpolicy' )]"
     },
     "resources": [
         {
             "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
             "apiVersion": "2020-05-01",
-            "name": "[variables('ApplicationGatewayWebApplicationFirewallPolicyPrimaryName')]",
+            "name": "[variables('ApplicationGatewayWebApplicationFirewallPolicyName')]",
             "location": "[parameters('location')]",
-            "properties": {
-                "customRules": [
-                    {
-                        "name": "OnlyAllowFrontDoorAccess",
-                        "priority": 1,
-                        "ruleType": "MatchRule",
-                        "action": "Block",
-                        "matchConditions": [
-                            {
-                                "matchVariables": [
-                                    {
-                                        "variableName": "RequestHeaders",
-                                        "selector": "X-Azure-FDID"
-                                    }
-                                ],
-                                "operator": "Equal",
-                                "negationConditon": true,
-                                "matchValues": [
-                                    "[parameters('AzureFrontDoorID')]"
-                                ],
-                                "transforms": [
-                                    "Lowercase"
-                                ]
-                            }
-                        ]
-                    }
-                ],
-                "policySettings": {
-                    "mode": "Prevention"
-                },
-                "managedRules": {
-                    "managedRuleSets": [
-                        {
-                            "ruleSetType": "OWASP",
-                            "ruleSetVersion": "3.0",
-                            "ruleGroupOverrides": []
-                        }
-                    ],
-                    "exclusions": []
-                }
-            }
-        },
-        {
-            "condition": "[equals(parameters('multiRegionDeployment'),'True')]",
-            "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
-            "apiVersion": "2024-05-01",
-            "name": "[variables('ApplicationGatewayWebApplicationFirewallPolicySecondaryName')]",
-            "location": "[parameters('secondaryLocation')]",
             "properties": {
                 "customRules": [
                     {

@@ -4,9 +4,9 @@
 # Deploy Parameters Files
 infrastructure/apim/params.json
 infrastructure/frontdoor/params.json
-infrastructure/frontdoor/appgw-waf-policies/params.json
+infrastructure/frontdoor/appgw-waf-policies/params-*.json
 infrastructure/product/params.json
-infrastructure/gateway/params.json
+infrastructure/gateway/params-*.json
 
 #Build directory
 build

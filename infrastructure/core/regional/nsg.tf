@@ -1,8 +1,8 @@
 
 resource "azurerm_network_security_group" "this" {
   name                = local.nsg_name
-  location            = azurerm_resource_group.regional_infra.location
-  resource_group_name = azurerm_resource_group.regional_infra.name
+  location            = azurerm_resource_group.regional_network.location
+  resource_group_name = azurerm_resource_group.regional_network.name
 
   security_rule {
     name                       = "api_management"

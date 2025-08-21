@@ -155,7 +155,7 @@
         }
     ],
     "outputs": {
-        "Front Door ID": {
+        "FrontDoorID": {
             "type": "string",
             "value": "[reference(resourceId('Microsoft.Cdn/profiles', parameters('frontDoorName')), '2020-09-01', 'Full').properties.frontDoorId]"
         }

@@ -58,67 +58,119 @@ $ResourceGroupName = "{0}_global_rg" -f $ApplicationName
 $ApiMgmtName       = "{0}-apim" -f $ApplicationName
 $ManagementUris    = @("management", "portal", "developer", "management.scm")
 $pfxEncoded        = [convert]::ToBase64String( (Get-Content -AsByteStream -Path $PFXPath) ) 
-$PFXEncodedPassword = ConvertTo-SecureString -String $PFXPassword -AsPlainText -Force
 
+$deploymentName = "ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss")
+$templateFile = Join-Path -Path $PWD.Path -ChildPath ("azuredeploy.{0}-region.json" -f $DeploymentType)
+$primaryVnetName = "{0}-{1}-vnet" -f $ApplicationName, $AllRegions[0]
+$primaryVnetResourceGroup = "{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[0]
+
+# Build parameters JSON for the deployment
 $opts = @{
-    Name                            = ("ApiManagement-Deployment-{0}-{1}" -f $ResourceGroupName, $(Get-Date).ToString("yyyyMMddhhmmss"))
-    ResourceGroupName               = $ResourceGroupName
-    TemplateFile                    = (Join-Path -Path $PWD.Path -ChildPath ("azuredeploy.{0}-region.json" -f $DeploymentType))
-    apiManagementName               = $ApiMgmtName
-    customDomain                    = $ApimRootDomainName
-    customDomainCertificateData     = $pfxEncoded
-    customDomainCertificatePassword = $PFXEncodedPassword
-    primaryProxyFQDN                = $AllApimGatewayUrls[0]
-    multiRegionDeployment           = $false
-    primaryVnetName                 = ("{0}-{1}-vnet"     -f $ApplicationName, $AllRegions[0])
-    primaryVnetResourceGroup        = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[0])
+    apiManagementName = @{ value = $ApiMgmtName }
+    customDomain = @{ value = $ApimRootDomainName }
+    customDomainCertificateData = @{ value = $pfxEncoded }
+    customDomainCertificatePassword = @{ value = $PFXPassword }
+    primaryProxyFQDN = @{ value = $AllApimGatewayUrls[0] }
+    multiRegionDeployment = @{ value = "false" }
+    primaryVnetName = @{ value = $primaryVnetName }
+    primaryVnetResourceGroup = @{ value = $primaryVnetResourceGroup }
 }
 
 if ($DeploymentType -eq "multiregion")
 {
-    if ($ApimProxies.Length -eq 1 ) 
+    if ($AllApimGatewayUrls.Length -eq 1 ) 
     {
         throw "Need to provide two Backend Host Names if using multiple regions..."
         exit -1
     }
-    $opts.secondaryLocation  = $Regions[1]
-    $opts.secondaryProxyFQDN = $AllApimGatewayUrls[1]
-    $opts.secondaryVnetName  =  ("{0}-{1}-vnet" -f $ApplicationName, $AllRegions[1])
-    $opts.secondaryVnetResourceGroup = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[1])
-    $opts.multiRegionDeployment = $true
+    $opts.secondaryLocation = @{ value = $AllRegions[1] }
+    $opts.secondaryProxyFQDN = @{ value = $AllApimGatewayUrls[1] }
+    $opts.secondaryVnetName = @{ value = ("{0}-{1}-vnet" -f $ApplicationName, $AllRegions[1]) }
+    $opts.secondaryVnetResourceGroup = @{ value = ("{0}_{1}_infra_rg" -f $ApplicationName, $AllRegions[1]) }
+    $opts.multiRegionDeployment = @{ value = "true" }
 }
 
-New-AzResourceGroupDeployment @opts -verbose
+# Convert parameters to JSON
+$parameterFile = @{}
+$parameterFile.'$schema' = "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#"
+$parameterFile.contentVersion = "1.0.0.0"
+$parameterFile.parameters = $opts
+$parameterFile | ConvertTo-Json | Out-File -FilePath "params.json" -Encoding utf8
 
-if ($?) 
+# Deploy using Azure CLI
+Write-Host "Starting APIM deployment with Azure CLI..."
+az deployment group create `
+    --name "$deploymentName" `
+    --resource-group $ResourceGroupName `
+    --template-file $templateFile `
+    --parameters "@params.json" `
+    --verbose
+
+if ($LASTEXITCODE -eq 0) 
 {
+    Write-Host "Deployment successful. Setting up DNS records..."
 
-    $apim                   = Get-AzApiManagement -ResourceGroupName $ResourceGroupName -n $ApiMgmtName
-    $primaryRegion          = Get-AzureRegion $apim.Location
-    $primaryResourceGroup   = "{0}_{1}_infra_rg" -f $ApplicationName, $primaryRegion
+    # Get APIM details using Azure CLI
+    $apimJson = az apim show --name $ApiMgmtName --resource-group $ResourceGroupName --output json
+    $apim = $apimJson | ConvertFrom-Json
+    
+    $primaryRegion = Get-AzureRegion $apim.location
+    $primaryResourceGroup = "{0}_{1}_dns_zones_rg" -f $ApplicationName, $primaryRegion
+    $primaryPrivateIP = $apim.privateIPAddresses[0]
 
-    foreach ( $uri in $ApimGatewayUrls ) 
+    # Create DNS records for gateway URLs
+    foreach ( $uri in $AllApimGatewayUrls ) 
     {
         $h = Get-HostName -Uri $uri -RootDomain $DNSZone
-        $ip = New-AzPrivateDnsRecordConfig -IPv4Address $apim.PrivateIPAddresses[0]
-        New-AzPrivateDnsRecordSet -Name $h -RecordType A -ZoneName $DNSZone  -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
+        Write-Host "Creating DNS record for $h -> $primaryPrivateIP"
+        
+        az network private-dns record-set a add-record `
+            --record-set-name $h `
+            --zone-name $DNSZone `
+            --resource-group $primaryResourceGroup `
+            --ipv4-address $primaryPrivateIP 
     }
 
+    # Create DNS records for management URIs
     foreach ( $uri in $ManagementUris ) 
     {
-        $h = Get-HostName -Uri ("{0}.{1}" -f $uri, $ApimRootDomainName) -RootDomain $DNSZone
-        $ip = New-AzPrivateDnsRecordConfig -IPv4Address $apim.PrivateIPAddresses[0]
-        New-AzPrivateDnsRecordSet -Name $h -RecordType A -ZoneName $DNSZone -ResourceGroupName $primaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip
+        $fullUri = "{0}.{1}" -f $uri, $ApimRootDomainName
+        $h = Get-HostName -Uri $fullUri -RootDomain $DNSZone
+        Write-Host "Creating DNS record for $h -> $primaryPrivateIP"
+        
+        az network private-dns record-set a add-record `
+            --record-set-name $h `
+            --zone-name $DNSZone `
+            --resource-group $primaryResourceGroup `
+            --ipv4-address $primaryPrivateIP 
     }
 
-    foreach ($region in $apim.AdditionalRegions) 
+    # Handle additional regions for multi-region deployment
+    if ($apim.additionalLocations -and $apim.additionalLocations.Count -gt 0) 
     {
-        $secondaryResourceGroup = "{0}_{1}_infra_rg" -f $ApplicationName, (Get-AzureRegion -location $region.Location)        
-        foreach ( $uri in $AllApimGatewayUrls ) 
+        foreach ($region in $apim.additionalLocations) 
         {
-            $h = Get-HostName -Uri $uri -RootDomain $DNSZone
-            $ip = New-AzPrivateDnsRecordConfig -IPv4Address $region.PrivateIPAddresses[0]
-            New-AzPrivateDnsRecordSet -Name $h -RecordType A -ZoneName $DNSZone -ResourceGroupName $secondaryResourceGroup -Ttl 3600 -PrivateDnsRecords $ip            
+            $secondaryResourceGroup = "{0}_{1}_dns_zones_rg" -f $ApplicationName, (Get-AzureRegion -location $region.location)
+            $secondaryPrivateIP = $region.privateIPAddresses[0]
+            
+            foreach ( $uri in $AllApimGatewayUrls ) 
+            {
+                $h = Get-HostName -Uri $uri -RootDomain $DNSZone
+                Write-Host "Creating DNS record for $h -> $secondaryPrivateIP in secondary region"
+                
+                az network private-dns record-set a add-record `
+                    --record-set-name $h `
+                    --zone-name $DNSZone `
+                    --resource-group $secondaryResourceGroup `
+                    --ipv4-address $secondaryPrivateIP 
+            }
         }
     }
+    
+    Write-Host "DNS setup completed successfully!"
+}
+else 
+{
+    Write-Error "Deployment failed. Exit code: $LASTEXITCODE"
+    exit $LASTEXITCODE
 }
