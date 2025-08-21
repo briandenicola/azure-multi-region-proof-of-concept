@@ -1,4 +1,4 @@
-resource "azurerm_resource_group" "cqrs_global" {
+resource "azurerm_resource_group" "global" {
   name     = local.rg_name
   location = element(var.locations, 0)
 
@@ -10,8 +10,8 @@ resource "azurerm_resource_group" "cqrs_global" {
   }
 }
 
-resource "azurerm_resource_group" "cqrs_appgw" {
-  count               = var.deploying_externally ? 1 : 0
+resource "azurerm_resource_group" "app_gw" {
+  count    = var.deploying_externally ? 1 : 0
   name     = local.appgw_rg_name
   location = element(var.locations, 0)
 
@@ -23,8 +23,8 @@ resource "azurerm_resource_group" "cqrs_appgw" {
   }
 }
 
-resource "azurerm_resource_group" "cqrs_ui" {
-  count               = var.deploying_externally ? 1 : 0
+resource "azurerm_resource_group" "app_ui" {
+  count    = var.deploying_externally ? 1 : 0
   name     = local.ui_rg_name
   location = element(var.locations, 0)
 

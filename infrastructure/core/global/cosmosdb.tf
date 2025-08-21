@@ -1,7 +1,7 @@
-resource "azurerm_cosmosdb_account" "cqrs" {
+resource "azurerm_cosmosdb_account" "this" {
   name                             = local.db_name
-  resource_group_name              = azurerm_resource_group.cqrs_global.name
-  location                         = azurerm_resource_group.cqrs_global.location
+  resource_group_name              = azurerm_resource_group.global.name
+  location                         = azurerm_resource_group.global.location
   offer_type                       = "Standard"
   kind                             = "GlobalDocumentDB"
   automatic_failover_enabled       = true
@@ -25,28 +25,28 @@ resource "azurerm_cosmosdb_account" "cqrs" {
   }
 }
 
-resource "azurerm_cosmosdb_sql_database" "cqrs" {
-  depends_on          = [azurerm_cosmosdb_account.cqrs]
+resource "azurerm_cosmosdb_sql_database" "keys" {
+  depends_on          = [azurerm_cosmosdb_account.this]
   name                = local.cosmosdb_database_name
-  resource_group_name = azurerm_cosmosdb_account.cqrs.resource_group_name
-  account_name        = azurerm_cosmosdb_account.cqrs.name
+  resource_group_name = azurerm_cosmosdb_account.this.resource_group_name
+  account_name        = azurerm_cosmosdb_account.this.name
   throughput          = 400
 }
 
-resource "azurerm_cosmosdb_sql_container" "cqrs" {
-  depends_on          = [azurerm_cosmosdb_sql_database.cqrs]
+resource "azurerm_cosmosdb_sql_container" "items" {
+  depends_on          = [azurerm_cosmosdb_sql_database.keys]
   name                = local.cosmosdb_collections_name
-  resource_group_name = azurerm_cosmosdb_account.cqrs.resource_group_name
-  account_name        = azurerm_cosmosdb_account.cqrs.name
-  database_name       = azurerm_cosmosdb_sql_database.cqrs.name
+  resource_group_name = azurerm_cosmosdb_account.this.resource_group_name
+  account_name        = azurerm_cosmosdb_account.this.name
+  database_name       = azurerm_cosmosdb_sql_database.keys.name
   partition_key_paths = ["/keyId"]
   throughput          = 400
 }
 
 resource "azurerm_monitor_diagnostic_setting" "cosmos" {
   name                       = "diag"
-  target_resource_id         = azurerm_cosmosdb_account.cqrs.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.cqrs.id
+  target_resource_id         = azurerm_cosmosdb_account.this.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 
   enabled_log {
     category = "DataPlaneRequests"

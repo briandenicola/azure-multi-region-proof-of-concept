@@ -3,8 +3,8 @@ resource "azurerm_container_app_environment" "env" {
     azurerm_subnet.nodes
   ]
   name                                        = local.aca_name
-  resource_group_name                         = azurerm_resource_group.cqrs_region.name
-  location                                    = azurerm_resource_group.cqrs_region.location
+  resource_group_name                         = azurerm_resource_group.regional_infra.name
+  location                                    = azurerm_resource_group.regional_infra.location
   infrastructure_resource_group_name          = "${local.aca_name}_nodes_rg"
   infrastructure_subnet_id                    = azurerm_subnet.nodes.id
   internal_load_balancer_enabled              = true

@@ -1,8 +1,8 @@
 
-resource "azurerm_network_security_group" "cqrs" {
+resource "azurerm_network_security_group" "this" {
   name                = local.nsg_name
-  location            = azurerm_resource_group.cqrs_region.location
-  resource_group_name = azurerm_resource_group.cqrs_region.name
+  location            = azurerm_resource_group.regional_infra.location
+  resource_group_name = azurerm_resource_group.regional_infra.name
 
   security_rule {
     name                       = "api_management"
@@ -19,35 +19,35 @@ resource "azurerm_network_security_group" "cqrs" {
 
 resource "azurerm_subnet_network_security_group_association" "databricks_private_subnet" {
   subnet_id                 = azurerm_subnet.databricks_private.id
-  network_security_group_id = azurerm_network_security_group.cqrs.id
+  network_security_group_id = azurerm_network_security_group.this.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "apim_subnet" {
   subnet_id                 = azurerm_subnet.APIM.id
-  network_security_group_id = azurerm_network_security_group.cqrs.id
+  network_security_group_id = azurerm_network_security_group.this.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "databricks_public_subnet" {
   subnet_id                 = azurerm_subnet.databricks_public.id
-  network_security_group_id = azurerm_network_security_group.cqrs.id
+  network_security_group_id = azurerm_network_security_group.this.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "private_endpoints_subnet" {
   subnet_id                 = azurerm_subnet.private_endpoints.id
-  network_security_group_id = azurerm_network_security_group.cqrs.id
+  network_security_group_id = azurerm_network_security_group.this.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "nodes_subnet" {
   subnet_id                 = azurerm_subnet.nodes.id
-  network_security_group_id = azurerm_network_security_group.cqrs.id
+  network_security_group_id = azurerm_network_security_group.this.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "appgw_subnet" {
   subnet_id                 = azurerm_subnet.AppGateway.id
-  network_security_group_id = azurerm_network_security_group.cqrs.id
+  network_security_group_id = azurerm_network_security_group.this.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "compute_subnet" {
   subnet_id                 = azurerm_subnet.compute.id
-  network_security_group_id = azurerm_network_security_group.cqrs.id
+  network_security_group_id = azurerm_network_security_group.this.id
 }

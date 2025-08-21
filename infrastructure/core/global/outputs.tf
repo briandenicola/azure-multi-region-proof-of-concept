@@ -1,9 +1,9 @@
 output "ACR_NAME" {
-  value = azurerm_container_registry.cqrs.name
+  value = azurerm_container_registry.this.name
 }
 
 output "COSMOSDB_NAME" {
-  value = azurerm_cosmosdb_account.cqrs.name
+  value = azurerm_cosmosdb_account.this.name
 }
 
 output "AZURE_STATIC_WEBAPP_NAME" {

@@ -5,8 +5,8 @@ data "azurerm_cosmosdb_account" "cqrs" {
 
 resource "azurerm_private_endpoint" "cosmosdb" {
   name                = "${local.db_name}-ep"
-  resource_group_name = azurerm_resource_group.cqrs_region.name
-  location            = azurerm_resource_group.cqrs_region.location
+  resource_group_name = azurerm_resource_group.regional_infra.name
+  location            = azurerm_resource_group.regional_infra.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {

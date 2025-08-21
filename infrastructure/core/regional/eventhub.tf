@@ -1,7 +1,7 @@
-resource "azurerm_eventhub_namespace" "cqrs" {
+resource "azurerm_eventhub_namespace" "this" {
   name                     = local.eventhub_namespace_name
-  location                 = azurerm_resource_group.cqrs_apps.location
-  resource_group_name      = azurerm_resource_group.cqrs_apps.name
+  location                 = azurerm_resource_group.regional_apps.location
+  resource_group_name      = azurerm_resource_group.regional_apps.name
   sku                      = "Standard"
   maximum_throughput_units = 5
   auto_inflate_enabled     = true
@@ -9,7 +9,7 @@ resource "azurerm_eventhub_namespace" "cqrs" {
 
 resource "azurerm_monitor_diagnostic_setting" "eventhub" {
   name                       = "diag"
-  target_resource_id         = azurerm_eventhub_namespace.cqrs.id
+  target_resource_id         = azurerm_eventhub_namespace.this.id
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.cqrs.id
 
   enabled_log {
@@ -24,34 +24,34 @@ resource "azurerm_monitor_diagnostic_setting" "eventhub" {
     category = "AutoScaleLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
 
-resource "azurerm_eventhub" "cqrs" {
+resource "azurerm_eventhub" "this" {
   name              = local.eventhub_name
-  namespace_id      = azurerm_eventhub_namespace.cqrs.id
+  namespace_id      = azurerm_eventhub_namespace.this.id
   partition_count   = 15
   message_retention = 7
 }
 
-resource "azurerm_eventhub_consumer_group" "cqrs" {
+resource "azurerm_eventhub_consumer_group" "this" {
   name                = local.azurerm_eventhub_consumer_group_name
-  namespace_name      = azurerm_eventhub_namespace.cqrs.name
-  eventhub_name       = azurerm_eventhub.cqrs.name
-  resource_group_name = azurerm_resource_group.cqrs_apps.name
+  namespace_name      = azurerm_eventhub_namespace.this.name
+  eventhub_name       = azurerm_eventhub.this.name
+  resource_group_name = azurerm_resource_group.regional_apps.name
 }
 
 resource "azurerm_private_endpoint" "eventhub" {
   name                = "${local.eventhub_namespace_name}-ep"
-  resource_group_name = azurerm_resource_group.cqrs_region.name
-  location            = azurerm_resource_group.cqrs_region.location
+  resource_group_name = azurerm_resource_group.regional_infra.name
+  location            = azurerm_resource_group.regional_infra.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {
     name                           = "${local.eventhub_namespace_name}-ep"
-    private_connection_resource_id = azurerm_eventhub_namespace.cqrs.id
+    private_connection_resource_id = azurerm_eventhub_namespace.this.id
     subresource_names              = ["namespace"]
     is_manual_connection           = false
   }

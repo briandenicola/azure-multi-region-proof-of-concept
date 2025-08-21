@@ -1,7 +1,7 @@
-resource "azurerm_container_registry" "cqrs" {
+resource "azurerm_container_registry" "this" {
   name                     = local.acr_name
-  resource_group_name      = azurerm_resource_group.cqrs_global.name
-  location                 = azurerm_resource_group.cqrs_global.location
+  resource_group_name      = azurerm_resource_group.global.name
+  location                 = azurerm_resource_group.global.location
   sku                      = "Premium"
   admin_enabled            = false
   data_endpoint_enabled    = true 
@@ -25,8 +25,8 @@ resource "azurerm_container_registry" "cqrs" {
 
 resource "azurerm_monitor_diagnostic_setting" "acr" {
   name                        = "diag"
-  target_resource_id          = azurerm_container_registry.cqrs.id
-  log_analytics_workspace_id  = azurerm_log_analytics_workspace.cqrs.id
+  target_resource_id          = azurerm_container_registry.this.id
+  log_analytics_workspace_id  = azurerm_log_analytics_workspace.this.id
 
   enabled_log {
     category = "ContainerRegistryRepositoryEvents"
@@ -36,7 +36,7 @@ resource "azurerm_monitor_diagnostic_setting" "acr" {
     category = "ContainerRegistryLoginEvents"
   }
   
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }

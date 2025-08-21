@@ -98,8 +98,8 @@ Initializing provider plugins...
 - Installed hashicorp/azurerm v4.18.0 (signed by HashiCorp)
 - Installing azure/azapi v2.2.0...
 ...
-module.container_apps["canadacentral"].data.azurerm_eventhub_namespace.cqrs: Read complete after 2s [id=/subscriptions/69dafa76-bad9-48a7-a96a-e1f25830a5b0/resourceGroups/pipefish-47182_canadacentral_apps_rg/providers/Microsoft.EventHub/namespaces/pipefish-47182-canadacentral-eventhubs]
-module.container_apps["canadacentral"].data.azurerm_cosmosdb_account.cqrs: Read complete after 2s [id=/subscriptions/69dafa76-bad9-48a7-a96a-e1f25830a5b0/resourceGroups/pipefish-47182_global_rg/providers/Microsoft.DocumentDB/databaseAccounts/pipefish-47182-cosmosdb]
+module.container_apps["canadacentral"].data.azurerm_eventhub_namespace.this: Read complete after 2s [id=/subscriptions/69dafa76-bad9-48a7-a96a-e1f25830a5b0/resourceGroups/pipefish-47182_canadacentral_apps_rg/providers/Microsoft.EventHub/namespaces/pipefish-47182-canadacentral-eventhubs]
+module.container_apps["canadacentral"].data.azurerm_cosmosdb_account.this: Read complete after 2s [id=/subscriptions/69dafa76-bad9-48a7-a96a-e1f25830a5b0/resourceGroups/pipefish-47182_global_rg/providers/Microsoft.DocumentDB/databaseAccounts/pipefish-47182-cosmosdb]
 
 Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
   + create

@@ -7,5 +7,5 @@ output "AZURE_CONTAINER_APP_STATIC_IP" {
 }
 
 output "AZURE_REDIS_CLUSTER_DATABASE_ID" {
-  value = azapi_resource.cqrs.id
+  value = azapi_resource.redis.id
 }

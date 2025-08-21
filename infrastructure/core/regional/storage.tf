@@ -1,7 +1,7 @@
-resource "azurerm_storage_account" "cqrs" {
+resource "azurerm_storage_account" "this" {
   name                     = local.storage_name
-  resource_group_name      = azurerm_resource_group.cqrs_apps.name
-  location                 = azurerm_resource_group.cqrs_apps.location
+  resource_group_name      = azurerm_resource_group.regional_apps.name
+  location                 = azurerm_resource_group.regional_apps.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
@@ -9,13 +9,13 @@ resource "azurerm_storage_account" "cqrs" {
 
 resource "azurerm_private_endpoint" "blob_endpoint" {
   name                = "${local.storage_name}-blob-ep"
-  resource_group_name = azurerm_resource_group.cqrs_region.name
-  location            = azurerm_resource_group.cqrs_region.location
+  resource_group_name = azurerm_resource_group.regional_infra.name
+  location            = azurerm_resource_group.regional_infra.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {
     name                           = "${local.storage_name}-blob-ep"
-    private_connection_resource_id = azurerm_storage_account.cqrs.id
+    private_connection_resource_id = azurerm_storage_account.this.id
     subresource_names              = ["blob"]
     is_manual_connection           = false
   }
@@ -28,13 +28,13 @@ resource "azurerm_private_endpoint" "blob_endpoint" {
 
 resource "azurerm_private_endpoint" "file_endpoint" {
   name                = "${local.storage_name}-file-ep"
-  resource_group_name = azurerm_resource_group.cqrs_region.name
-  location            = azurerm_resource_group.cqrs_region.location
+  resource_group_name = azurerm_resource_group.regional_infra.name
+  location            = azurerm_resource_group.regional_infra.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {
     name                           = "${local.storage_name}-file-ep"
-    private_connection_resource_id = azurerm_storage_account.cqrs.id
+    private_connection_resource_id = azurerm_storage_account.this.id
     subresource_names              = ["file"]
     is_manual_connection           = false
   }
@@ -47,13 +47,13 @@ resource "azurerm_private_endpoint" "file_endpoint" {
 
 resource "azurerm_private_endpoint" "table_endpoint" {
   name                = "${local.storage_name}-table-ep"
-  resource_group_name = azurerm_resource_group.cqrs_region.name
-  location            = azurerm_resource_group.cqrs_region.location
+  resource_group_name = azurerm_resource_group.regional_infra.name
+  location            = azurerm_resource_group.regional_infra.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {
     name                           = "${local.storage_name}-table-ep"
-    private_connection_resource_id = azurerm_storage_account.cqrs.id
+    private_connection_resource_id = azurerm_storage_account.this.id
     subresource_names              = ["table"]
     is_manual_connection           = false
   }
@@ -66,13 +66,13 @@ resource "azurerm_private_endpoint" "table_endpoint" {
 
 resource "azurerm_private_endpoint" "queue_endpoint" {
   name                = "${local.storage_name}-queue-ep"
-  resource_group_name = azurerm_resource_group.cqrs_region.name
-  location            = azurerm_resource_group.cqrs_region.location
+  resource_group_name = azurerm_resource_group.regional_infra.name
+  location            = azurerm_resource_group.regional_infra.location
   subnet_id           = azurerm_subnet.private_endpoints.id
 
   private_service_connection {
     name                           = "${local.storage_name}-queue-ep"
-    private_connection_resource_id = azurerm_storage_account.cqrs.id
+    private_connection_resource_id = azurerm_storage_account.this.id
     subresource_names              = ["queue"]
     is_manual_connection           = false
   }

@@ -1,4 +1,4 @@
-resource "azurerm_redis_enterprise_database" "cqrs" {
+resource "azurerm_redis_enterprise_database" "this" {
   depends_on = [
     module.global_resources, module.regional_resources
   ]

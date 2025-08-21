@@ -1,5 +1,5 @@
 
-resource "azurerm_resource_group" "cqrs_vm" {
+resource "azurerm_resource_group" "vm" {
   name     = var.vm.resource_group_name
   location = var.vm.location
   tags = {
@@ -12,7 +12,7 @@ resource "azurerm_resource_group" "cqrs_vm" {
 
 resource "azurerm_user_assigned_identity" "this" {
   depends_on = [ 
-    azurerm_resource_group.cqrs_vm
+    azurerm_resource_group.vm
   ]
 
   name                = "${var.vm.name}-identity"
@@ -22,7 +22,7 @@ resource "azurerm_user_assigned_identity" "this" {
 
 resource "azurerm_network_interface" "this" {
   depends_on = [ 
-    azurerm_resource_group.cqrs_vm
+    azurerm_resource_group.vm
   ]
 
   name                = "${var.vm.name}-nic"
@@ -38,7 +38,7 @@ resource "azurerm_network_interface" "this" {
 
 resource "azurerm_linux_virtual_machine" "this" {
   depends_on = [ 
-    azurerm_resource_group.cqrs_vm
+    azurerm_resource_group.vm
   ]
 
   name                = "${var.vm.name}-linux"

@@ -4,12 +4,12 @@ Testing
 
 # Steps
 ```bash
-➜  cqrs git:(main) ✗ task validate
+➜  git:(main) ✗ task validate
 task: [validate] pwsh ./validate.ps1 -DomainName bjd.demo -ResoureGroupName "pipefish-47182_canadacentral_apps_rg"
 ....
 Running arbitrary commands with options is not supported by 'az containerapp exec'.
 53
-Copy and past the following curl commands to validate the CQRS application.
+Copy and past the following curl commands to validate the application.
 curl -s https://api.ingress.bjd.demo/healthz
 curl -s --header "Content-Type: application/json" --data '{"NumberOfKeys":10}' https://api.ingress.bjd.demo/api/keys | jq
 

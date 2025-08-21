@@ -74,7 +74,7 @@ resource "azurerm_container_app" "eventprocessor" {
 
       env {
         name  = "AzureWebJobsStorage__accountName"
-        value = data.azurerm_storage_account.cqrs.name
+        value = data.azurerm_storage_account.this.name
       }
 
       env {
@@ -87,17 +87,17 @@ resource "azurerm_container_app" "eventprocessor" {
       }
       env {
         name  = "AzureWebJobsStorage__queueServiceUri"
-        value = data.azurerm_storage_account.cqrs.primary_queue_endpoint
+        value = data.azurerm_storage_account.this.primary_queue_endpoint
       }
 
       env {
         name  = "AzureWebJobsStorage__tableServiceUri"
-        value = data.azurerm_storage_account.cqrs.primary_table_endpoint
+        value = data.azurerm_storage_account.this.primary_table_endpoint
       }
 
       env {
         name  = "AzureWebJobsStorage__blobServiceUri"
-        value = data.azurerm_storage_account.cqrs.primary_blob_endpoint
+        value = data.azurerm_storage_account.this.primary_blob_endpoint
       }     
     }
 

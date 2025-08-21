@@ -1,6 +1,6 @@
 resource "azurerm_bastion_host" "this" {
   depends_on = [ 
-    azurerm_resource_group.cqrs_vm
+    azurerm_resource_group.vm
   ]
 
   name                = "${var.vm.app_name}-bastion"
