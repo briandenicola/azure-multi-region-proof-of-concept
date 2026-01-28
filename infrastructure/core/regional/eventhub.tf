@@ -10,7 +10,7 @@ resource "azurerm_eventhub_namespace" "this" {
 resource "azurerm_monitor_diagnostic_setting" "eventhub" {
   name                       = "diag"
   target_resource_id         = azurerm_eventhub_namespace.this.id
-  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
 
   enabled_log {
     category = "ArchiveLogs"

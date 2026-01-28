@@ -1,8 +1,3 @@
-data "azurerm_cosmosdb_account" "cqrs" {
-  name                = local.db_name
-  resource_group_name = local.global_rg_name
-}
-
 resource "azurerm_private_endpoint" "cosmosdb" {
   name                = "${local.db_name}-ep"
   resource_group_name = azurerm_resource_group.regional_network.name
@@ -11,7 +6,7 @@ resource "azurerm_private_endpoint" "cosmosdb" {
 
   private_service_connection {
     name                           = "${local.db_name}-ep"
-    private_connection_resource_id = data.azurerm_cosmosdb_account.cqrs.id
+    private_connection_resource_id = var.cosmosdb_account_id
     subresource_names              = ["sql"]
     is_manual_connection           = false
   }

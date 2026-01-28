@@ -9,8 +9,8 @@ resource "azurerm_container_app_environment" "env" {
   infrastructure_subnet_id                    = azurerm_subnet.nodes.id
   internal_load_balancer_enabled              = true
   zone_redundancy_enabled                     = false
-  log_analytics_workspace_id                  = data.azurerm_log_analytics_workspace.this.id
-  dapr_application_insights_connection_string = data.azurerm_application_insights.this.connection_string
+  log_analytics_workspace_id                  = var.log_analytics_workspace_id
+  dapr_application_insights_connection_string = var.app_insights_connection_string
   mutual_tls_enabled                          = true
 
   workload_profile {

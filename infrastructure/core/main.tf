@@ -27,14 +27,17 @@ module "regional_resources" {
   depends_on = [
     module.global_resources
   ]
-  for_each              = toset(var.locations)
-  source                = "./regional"
-  location              = each.value
-  primary_location      = element(var.locations, 0)
-  app_name              = local.resource_name
-  custom_domain         = var.custom_domain
-  certificate_file_path = var.certificate_file_path
-  certificate_password  = var.certificate_password
-  authorized_ip_ranges  = local.authorized_ip_ranges
-  tags                  = var.tags
+  for_each                       = toset(var.locations)
+  source                         = "./regional"
+  location                       = each.value
+  primary_location               = element(var.locations, 0)
+  app_name                       = local.resource_name
+  custom_domain                  = var.custom_domain
+  certificate_file_path          = var.certificate_file_path
+  certificate_password           = var.certificate_password
+  authorized_ip_ranges           = local.authorized_ip_ranges
+  tags                           = var.tags
+  app_insights_connection_string = module.global_resources.APP_INSIGHTS_CONNECTION_STRING
+  log_analytics_workspace_id     = module.global_resources.LOG_ANALYTICS_WORKSPACE_ID
+  cosmosdb_account_id            = module.global_resources.COSMOSDB_ACCOUNT_ID
 }

@@ -29,3 +29,15 @@ variable "certificate_password" {
 variable "authorized_ip_ranges" {
   description = "The IP ranges that are allowed to access the Azure resources"
 }
+
+variable "app_insights_connection_string" {
+  description = "The Application Insights connection string from the global resources"
+}
+
+variable "log_analytics_workspace_id" {
+  description = "The Log Analytics Workspace ID from the global resources"
+}
+
+variable "cosmosdb_account_id" {
+  description = "The CosmosDB Account ID from the global resources"
+}
